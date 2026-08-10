@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}My trips{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>My trips</h1>
+      <p class="muted">All the trips you have saved.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'planner' %}">+ New trip</a>
+  </div>
+
+  <div class="card-grid">
+    {% for trip in trips %}
+      <article class="card">
+        <div class="card-body">
+          <h3>{{ trip.title }}</h3>
+          <p class="muted small">
+            {{ trip.travel_date }}{% if trip.return_date %} to {{ trip.return_date }}{% endif %}
+          </p>
+          <div class="card-meta">
+            <span class="tag">{{ trip.travelers }} traveller{{ trip.travelers|pluralize }}</span>
+            <span class="tag">{{ trip.days }} day{{ trip.days|pluralize }}</span>
+            <span class="tag">{{ trip.transportation.name }}</span>
+            <span class="tag">{{ trip.distance_km }} km (est.)</span>
+          </div>
+          {% if trip.cost %}
+            <p class="price">Rs {{ trip.cost.total_cost|floatformat:0 }} <span class="muted small">estimated total</span></p>
+          {% endif %}
+          <div class="card-actions">
+            <a class="btn btn-outline btn-sm" href="{% url 'trip_detail' trip.pk %}">View</a>
+            <a class="btn btn-ghost btn-sm" href="{% url 'trip_edit' trip.pk %}">Edit</a>
+            <form method="post" action="{% url 'trip_delete' trip.pk %}" class="inline-form"
+                  onsubmit="return confirm('Delete this trip? This cannot be undone.');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <div class="panel">
+        <h3>No trips saved yet</h3>
+        <p class="muted">Use the planner to create your first trip.</p>
+        <a class="btn btn-primary" href="{% url 'planner' %}">Plan a trip</a>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

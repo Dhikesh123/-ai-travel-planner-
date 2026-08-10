@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}AI Travel Planner &amp; Smart Trip Assistant{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <span class="pill">AI powered &middot; English &amp; Telugu</span>
+      <h1>Plan your next trip in minutes</h1>
+      <p>
+        Tell us where you are starting from, where you want to go, how many
+        people are travelling and for how many days. We build a day-by-day
+        plan and an estimated budget instantly.
+      </p>
+      <div class="hero-actions">
+        {% if user.is_authenticated %}
+          <a class="btn btn-primary btn-lg" href="{% url 'planner' %}">Plan a trip</a>
+          <a class="btn btn-outline btn-lg" href="{% url 'chatbot' %}">Ask the AI</a>
+        {% else %}
+          <a class="btn btn-primary btn-lg" href="{% url 'register' %}">Get started free</a>
+          <a class="btn btn-outline btn-lg" href="{% url 'login' %}">Login</a>
+        {% endif %}
+      </div>
+      <p class="small muted estimate-note">
+        Sample route: <strong>Pune &rarr; Mumbai</strong>, 2 travellers, 3 days, by car.
+        All figures shown are demonstration estimates.
+      </p>
+    </div>
+
+    <div class="hero-card">
+      <h3>Quick trip search</h3>
+      <form method="get" action="{% url 'destination_list' %}" class="stack">
+        <label>
+          Where do you want to go?
+          <input type="text" name="q" placeholder="e.g. Mumbai, Goa, Jaipur">
+        </label>
+        <label>
+          What kind of places?
+          <select name="category">
+            <option value="">Any category</option>
+            <option value="beach">Beach</option>
+            <option value="temple">Temple</option>
+            <option value="historical">Historical</option>
+            <option value="nature">Nature</option>
+            <option value="shopping">Shopping</option>
+            <option value="museum">Museum</option>
+            <option value="adventure">Adventure</option>
+            <option value="food">Food</option>
+          </select>
+        </label>
+        <button class="btn btn-primary" type="submit">Search destinations</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="container section">
+  <h2>Popular destinations</h2>
+  <p class="muted">Estimated cost per person per day, based on sample rates.</p>
+  <div class="card-grid">
+    {% for destination in destinations %}
+      <article class="card">
+        <div class="card-image" {% if destination.display_image %}style="background-image:url('{{ destination.display_image }}')"{% endif %}>
+          {% if not destination.display_image %}<span>{{ destination.name|slice:":1" }}</span>{% endif %}
+        </div>
+        <div class="card-body">
+          <h3>{{ destination.name }}</h3>
+          <p class="muted small">{{ destination.state }}, {{ destination.country }}</p>
+          <p class="small">{{ destination.description|truncatewords:18 }}</p>
+          <div class="card-meta">
+            <span class="tag">~ Rs {{ destination.estimated_cost_per_day|floatformat:0 }}/day (est.)</span>
+            <span class="tag">{{ destination.recommended_days }} days</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn btn-outline btn-sm" href="{% url 'destination_detail' destination.pk %}">View places</a>
+            {% if user.is_authenticated %}
+              <a class="btn btn-primary btn-sm" href="{% url 'planner' %}?destination={{ destination.pk }}">Add to trip</a>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <p class="muted">
+        No destinations yet. Run <code>python manage.py seed_data</code> to load the samples.
+      </p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="container section">
+  <h2>Popular tourist places</h2>
+  <div class="card-grid">
+    {% for place in places %}
+      <article class="card">
+        <div class="card-image small-image" {% if place.display_image %}style="background-image:url('{{ place.display_image }}')"{% endif %}>
+          {% if not place.display_image %}<span>{{ place.get_category_display }}</span>{% endif %}
+        </div>
+        <div class="card-body">
+          <h3>{{ place.name }}</h3>
+          <p class="muted small">{{ place.destination.name }} &middot; {{ place.get_category_display }}</p>
+          <p class="small">{{ place.description|truncatewords:14 }}</p>
+          <div class="card-meta">
+            <span class="tag">
+              {% if place.entry_fee > 0 %}Entry ~ Rs {{ place.entry_fee|floatformat:0 }} (est.){% else %}Free entry{% endif %}
+            </span>
+            <span class="tag">{{ place.visit_duration_minutes }} min</span>
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <p class="muted">No tourist places loaded yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="container section">
+  <h2>What this portal can do</h2>
+  <div class="feature-grid">
+    <div class="feature"><h3>Trip planner</h3><p>From, to, dates, travellers, transport, hotel and food level.</p></div>
+    <div class="feature"><h3>Cost calculator</h3><p>Travel + hotel + food + local transport + activities + buffer.</p></div>
+    <div class="feature"><h3>Day-by-day itinerary</h3><p>Your chosen places spread sensibly across the days.</p></div>
+    <div class="feature"><h3>AI assistant</h3><p>Ask anything about your trip, powered by the Groq AI API.</p></div>
+    <div class="feature"><h3>Voice input</h3><p>Speak instead of typing, in English or Telugu.</p></div>
+    <div class="feature"><h3>Telugu &harr; English</h3><p>Translate text and speech both ways.</p></div>
+    <div class="feature"><h3>Text to speech</h3><p>Have any answer read aloud.</p></div>
+    <div class="feature"><h3>Image recognition</h3><p>Upload a photo and ask what place it is.</p></div>
+  </div>
+  {% if not ai_ready %}
+    <div class="alert alert-warning">
+      The AI features are not connected yet. Add <code>GROQ_API_KEY</code>
+      to your <code>.env</code> file and restart the server. Planning, costs and
+      itineraries work without it.
+    </div>
+  {% endif %}
+</section>
+
+{% endblock %}

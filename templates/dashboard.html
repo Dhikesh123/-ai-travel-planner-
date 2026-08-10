@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>Welcome, {{ user.first_name|default:user.username }}</h1>
+      <p class="muted">Here is everything you can do from your customer portal.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'planner' %}">+ Create new trip</a>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><span class="stat-value">{{ trip_count }}</span><span class="stat-label">Saved trips</span></div>
+    <div class="stat"><span class="stat-value">{{ upcoming_count }}</span><span class="stat-label">Upcoming</span></div>
+    <div class="stat"><span class="stat-value">Rs {{ total_value|floatformat:0 }}</span><span class="stat-label">Estimated value</span></div>
+  </div>
+
+  <div class="quick-grid">
+    <a class="quick" href="{% url 'planner' %}"><h3>Create New Trip</h3><p>Plan a route from A to B.</p></a>
+    <a class="quick" href="{% url 'trip_list' %}"><h3>My Trips</h3><p>View, edit or delete saved trips.</p></a>
+    <a class="quick" href="{% url 'calculator' %}"><h3>Cost Calculator</h3><p>Live estimate as you change options.</p></a>
+    <a class="quick" href="{% url 'chatbot' %}"><h3>AI Travel Assistant</h3><p>Ask anything about your trip.</p></a>
+    <a class="quick" href="{% url 'image_recognition' %}"><h3>Image Recognition</h3><p>Upload a photo of a place.</p></a>
+    <a class="quick" href="{% url 'voice_assistant' %}"><h3>Voice Assistant</h3><p>Speak, translate, listen.</p></a>
+    <a class="quick" href="{% url 'destination_list' %}"><h3>Destinations</h3><p>Browse places to visit.</p></a>
+    <a class="quick" href="{% url 'profile' %}"><h3>Profile</h3><p>Update your details.</p></a>
+  </div>
+
+  <h2>Recent trips</h2>
+  <div class="card-grid">
+    {% for trip in recent_trips %}
+      <article class="card">
+        <div class="card-body">
+          <h3>{{ trip.title }}</h3>
+          <p class="muted small">{{ trip.travel_date }} &middot; {{ trip.travelers }} traveller{{ trip.travelers|pluralize }} &middot; {{ trip.days }} day{{ trip.days|pluralize }}</p>
+          <div class="card-meta">
+            <span class="tag">{{ trip.transportation.name }}</span>
+            <span class="tag">{{ trip.distance_km }} km (est.)</span>
+            {% if trip.cost %}<span class="tag tag-strong">Rs {{ trip.cost.total_cost|floatformat:0 }} (est.)</span>{% endif %}
+          </div>
+          <div class="card-actions">
+            <a class="btn btn-outline btn-sm" href="{% url 'trip_detail' trip.pk %}">Open</a>
+            <a class="btn btn-ghost btn-sm" href="{% url 'trip_edit' trip.pk %}">Edit</a>
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <p class="muted">No trips yet. <a href="{% url 'planner' %}">Plan your first trip</a>.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<section class="container section narrow">
+  <div class="panel">
+    <h1>Welcome back</h1>
+    <p class="muted">Login to see your saved trips and use the AI assistant.</p>
+
+    <form method="post" class="stack" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      {% for field in form %}
+        <label>
+          {{ field.label }}
+          {{ field }}
+          {% for err in field.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+      {% endfor %}
+
+      <button class="btn btn-primary btn-lg" type="submit">Login</button>
+    </form>
+
+    <p class="muted small">New here? <a href="{% url 'register' %}">Create an account</a>.</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Trip cost calculator{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>Trip cost calculator</h1>
+      <p class="muted">Change any option and the estimate updates immediately. Nothing is saved.</p>
+    </div>
+    <a class="btn btn-outline" href="{% url 'planner' %}">Save a full trip instead</a>
+  </div>
+
+  <div class="planner-layout" id="plannerForm">
+    <div class="panel">
+      <h2>Your options</h2>
+      <div class="form-grid">
+        <label>From
+          <input type="text" id="id_source" value="Pune" placeholder="e.g. Pune">
+        </label>
+
+        <label>To
+          <select id="id_destination">
+            {% for destination in destinations %}
+              <option value="{{ destination.pk }}">{{ destination.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>Travellers
+          <input type="number" id="id_travelers" value="2" min="1" max="50">
+        </label>
+
+        <label>Days
+          <input type="number" id="id_days" value="3" min="1" max="60">
+        </label>
+
+        <label>Transportation
+          <select id="id_transportation">
+            {% for transport in transports %}
+              <option value="{{ transport.pk }}">{{ transport.name }} (~ Rs {{ transport.cost_per_km }}/km est.)</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>Hotel category
+          <select id="id_hotel_category">
+            <option value="budget">Budget</option>
+            <option value="standard" selected>Standard</option>
+            <option value="deluxe">Deluxe</option>
+            <option value="luxury">Luxury</option>
+          </select>
+        </label>
+
+        <label>Food budget
+          <select id="id_food_budget">
+            <option value="budget">Budget</option>
+            <option value="standard" selected>Standard</option>
+            <option value="premium">Premium</option>
+          </select>
+        </label>
+
+        <label>Extra activity budget (Rs)
+          <input type="number" id="id_activity_budget" value="0" min="0" step="50">
+        </label>
+      </div>
+
+      <h2>Places to visit</h2>
+      <p class="muted small" id="placesHint">Loading places...</p>
+      <div class="places-grid" id="placesGrid"></div>
+    </div>
+
+    <aside class="panel estimate-panel">
+      <h2>Estimated cost</h2>
+      <div class="estimate-total">
+        <span class="muted small">Estimated total</span>
+        <span class="big-number" id="totalCost">Rs 0</span>
+        <span class="muted small" id="perPerson"></span>
+      </div>
+
+      <table class="cost-table">
+        <tbody>
+          <tr><td>Travel</td><td id="travelCost">Rs 0</td></tr>
+          <tr><td>Hotel</td><td id="hotelCost">Rs 0</td></tr>
+          <tr><td>Food</td><td id="foodCost">Rs 0</td></tr>
+          <tr><td>Local transport</td><td id="localCost">Rs 0</td></tr>
+          <tr><td>Activities</td><td id="activityCost">Rs 0</td></tr>
+          <tr><td>Other expenses</td><td id="otherCost">Rs 0</td></tr>
+        </tbody>
+      </table>
+
+      <div class="estimate-facts">
+        <div><span class="muted small">Distance</span><strong id="distance">-</strong></div>
+        <div><span class="muted small">Travel time</span><strong id="travelTime">-</strong></div>
+      </div>
+
+      <div id="distanceWarning" class="alert alert-warning small" hidden>
+        No sample distance for this route, so 250 km was assumed.
+      </div>
+
+      <h3>Day-by-day itinerary</h3>
+      <div id="itinerary" class="itinerary"></div>
+
+      <p class="disclaimer">
+        Demonstration estimates from sample rates. Not live market prices.
+      </p>
+      <div id="calcError" class="alert alert-error small" hidden></div>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>window.CALCULATOR_MODE = true;</script>
+<script src="{% static 'js/planner.js' %}"></script>
+{% endblock %}

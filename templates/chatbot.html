@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}AI Travel Assistant{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>AI Travel Assistant</h1>
+      <p class="muted">Type, speak, or upload a photo. English and Telugu both work.</p>
+    </div>
+    <button class="btn btn-ghost" id="clearChat">Clear history</button>
+  </div>
+
+  {% if not ai_ready %}
+    <div class="alert alert-warning">
+      The assistant is not connected. Add <code>GROQ_API_KEY</code> to your
+      <code>.env</code> file and restart the server.
+    </div>
+  {% endif %}
+
+  <div class="chat-shell">
+    <div class="chat-window" id="chatWindow">
+      {% for message in history %}
+        <div class="bubble bubble-{{ message.role }}">
+          <div class="bubble-text">{{ message.content|linebreaksbr }}</div>
+          <div class="bubble-actions">
+            <button class="speak-btn" data-lang="{{ message.language }}" title="Read aloud">&#128266;</button>
+          </div>
+        </div>
+      {% empty %}
+        <div class="bubble bubble-assistant">
+          <div class="bubble-text">
+            Hello! I can help you plan a trip. Try asking:<br>
+            &bull; "Plan a 3-day trip from Pune to Mumbai for 2 people."<br>
+            &bull; "What are the cheapest places to visit in Goa?"<br>
+            &bull; "What should I carry for a hill station trip?"<br>
+            &bull; "Translate this Telugu sentence into English: ..."
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="chat-typing" id="typing" hidden>
+      <span></span><span></span><span></span> AI is thinking...
+    </div>
+
+    <form class="chat-input" id="chatForm">
+      <div class="chat-controls">
+        <select id="inputLanguage" title="Microphone language">
+          <option value="en-IN">Speak English</option>
+          <option value="te-IN">Speak Telugu</option>
+        </select>
+        <button type="button" class="btn btn-ghost btn-sm" id="micBtn" title="Speak">&#127908; Speak</button>
+        <label class="btn btn-ghost btn-sm" for="chatImage" title="Attach a photo">&#128247; Photo</label>
+        <input type="file" id="chatImage" accept="image/*" hidden>
+        <span class="muted small" id="attachName"></span>
+      </div>
+
+      <div class="chat-row">
+        <textarea id="chatText" rows="2" placeholder="Ask me anything about your trip..."></textarea>
+        <button class="btn btn-primary" type="submit" id="sendBtn">Send</button>
+      </div>
+      <div id="chatError" class="alert alert-error small" hidden></div>
+    </form>
+  </div>
+
+  <p class="disclaimer">
+    The assistant gives estimates and suggestions. It cannot check live prices,
+    seat availability or make bookings.
+  </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/speech.js' %}"></script>
+<script src="{% static 'js/chatbot.js' %}"></script>
+{% endblock %}

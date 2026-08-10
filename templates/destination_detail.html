@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ destination.name }}{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>{{ destination.name }}</h1>
+      <p class="muted">{{ destination.state }}, {{ destination.country }}
+        &middot; suggested {{ destination.recommended_days }} days
+        &middot; ~ Rs {{ destination.estimated_cost_per_day|floatformat:0 }} per person per day (estimate)</p>
+    </div>
+    {% if user.is_authenticated %}
+      <a class="btn btn-primary" href="{% url 'planner' %}?destination={{ destination.pk }}">Plan a trip here</a>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <p>{{ destination.description }}</p>
+  </div>
+
+  <h2>Tourist places</h2>
+  <div class="card-grid">
+    {% for place in places %}
+      <article class="card">
+        <div class="card-image small-image" {% if place.display_image %}style="background-image:url('{{ place.display_image }}')"{% endif %}>
+          {% if not place.display_image %}<span>{{ place.get_category_display }}</span>{% endif %}
+        </div>
+        <div class="card-body">
+          <h3>{{ place.name }}</h3>
+          <p class="muted small">{{ place.get_category_display }}</p>
+          <p class="small">{{ place.description }}</p>
+          <div class="card-meta">
+            <span class="tag">
+              {% if place.entry_fee > 0 %}Entry ~ Rs {{ place.entry_fee|floatformat:0 }} (est.){% else %}Free entry{% endif %}
+            </span>
+            <span class="tag">about {{ place.visit_duration_minutes }} min</span>
+          </div>
+          {% if place.opening_info %}<p class="muted small">{{ place.opening_info }}</p>{% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <p class="muted">No places listed for this destination yet.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AI Travel Planner{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9992;</text></svg>">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-inner">
+    <a class="brand" href="{% url 'home' %}">
+      <span class="brand-icon">&#9992;</span>
+      <span>AI Travel Planner</span>
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+
+    <div class="nav-links" id="navLinks">
+      <a href="{% url 'destination_list' %}">Destinations</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="{% url 'planner' %}">Plan Trip</a>
+        <a href="{% url 'calculator' %}">Calculator</a>
+        <a href="{% url 'trip_list' %}">My Trips</a>
+        <a href="{% url 'chatbot' %}">AI Assistant</a>
+        <a href="{% url 'image_recognition' %}">Image AI</a>
+        <a href="{% url 'voice_assistant' %}">Voice</a>
+        {% if user.is_staff %}
+          <a href="{% url 'admin_dashboard' %}" class="staff-link">Admin</a>
+        {% endif %}
+        <a href="{% url 'profile' %}">{{ user.username }}</a>
+        <form method="post" action="{% url 'logout' %}" class="inline-form">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-sm">Logout</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+{% if messages %}
+  <div class="container">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>AI Travel Planner</h4>
+      <p class="muted">
+        Plan trips, estimate costs, talk to an AI assistant in English or
+        Telugu, and identify places from photos.
+      </p>
+    </div>
+    <div>
+      <h4>Explore</h4>
+      <a href="{% url 'destination_list' %}">Destinations</a>
+      <a href="{% url 'planner' %}">Plan a trip</a>
+      <a href="{% url 'calculator' %}">Cost calculator</a>
+    </div>
+    <div>
+      <h4>Assistant</h4>
+      <a href="{% url 'chatbot' %}">AI chat</a>
+      <a href="{% url 'voice_assistant' %}">Voice &amp; translation</a>
+      <a href="{% url 'image_recognition' %}">Image recognition</a>
+    </div>
+    <div>
+      <h4>Important</h4>
+      <p class="muted small">
+        All prices, distances and travel times on this site are
+        <strong>demonstration estimates</strong> calculated from sample rates.
+        They are not live market prices or live availability.
+      </p>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span class="muted small">Internship project &middot; Django + Groq AI</span>
+  </div>
+</footer>
+
+<script>
+  // Make the CSRF token available to every fetch() call in our JS files.
+  window.CSRF_TOKEN = "{{ csrf_token }}";
+</script>
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

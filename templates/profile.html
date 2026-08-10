@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}My profile{% endblock %}
+
+{% block content %}
+<section class="container section narrow">
+  <div class="panel">
+    <h1>My profile</h1>
+    <p class="muted">Update your details. Your password is never shown here.</p>
+
+    <form method="post" enctype="multipart/form-data" class="stack" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        <label>
+          {{ field.label }}
+          {{ field }}
+          {% for err in field.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+      {% endfor %}
+      <button class="btn btn-primary" type="submit">Save changes</button>
+    </form>
+  </div>
+
+  <div class="panel mt">
+    <h2>Account</h2>
+    <table class="info-table">
+      <tr><td>Username</td><td>{{ user.username }}</td></tr>
+      <tr><td>Email</td><td>{{ user.email|default:"-" }}</td></tr>
+      <tr><td>Member since</td><td>{{ user.date_joined|date:"d M Y" }}</td></tr>
+      <tr><td>Saved trips</td><td>{{ user.trips.count }}</td></tr>
+    </table>
+  </div>
+</section>
+{% endblock %}

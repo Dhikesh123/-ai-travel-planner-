@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% if editing %}Edit trip{% else %}Plan a trip{% endif %}{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>{% if editing %}Edit your trip{% else %}Travel planner{% endif %}</h1>
+      <p class="muted">Fill the form and the estimate on the right updates as you type.</p>
+    </div>
+  </div>
+
+  <form method="post" class="planner-layout" id="plannerForm" novalidate>
+    {% csrf_token %}
+
+    <!-- ------------------------- LEFT: the form ------------------------- -->
+    <div class="panel">
+      <h2>Trip details</h2>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-grid">
+        <label>From
+          {{ form.source }}
+          {% for err in form.source.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+
+        <label>To (destination)
+          {{ form.destination }}
+          {% for err in form.destination.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+
+        <label>Travel date
+          {{ form.travel_date }}
+          {% for err in form.travel_date.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+
+        <label>Return date (optional)
+          {{ form.return_date }}
+          {% for err in form.return_date.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+
+        <label>Number of travellers
+          {{ form.travelers }}
+          {% for err in form.travelers.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+
+        <label>Number of days
+          {{ form.days }}
+          {% for err in form.days.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+
+        <label>Transportation
+          {{ form.transportation }}
+          {% for err in form.transportation.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </label>
+
+        <label>Hotel category
+          {{ form.hotel_category }}
+        </label>
+
+        <label>Food budget
+          {{ form.food_budget }}
+        </label>
+
+        <label>Extra activity budget (Rs)
+          {{ form.activity_budget }}
+        </label>
+      </div>
+
+      <label class="full">Notes (optional)
+        {{ form.notes }}
+      </label>
+
+      <h2>Choose the places you want to visit</h2>
+      <p class="muted small" id="placesHint">Pick a destination first to see its tourist places.</p>
+
+      <div class="places-grid" id="placesGrid">
+        {% for destination in destinations %}
+          {% for place in destination.places.all %}
+            <label class="place-option" data-destination="{{ destination.pk }}" hidden>
+              <input type="checkbox" name="places" value="{{ place.pk }}"
+                     data-fee="{{ place.entry_fee }}"
+                     {% if place.pk in selected_ids %}checked{% endif %}>
+              <span class="place-body">
+                <strong>{{ place.name }}</strong>
+                <span class="muted small">{{ place.get_category_display }}
+                  {% if place.entry_fee > 0 %}&middot; entry ~ Rs {{ place.entry_fee|floatformat:0 }} (est.){% else %}&middot; free{% endif %}
+                </span>
+                {% if place.opening_info %}<span class="muted small">{{ place.opening_info }}</span>{% endif %}
+              </span>
+            </label>
+          {% endfor %}
+        {% endfor %}
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary btn-lg" type="submit">
+          {% if editing %}Save changes{% else %}Calculate &amp; save trip{% endif %}
+        </button>
+        {% if editing %}
+          <a class="btn btn-ghost" href="{% url 'trip_detail' trip.pk %}">Cancel</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ---------------------- RIGHT: live estimate ---------------------- -->
+    <aside class="panel estimate-panel" id="estimatePanel">
+      <h2>Estimated cost</h2>
+      <p class="muted small">Updates automatically. Demonstration estimates only.</p>
+
+      <div class="estimate-total">
+        <span class="muted small">Estimated total</span>
+        <span class="big-number" id="totalCost">Rs 0</span>
+        <span class="muted small" id="perPerson"></span>
+      </div>
+
+      <table class="cost-table">
+        <tbody>
+          <tr><td>Travel</td><td id="travelCost">Rs 0</td></tr>
+          <tr><td>Hotel</td><td id="hotelCost">Rs 0</td></tr>
+          <tr><td>Food</td><td id="foodCost">Rs 0</td></tr>
+          <tr><td>Local transport</td><td id="localCost">Rs 0</td></tr>
+          <tr><td>Activities</td><td id="activityCost">Rs 0</td></tr>
+          <tr><td>Other expenses</td><td id="otherCost">Rs 0</td></tr>
+        </tbody>
+      </table>
+
+      <div class="estimate-facts">
+        <div><span class="muted small">Distance</span><strong id="distance">-</strong></div>
+        <div><span class="muted small">Travel time</span><strong id="travelTime">-</strong></div>
+      </div>
+
+      <div id="distanceWarning" class="alert alert-warning small" hidden>
+        We do not have a sample distance for this route, so a default of 250 km
+        was used. An admin can add the real distance in the management portal.
+      </div>
+
+      <h3>Day-by-day itinerary</h3>
+      <div id="itinerary" class="itinerary"><p class="muted small">Fill the form to see your plan.</p></div>
+
+      <p class="disclaimer" id="disclaimer">
+        All prices, distances and travel times are demonstration estimates
+        calculated from sample rates. They are not live market prices.
+      </p>
+      <div id="calcError" class="alert alert-error small" hidden></div>
+    </aside>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/planner.js' %}"></script>
+{% endblock %}

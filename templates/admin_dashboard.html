@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Admin dashboard{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>Management dashboard</h1>
+      <p class="muted">Staff only. Customer passwords are never shown anywhere in this portal.</p>
+    </div>
+    <a class="btn btn-primary" href="/django-admin/">Open full admin</a>
+  </div>
+
+  <div class="stat-row wide">
+    <div class="stat"><span class="stat-value">{{ total_customers }}</span><span class="stat-label">Total customers</span></div>
+    <div class="stat"><span class="stat-value">{{ total_trips }}</span><span class="stat-label">Total trips</span></div>
+    <div class="stat"><span class="stat-value">{{ total_destinations }}</span><span class="stat-label">Destinations</span></div>
+    <div class="stat"><span class="stat-value">{{ total_places }}</span><span class="stat-label">Tourist places</span></div>
+    <div class="stat"><span class="stat-value">{{ total_chats }}</span><span class="stat-label">Chat messages</span></div>
+    <div class="stat"><span class="stat-value">{{ total_images }}</span><span class="stat-label">Uploaded images</span></div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat stat-highlight">
+      <span class="stat-value">Rs {{ total_value|floatformat:0 }}</span>
+      <span class="stat-label">Estimated total travel value (all saved trips)</span>
+    </div>
+    <div class="stat stat-highlight">
+      <span class="stat-value">{% if most_visited %}{{ most_visited.name }}{% else %}-{% endif %}</span>
+      <span class="stat-label">Most visited destination</span>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <h2>Popular destinations</h2>
+      {% if popular_destinations %}
+        <table class="data-table">
+          <thead><tr><th>Destination</th><th>Trips</th><th>Share</th></tr></thead>
+          <tbody>
+            {% for destination in popular_destinations %}
+              <tr>
+                <td>{{ destination.name }}</td>
+                <td>{{ destination.trip_count }}</td>
+                <td>
+                  <div class="bar">
+                    <div class="bar-fill" style="width: {% widthratio destination.trip_count total_trips 100 %}%"></div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted">No trips have been saved yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="panel">
+      <h2>Recent customers</h2>
+      <table class="data-table">
+        <thead><tr><th>Username</th><th>Email</th><th>Joined</th><th>Trips</th></tr></thead>
+        <tbody>
+          {% for customer in recent_customers %}
+            <tr>
+              <td>{{ customer.username }}</td>
+              <td class="muted small">{{ customer.email|default:"-" }}</td>
+              <td class="muted small">{{ customer.date_joined|date:"d M Y" }}</td>
+              <td>{{ customer.trips.count }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="muted">No customers registered yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel mt">
+    <h2>Recent trip requests</h2>
+    <table class="data-table">
+      <thead>
+        <tr><th>Trip</th><th>Customer</th><th>Date</th><th>People</th><th>Days</th><th>Transport</th><th>Estimated total</th></tr>
+      </thead>
+      <tbody>
+        {% for trip in recent_trips %}
+          <tr>
+            <td>{{ trip.title }}</td>
+            <td>{{ trip.user.username }}</td>
+            <td class="muted small">{{ trip.travel_date }}</td>
+            <td>{{ trip.travelers }}</td>
+            <td>{{ trip.days }}</td>
+            <td>{{ trip.transportation.name }}</td>
+            <td>{% if trip.cost %}Rs {{ trip.cost.total_cost|floatformat:0 }}{% else %}-{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="muted">No trips yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel mt">
+    <h2>Manage data</h2>
+    <div class="btn-row">
+      <a class="btn btn-outline" href="/django-admin/travel/destination/">Destinations</a>
+      <a class="btn btn-outline" href="/django-admin/travel/touristplace/">Tourist places</a>
+      <a class="btn btn-outline" href="/django-admin/travel/transportation/">Transportation</a>
+      <a class="btn btn-outline" href="/django-admin/travel/routedistance/">Route distances</a>
+      <a class="btn btn-outline" href="/django-admin/travel/trip/">Trips</a>
+      <a class="btn btn-outline" href="/django-admin/travel/tripcost/">Trip costs</a>
+      <a class="btn btn-outline" href="/django-admin/travel/profile/">Customer profiles</a>
+      <a class="btn btn-outline" href="/django-admin/travel/chatmessage/">Chat messages</a>
+      <a class="btn btn-outline" href="/django-admin/travel/uploadedimage/">Uploaded images</a>
+    </div>
+  </div>
+
+  <p class="disclaimer">
+    All cost figures are demonstration estimates produced by the calculator, not
+    real transactions or live market prices.
+  </p>
+</section>
+{% endblock %}

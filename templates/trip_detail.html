@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ trip.title }}{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>{{ trip.title }}</h1>
+      <p class="muted">
+        {{ trip.travel_date }}{% if trip.return_date %} to {{ trip.return_date }}{% endif %}
+        &middot; {{ trip.travelers }} traveller{{ trip.travelers|pluralize }}
+        &middot; {{ trip.days }} day{{ trip.days|pluralize }}
+        &middot; by {{ trip.transportation.name }}
+      </p>
+    </div>
+    <div class="page-head-actions">
+      <a class="btn btn-outline" href="{% url 'trip_edit' trip.pk %}">Edit</a>
+      <form method="post" action="{% url 'trip_delete' trip.pk %}" class="inline-form"
+            onsubmit="return confirm('Delete this trip?');">
+        {% csrf_token %}
+        <button class="btn btn-danger" type="submit">Delete</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="detail-layout">
+    <div class="stack-lg">
+
+      <div class="panel">
+        <h2>Trip summary</h2>
+        <table class="info-table">
+          <tr><td>From</td><td>{{ trip.source }}</td></tr>
+          <tr><td>To</td><td>{{ trip.destination.name }}, {{ trip.destination.state }}</td></tr>
+          <tr><td>Estimated distance</td><td>{{ trip.distance_km }} km (one way, estimate)</td></tr>
+          <tr><td>Estimated travel time</td><td>{{ trip.travel_hours }} hours (estimate)</td></tr>
+          <tr><td>Transport</td><td>{{ trip.transportation.name }}</td></tr>
+          <tr><td>Hotel category</td><td>{{ trip.get_hotel_category_display }}</td></tr>
+          <tr><td>Food budget</td><td>{{ trip.get_food_budget_display }}</td></tr>
+          {% if trip.notes %}<tr><td>Notes</td><td>{{ trip.notes }}</td></tr>{% endif %}
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Day-by-day itinerary</h2>
+        {% if itinerary_days %}
+          {% for day_number, places in itinerary_days %}
+            <div class="day-block">
+              <h3>Day {{ day_number }}</h3>
+              <ul>
+                {% for place in places %}
+                  <li>
+                    <strong>{{ place.name }}</strong>
+                    <span class="muted small">
+                      {{ place.get_category_display }} &middot; about {{ place.visit_duration_minutes }} min
+                      {% if place.entry_fee > 0 %}&middot; entry ~ Rs {{ place.entry_fee|floatformat:0 }} (est.){% endif %}
+                    </span>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if trip.itinerary_text %}
+          <details class="mt">
+            <summary>Full plan including travel days</summary>
+            <pre class="plan-text">{{ trip.itinerary_text }}</pre>
+          </details>
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <h2>Ask the AI about this trip</h2>
+        {% if ai_ready %}
+          <p class="muted small">The assistant already knows your route, dates and budget.</p>
+          <button class="btn btn-primary" id="suggestBtn" data-trip="{{ trip.pk }}">
+            Get AI suggestions for this trip
+          </button>
+          <div id="suggestionBox" class="ai-output" hidden></div>
+        {% else %}
+          <div class="alert alert-warning small">
+            Add <code>GROQ_API_KEY</code> to your <code>.env</code> file to turn this on.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <aside class="panel estimate-panel">
+      <h2>Estimated cost</h2>
+      {% if trip.cost %}
+        <div class="estimate-total">
+          <span class="muted small">Estimated total</span>
+          <span class="big-number">Rs {{ trip.cost.total_cost|floatformat:0 }}</span>
+        </div>
+        <table class="cost-table">
+          <tr><td>Travel</td><td>Rs {{ trip.cost.travel_cost|floatformat:0 }}</td></tr>
+          <tr><td>Hotel</td><td>Rs {{ trip.cost.hotel_cost|floatformat:0 }}</td></tr>
+          <tr><td>Food</td><td>Rs {{ trip.cost.food_cost|floatformat:0 }}</td></tr>
+          <tr><td>Local transport</td><td>Rs {{ trip.cost.local_transport_cost|floatformat:0 }}</td></tr>
+          <tr><td>Activities</td><td>Rs {{ trip.cost.activity_cost|floatformat:0 }}</td></tr>
+          <tr><td>Other expenses</td><td>Rs {{ trip.cost.other_cost|floatformat:0 }}</td></tr>
+        </table>
+      {% else %}
+        <p class="muted">No cost calculated yet. Edit and save the trip to calculate.</p>
+      {% endif %}
+
+      <p class="disclaimer">
+        These are demonstration estimates built from sample rates stored in the
+        database. They are not live fares, live hotel rates or live availability.
+      </p>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/trip_detail.js' %}"></script>
+{% endblock %}

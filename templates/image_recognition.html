@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Image recognition{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>Image recognition</h1>
+      <p class="muted">Upload a photo of a monument, beach or temple and ask what it is.</p>
+    </div>
+  </div>
+
+  {% if not ai_ready %}
+    <div class="alert alert-warning">
+      Image recognition needs <code>GROQ_API_KEY</code> in your <code>.env</code> file.
+    </div>
+  {% endif %}
+
+  <div class="two-col">
+    <div class="panel">
+      <h2>Upload a photo</h2>
+      <form id="imageForm" enctype="multipart/form-data">
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="imageInput" name="image" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+          <img id="preview" alt="" hidden>
+          <div id="dropText">
+            <strong>Click to choose an image</strong>
+            <span class="muted small">JPG, PNG, WEBP or GIF &middot; up to 5 MB</span>
+          </div>
+        </div>
+
+        <label class="full">Your question (optional)
+          <input type="text" id="questionInput" name="question"
+                 placeholder="What is this place and how can I visit it?">
+        </label>
+
+        <button class="btn btn-primary btn-lg" type="submit" id="analyseBtn">Identify this place</button>
+        <div id="imageError" class="alert alert-error small" hidden></div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>AI result</h2>
+      <div id="uncertainNote" class="alert alert-warning small" hidden>
+        The AI is <strong>not confident</strong> about this image. Treat the
+        answer below as a guess, not a fact.
+      </div>
+      <div class="ai-output" id="resultBox">
+        <p class="muted small">Upload a photo to see the result here.</p>
+      </div>
+      <button class="btn btn-ghost" id="speakResult" hidden>&#128266; Read aloud</button>
+    </div>
+  </div>
+
+  {% if uploads %}
+    <h2 class="mt">Your recent uploads</h2>
+    <div class="card-grid">
+      {% for upload in uploads %}
+        <article class="card">
+          <div class="card-image small-image" style="background-image:url('{{ upload.image.url }}')"></div>
+          <div class="card-body">
+            <p class="muted small">{{ upload.created_at|date:"d M Y, H:i" }}</p>
+            {% if not upload.is_confident %}
+              <span class="tag tag-warn">AI was unsure</span>
+            {% endif %}
+            <p class="small">{{ upload.recognition_result|truncatewords:30 }}</p>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <p class="disclaimer">
+    Image recognition can be wrong. Any travel information, cost or timing in
+    the answer is an estimate, not live data.
+  </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/speech.js' %}"></script>
+<script src="{% static 'js/image.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Voice assistant &amp; translation{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>Voice assistant</h1>
+      <p class="muted">Speak in Telugu or English, translate both ways, and listen to the result.</p>
+    </div>
+  </div>
+
+  <div id="speechSupport" class="alert alert-warning" hidden>
+    This browser does not support speech recognition. Chrome or Edge on a
+    desktop works best. You can still type and translate.
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <h2>1. Speak or type</h2>
+
+      <div class="form-grid">
+        <label>Input language
+          <select id="sourceLang">
+            <option value="te">Telugu</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label>Output language
+          <select id="targetLang">
+            <option value="en">English</option>
+            <option value="te">Telugu</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="full">Your text
+        <textarea id="sourceText" rows="5" placeholder="Press the microphone and speak, or type here..."></textarea>
+      </label>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" id="micBtn">&#127908; Start listening</button>
+        <button class="btn btn-ghost" id="speakSource">&#128266; Read aloud</button>
+        <button class="btn btn-ghost" id="clearAll">Clear</button>
+      </div>
+      <p class="muted small" id="micStatus"></p>
+    </div>
+
+    <div class="panel">
+      <h2>2. Translation</h2>
+      <div class="ai-output" id="translationBox">
+        <p class="muted small">Your translation will appear here.</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="translateBtn">Translate</button>
+        <button class="btn btn-ghost" id="speakTranslation">&#128266; Read aloud</button>
+        <button class="btn btn-outline" id="askAiBtn">Send to AI assistant</button>
+      </div>
+      <div id="voiceError" class="alert alert-error small" hidden></div>
+    </div>
+  </div>
+
+  <div class="panel mt">
+    <h2>3. AI answer</h2>
+    <div class="ai-output" id="aiBox">
+      <p class="muted small">
+        Speak your trip request (for example: "నేను పూణే నుంచి ముంబైకి మూడు రోజులు వెళ్లాలి"),
+        translate it, then send it to the assistant.
+      </p>
+    </div>
+    <button class="btn btn-ghost" id="speakAi">&#128266; Read the answer aloud</button>
+  </div>
+
+  <div class="panel mt">
+    <h3>How this works</h3>
+    <ol class="muted small">
+      <li>
+        Your speech becomes text in one of two ways. Chrome and Edge do it
+        inside the browser (Web Speech API), which is instant. If your browser
+        cannot, we record the microphone and send the audio to our server,
+        which uses Whisper to write it out.
+      </li>
+      <li>The text is sent to our Django server.</li>
+      <li>The server asks the Groq AI to translate it, using the API key stored safely on the server.</li>
+      <li>The translation comes back and your browser can read it aloud (Speech Synthesis API).</li>
+    </ol>
+    <p class="muted small">
+      Telugu voices depend on your device. If nothing is spoken for Telugu, your
+      system does not have a Telugu voice installed; the text still appears.
+    </p>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/speech.js' %}"></script>
+<script src="{% static 'js/voice.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Destinations{% endblock %}
+
+{% block content %}
+<section class="container section">
+  <div class="page-head">
+    <div>
+      <h1>Destinations</h1>
+      <p class="muted">Search by name, or filter by the kind of places you like.</p>
+    </div>
+  </div>
+
+  <form method="get" class="filter-bar">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search destinations...">
+    <select name="category">
+      <option value="">All categories</option>
+      {% for value, label in categories %}
+        <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-primary" type="submit">Search</button>
+    {% if query or category %}<a class="btn btn-ghost" href="{% url 'destination_list' %}">Clear</a>{% endif %}
+  </form>
+
+  <div class="card-grid">
+    {% for destination in destinations %}
+      <article class="card">
+        <div class="card-image" {% if destination.display_image %}style="background-image:url('{{ destination.display_image }}')"{% endif %}>
+          {% if not destination.display_image %}<span>{{ destination.name|slice:":1" }}</span>{% endif %}
+        </div>
+        <div class="card-body">
+          <h3>{{ destination.name }}</h3>
+          <p class="muted small">{{ destination.state }}, {{ destination.country }}</p>
+          <p class="small">{{ destination.description|truncatewords:20 }}</p>
+          <div class="card-meta">
+            <span class="tag">~ Rs {{ destination.estimated_cost_per_day|floatformat:0 }}/day (est.)</span>
+            <span class="tag">{{ destination.recommended_days }} days</span>
+            <span class="tag">{{ destination.place_count }} place{{ destination.place_count|pluralize }}</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn btn-outline btn-sm" href="{% url 'destination_detail' destination.pk %}">View places</a>
+            {% if user.is_authenticated %}
+              <a class="btn btn-primary btn-sm" href="{% url 'planner' %}?destination={{ destination.pk }}">Add to trip</a>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <p class="muted">No destinations matched your search.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -11,7 +11,12 @@ __pycache__/
 db.sqlite3
 db.sqlite3-journal
 /media/
-staticfiles/
+
+# NOTE: staticfiles/ is deliberately NOT ignored.
+# Vercel has no build shell to run collectstatic, so the collected
+# static files are committed and served by WhiteNoise from inside
+# the serverless function. Re-run collectstatic after changing
+# anything in static/ and commit the result.
 
 # Editors / OS
 .vscode/

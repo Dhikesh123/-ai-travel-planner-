@@ -7,6 +7,7 @@ NEVER written directly in this file.
 import os
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 # BASE_DIR is the folder that contains manage.py
@@ -30,6 +31,14 @@ DEBUG = env_bool("DEBUG", True)
 ALLOWED_HOSTS = [
     h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()
 ]
+
+# Hosting platforms put a proxy in front of us and terminate HTTPS there.
+# Django must be told, or it thinks every request is plain HTTP and the
+# secure session/CSRF cookies are never accepted.
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
+]
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # --- Groq AI --------------------------------------------------------------
 # One key, three models - each one is good at a different job.
@@ -62,6 +71,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serves CSS/JS in production. Must sit directly below SecurityMiddleware.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -94,10 +105,13 @@ ASGI_APPLICATION = "config.asgi.application"
 # SQLite now. To move to PostgreSQL later, only this block changes.
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    # Reads DATABASE_URL when the host provides one (Postgres in production),
+    # and falls back to the local SQLite file when it is absent - so running
+    # the site on this machine works exactly as it always has.
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
 }
 
 # --- Password validation --------------------------------------------------
@@ -122,8 +136,20 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    # WhiteNoise compresses the collected files and adds a content hash to
+    # each name, so browsers can cache them forever and still see updates.
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
+}
+
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+
+# On serverless hosts the project folder is read-only, so uploads must go
+# somewhere writable. Set MEDIA_ROOT=/tmp/media there.
+MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", BASE_DIR / "media"))
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

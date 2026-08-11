@@ -1,0 +1,18 @@
+# Keep the serverless bundle small and secret-free.
+venv/
+__pycache__/
+*.pyc
+
+# Local database - production uses Postgres via DATABASE_URL
+db.sqlite3
+db.sqlite3-journal
+
+# Local uploads - the filesystem is read-only on Vercel anyway
+media/
+
+# Never ship secrets; environment variables are set in the dashboard
+.env
+
+.git/
+.vscode/
+.idea/

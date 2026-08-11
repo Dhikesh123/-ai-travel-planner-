@@ -26,11 +26,25 @@ def env_bool(name, default=False):
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-insecure-key-change-me")
 
-DEBUG = env_bool("DEBUG", True)
+# Vercel sets this variable inside every deployment, so it tells us
+# whether we are running on the live site or on this computer.
+ON_VERCEL = bool(os.getenv("VERCEL"))
+
+# Debug mode is helpful locally, but on a live site it shows visitors our
+# settings and file paths, so it stays off there unless we ask for it.
+DEBUG = env_bool("DEBUG", not ON_VERCEL)
 
 ALLOWED_HOSTS = [
     h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()
 ]
+
+# Add the Vercel addresses automatically, so a new deployment never fails
+# with "DisallowedHost" just because an environment variable was forgotten.
+if ON_VERCEL:
+    # A leading dot means "this domain and any sub-domain of it".
+    for host in (".vercel.app", os.getenv("VERCEL_URL", "").strip()):
+        if host and host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
 
 # Hosting platforms put a proxy in front of us and terminate HTTPS there.
 # Django must be told, or it thinks every request is plain HTTP and the
@@ -38,6 +52,15 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
 ]
+
+# Forms only work if the address they were submitted from is trusted, so
+# every allowed host gets a matching https origin.
+for host in ALLOWED_HOSTS:
+    if host in ("127.0.0.1", "localhost", "*"):
+        continue
+    origin = f"https://*{host}" if host.startswith(".") else f"https://{host}"
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # --- Groq AI --------------------------------------------------------------
@@ -148,8 +171,8 @@ STORAGES = {
 MEDIA_URL = "media/"
 
 # On serverless hosts the project folder is read-only, so uploads must go
-# somewhere writable. Set MEDIA_ROOT=/tmp/media there.
-MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", BASE_DIR / "media"))
+# somewhere writable. /tmp is the only writable place on Vercel.
+MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", "/tmp/media" if ON_VERCEL else BASE_DIR / "media"))
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

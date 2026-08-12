@@ -23,3 +23,10 @@ db.sqlite3-journal
 .idea/
 .DS_Store
 Thumbs.db
+
+# Added when the project was linked to Vercel: local project link and the
+# pulled environment file. ".env.example" stays tracked on purpose - it is
+# the documentation of which variables the app needs.
+.vercel
+.env*
+!.env.example

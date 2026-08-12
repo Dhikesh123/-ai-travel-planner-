@@ -1,0 +1,238 @@
+/* ==========================================================================
+   AI Travel Planner - static frontend (Vercel)
+   Same palette as the Django site's stylesheet so the two look like one
+   product. Mobile first; the media query adds the wider layouts.
+   ========================================================================== */
+
+:root {
+  --ink: #12263a;
+  --ink-soft: #5a6b7f;
+  --line: #e2e8f0;
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --brand: #0d6efd;
+  --brand-dark: #0b5ed7;
+  --brand-soft: #e7f0ff;
+  --ok: #1a7f5a;
+  --warn: #9a6700;
+  --warn-bg: #fff8e1;
+  --danger: #b42318;
+  --danger-bg: #fdecea;
+  --radius: 14px;
+  --shadow: 0 2px 10px rgba(18, 38, 58, .07);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 .5rem; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 1.05rem; }
+p { margin: 0 0 .8rem; }
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.wrap { width: min(1080px, 92vw); margin: 0 auto; }
+.muted { color: var(--ink-soft); }
+.small { font-size: .9rem; }
+.section { padding: 2.5rem 0; }
+
+/* ------------------------------------------------------------------ header */
+
+.site-head {
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.head-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: .8rem 0;
+}
+.brand { font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+.brand:hover { text-decoration: none; }
+.head-nav { display: flex; gap: 1.1rem; font-size: .95rem; }
+
+/* ------------------------------------------------------------ status strip */
+
+.api-status { padding: .6rem 0; font-size: .93rem; }
+.api-status-info { background: var(--warn-bg); color: var(--warn); }
+.api-status-error { background: var(--danger-bg); color: var(--danger); }
+
+/* -------------------------------------------------------------------- hero */
+
+.hero {
+  background: linear-gradient(160deg, var(--brand-soft), var(--bg));
+  padding: 3.5rem 0 3rem;
+  border-bottom: 1px solid var(--line);
+}
+.lede { font-size: 1.08rem; max-width: 52ch; color: var(--ink-soft); }
+
+/* ------------------------------------------------------------------ button */
+
+.btn {
+  display: inline-block;
+  background: var(--brand);
+  color: #fff;
+  border: 1px solid var(--brand);
+  border-radius: 10px;
+  padding: .5rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+.btn:hover { background: var(--brand-dark); text-decoration: none; }
+.btn:disabled { opacity: .55; cursor: progress; }
+.btn-lg { padding: .7rem 1.5rem; font-size: 1.02rem; }
+.btn-quiet {
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  border-color: transparent;
+}
+.btn-quiet:hover { background: #d7e6ff; }
+
+/* ------------------------------------------------------------------- cards */
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .8rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+.search {
+  padding: .5rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  min-width: 15rem;
+  background: var(--card);
+}
+
+.grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+}
+.card .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem 1rem;
+  font-size: .85rem;
+  color: var(--ink-soft);
+  margin: .4rem 0 .9rem;
+}
+.card .btn { margin-top: auto; align-self: flex-start; }
+
+/* -------------------------------------------------------------------- form */
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.form-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+.field { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+.field label, .field legend { font-weight: 600; font-size: .9rem; }
+.field input, .field select {
+  padding: .5rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+  width: 100%;
+}
+.field-wide { grid-column: 1 / -1; }
+fieldset.field { border: 1px solid var(--line); border-radius: 10px; padding: .8rem; }
+.actions { flex-direction: row; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: .3rem .75rem;
+  font-size: .9rem;
+  cursor: pointer;
+  background: #fff;
+}
+.chip:hover { border-color: var(--brand); }
+.chip em { color: var(--ink-soft); font-style: normal; font-size: .85em; }
+.chip input { width: auto; }
+
+.error-text { color: var(--danger); font-size: .92rem; }
+
+/* ----------------------------------------------------------------- results */
+
+.result-grid { display: grid; gap: 1.2rem; grid-template-columns: 1fr; }
+
+.costs { width: 100%; border-collapse: collapse; }
+.costs th, .costs td { text-align: left; padding: .45rem 0; font-weight: 400; }
+.costs td { text-align: right; font-variant-numeric: tabular-nums; }
+.costs tbody tr + tr { border-top: 1px solid var(--line); }
+.costs tfoot th, .costs tfoot td {
+  border-top: 2px solid var(--ink);
+  font-weight: 700;
+  padding-top: .6rem;
+}
+
+.facts { display: grid; grid-template-columns: auto 1fr; gap: .35rem 1rem; margin: 0; }
+.facts dt { color: var(--ink-soft); }
+.facts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+
+.itinerary { margin: 0; padding-left: 1.1rem; }
+.itinerary > li + li { margin-top: .9rem; }
+.itinerary h4 { margin: 0 0 .2rem; }
+.itinerary ul { margin: 0; padding-left: 1.1rem; color: var(--ink-soft); }
+
+.note { border-radius: 10px; padding: .7rem .9rem; font-size: .92rem; margin: 0 0 1rem; }
+.note-warn { background: var(--warn-bg); color: var(--warn); }
+
+/* ------------------------------------------------------------------ footer */
+
+.site-foot {
+  border-top: 1px solid var(--line);
+  background: var(--card);
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+  font-size: .92rem;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ wider screens */
+
+@media (min-width: 640px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  .form-grid { grid-template-columns: repeat(2, 1fr); }
+  .result-grid { grid-template-columns: 3fr 2fr; }
+}
+
+@media (min-width: 960px) {
+  .grid { grid-template-columns: repeat(3, 1fr); }
+  .form-grid { grid-template-columns: repeat(4, 1fr); }
+}

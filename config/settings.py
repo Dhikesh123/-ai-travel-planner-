@@ -77,6 +77,37 @@ for host in ALLOWED_HOSTS:
         CSRF_TRUSTED_ORIGINS.append(origin)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# --- Cross-origin access for the Vercel frontend --------------------------
+# The frontend is a static site on Vercel; this Django service is the API it
+# calls. Because those are two different origins, the browser refuses the
+# request unless the API says the origin is welcome.
+#
+# Only the /api/ paths are opened up, and only to origins we name - never
+# CORS_ALLOW_ALL_ORIGINS, which would let any site on the internet read this
+# API from a visitor's browser.
+
+CORS_URLS_REGEX = r"^/api/.*$"
+
+CORS_ALLOWED_ORIGINS = [
+    o.strip() for o in os.getenv("FRONTEND_ORIGINS", "").split(",") if o.strip()
+]
+
+# Vercel gives every deployment its own hostname (preview builds included), so
+# the project's own subdomains are matched by pattern rather than listed.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://ai-travel-planner-[a-z0-9-]+\.vercel\.app$",
+]
+
+# Local development: the frontend opened straight from a file or a simple
+# static server still needs to reach a Django running on this machine.
+if DEBUG:
+    CORS_ALLOWED_ORIGINS += [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+    ]
+
 # --- Groq AI --------------------------------------------------------------
 # One key, three models - each one is good at a different job.
 
@@ -102,6 +133,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party
     "rest_framework",
+    "corsheaders",
     # Our app
     "travel",
 ]
@@ -110,6 +142,10 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     # Serves CSS/JS in production. Must sit directly below SecurityMiddleware.
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    # Answers the browser's cross-origin checks for the Vercel frontend. It has
+    # to run before CommonMiddleware so the CORS headers are attached even to
+    # the replies CommonMiddleware short-circuits, such as redirects.
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

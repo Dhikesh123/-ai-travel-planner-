@@ -56,6 +56,8 @@ services:
       # address automatically from RENDER_EXTERNAL_HOSTNAME. Add your own
       # domain to ALLOWED_HOSTS here once you have one.
 
+      # Resolved by name against the travel-db entry below, so this always
+      # points at the current database even if it has to be recreated.
       - key: DATABASE_URL
         fromDatabase:
           name: travel-db

@@ -17,6 +17,7 @@ services:
     runtime: python
     plan: free
     region: singapore
+    repo: https://github.com/Dhikesh123/-ai-travel-planner-
     branch: main
     autoDeploy: true
     healthCheckPath: /

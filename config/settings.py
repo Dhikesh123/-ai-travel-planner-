@@ -145,9 +145,15 @@ DATABASES = {
     # Reads DATABASE_URL when the host provides one (Postgres in production),
     # and falls back to the local SQLite file when it is absent - so running
     # the site on this machine works exactly as it always has.
+    # Keeping connections open between requests is a clear win on a long-lived
+    # server like Render, but a serverless function cannot reuse them the same
+    # way: every concurrent invocation holds its own, and a small Postgres
+    # plan runs out of connection slots long before it runs out of anything
+    # else. On Vercel the connection is therefore closed at the end of each
+    # request, which matters even more when both hosts share one database.
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
+        conn_max_age=0 if ON_VERCEL else 600,
     )
 }
 

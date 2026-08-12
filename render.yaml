@@ -35,8 +35,19 @@ services:
     # 2 workers fits the free plan's 512 MB. The long timeout is deliberate:
     # the vision model regularly takes more than the default 30 seconds, and
     # gunicorn would otherwise kill the request mid-answer.
+    # seed_data fills in the sample destinations, places, transport rates and
+    # distances. Every one of its writes is an update_or_create, so running it
+    # on each boot is idempotent - it refreshes the sample rows and never
+    # duplicates them. The free plan has no shell and no one-off jobs, so this
+    # is the only place the seeding can happen.
+    #
+    # createsuperuser only does anything once DJANGO_SUPERUSER_PASSWORD is set
+    # in the Dashboard; it exits non-zero when the account already exists or
+    # the password is missing, so it is wrapped to keep the site booting.
     startCommand: >-
       python manage.py migrate --no-input &&
+      python manage.py seed_data &&
+      (python manage.py createsuperuser --no-input || true) &&
       gunicorn config.wsgi:application
       --bind 0.0.0.0:$PORT
       --workers 2
@@ -77,6 +88,16 @@ services:
 
       - key: PYTHON_VERSION
         value: "3.12.7"
+
+      # Admin login for /manage/ and /admin/. The account is only created once
+      # you set a password in the Dashboard - until then the createsuperuser
+      # step in startCommand is skipped harmlessly.
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: admin
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: yerradhikesh@gmail.com
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
 
 databases:
   # The region MUST match the web service above. Render's private network does

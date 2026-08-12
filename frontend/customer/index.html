@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer portal — AI Travel Planner</title>
+<meta name="description" content="Plan a trip in India: browse destinations and estimate what it costs.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9992;</text></svg>">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand" href="/">✈ AI Travel Planner</a>
+    <nav class="head-nav">
+      <a href="#destinations">Destinations</a>
+      <a href="#planner">Plan a trip</a>
+      <a href="/admin/">Admin</a>
+      <a id="backendLink" href="#" target="_blank" rel="noopener">Full site ↗</a>
+    </nav>
+  </div>
+</header>
+
+<div id="apiStatus" class="api-status" hidden>
+  <div class="wrap"><span id="apiStatusText"></span></div>
+</div>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap">
+      <h1>Plan a trip in India</h1>
+      <p class="lede">
+        Browse destinations, pick the places you want to see, and get a costed
+        day-by-day plan. Every figure is a demonstration estimate.
+      </p>
+      <a class="btn btn-lg" href="#planner">Start planning</a>
+    </div>
+  </section>
+
+  <!-- ================= Destinations ================= -->
+  <section class="wrap section" id="destinations">
+    <div class="section-head">
+      <h2>Destinations</h2>
+      <input id="destSearch" class="search" type="search" placeholder="Search destinations…" aria-label="Search destinations">
+    </div>
+    <div id="destGrid" class="grid" aria-live="polite">
+      <p class="muted">Loading destinations…</p>
+    </div>
+  </section>
+
+  <!-- ================= Planner ================= -->
+  <section class="wrap section" id="planner">
+    <h2>Trip cost &amp; itinerary</h2>
+    <p class="muted">
+      Fill this in and the plan is calculated by the API in real time.
+    </p>
+
+    <form id="planForm" class="panel form-grid" autocomplete="off">
+      <div class="field">
+        <label for="fSource">Starting city</label>
+        <input id="fSource" name="source" type="text" value="Pune" required minlength="2">
+      </div>
+
+      <div class="field">
+        <label for="fDest">Destination</label>
+        <select id="fDest" name="destination_id" required></select>
+      </div>
+
+      <div class="field">
+        <label for="fTravelers">Travellers</label>
+        <input id="fTravelers" name="travelers" type="number" min="1" max="50" value="2" required>
+      </div>
+
+      <div class="field">
+        <label for="fDays">Days</label>
+        <input id="fDays" name="days" type="number" min="1" max="60" value="3" required>
+      </div>
+
+      <div class="field">
+        <label for="fTransport">Transport</label>
+        <select id="fTransport" name="transportation_id" required></select>
+      </div>
+
+      <div class="field">
+        <label for="fHotel">Hotel</label>
+        <select id="fHotel" name="hotel_category">
+          <option value="budget">Budget</option>
+          <option value="standard" selected>Standard</option>
+          <option value="deluxe">Deluxe</option>
+          <option value="luxury">Luxury</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="fFood">Food</label>
+        <select id="fFood" name="food_budget">
+          <option value="budget">Budget</option>
+          <option value="standard" selected>Standard</option>
+          <option value="premium">Premium</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="fActivity">Extra activity budget (Rs)</label>
+        <input id="fActivity" name="activity_budget" type="number" min="0" step="100" value="0">
+      </div>
+
+      <fieldset class="field field-wide" id="placesBox">
+        <legend>Places to visit</legend>
+        <div id="placesList" class="chips muted">Choose a destination first.</div>
+      </fieldset>
+
+      <div class="field field-wide actions">
+        <button class="btn btn-lg" type="submit" id="calcBtn">Calculate</button>
+        <span id="calcNote" class="muted"></span>
+      </div>
+    </form>
+
+    <div id="results" hidden>
+      <div class="result-grid">
+        <div class="panel">
+          <h3>Cost breakdown</h3>
+          <table class="costs">
+            <tbody id="costRows"></tbody>
+            <tfoot>
+              <tr><th>Total</th><td id="costTotal"></td></tr>
+            </tfoot>
+          </table>
+          <p class="muted small" id="perPerson"></p>
+        </div>
+
+        <div class="panel">
+          <h3>Journey</h3>
+          <dl class="facts">
+            <dt>Distance</dt><dd id="factDistance"></dd>
+            <dt>Travel time</dt><dd id="factHours"></dd>
+            <dt>Vehicles / tickets</dt><dd id="factUnits"></dd>
+            <dt>Rooms</dt><dd id="factRooms"></dd>
+          </dl>
+          <p id="distanceWarn" class="note note-warn" hidden></p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Day by day</h3>
+        <ol id="itinerary" class="itinerary"></ol>
+      </div>
+
+      <p class="note note-warn" id="disclaimer"></p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p>
+      Static frontend on Vercel, talking to the Django API on Render.
+      All prices, distances and travel times are demonstration estimates,
+      not live fares or availability.
+    </p>
+    <p class="small muted" id="apiOrigin"></p>
+  </div>
+</footer>
+
+<script src="/config.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

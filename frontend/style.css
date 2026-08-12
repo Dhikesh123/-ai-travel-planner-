@@ -213,6 +213,71 @@ fieldset.field { border: 1px solid var(--line); border-radius: 10px; padding: .8
 .note { border-radius: 10px; padding: .7rem .9rem; font-size: .92rem; margin: 0 0 1rem; }
 .note-warn { background: var(--warn-bg); color: var(--warn); }
 
+/* ------------------------------------------------------- portal chooser */
+
+.portal-grid { display: grid; gap: 1.2rem; grid-template-columns: 1fr; }
+
+.portal-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--brand);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  color: var(--ink);
+}
+.portal-card:hover {
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(18, 38, 58, .12);
+  transform: translateY(-2px);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.portal-card-admin { border-top-color: var(--ok); }
+.portal-icon { font-size: 2rem; line-height: 1; }
+.portal-card h2 { margin: .6rem 0 .3rem; }
+.portal-list { margin: .2rem 0 1rem; padding-left: 1.1rem; color: var(--ink-soft); font-size: .93rem; }
+.portal-list li { margin: .15rem 0; }
+.portal-go { margin-top: auto; font-weight: 600; color: var(--brand); }
+.portal-card-admin .portal-go { color: var(--ok); }
+.portal-note { font-size: .85rem; color: var(--ink-soft); margin-top: .2rem; }
+
+/* ----------------------------------------------------------- admin portal */
+
+.login-box { max-width: 26rem; margin: 0 auto; }
+.login-box .field { margin-bottom: .9rem; }
+
+.stat-grid {
+  display: grid;
+  gap: .8rem;
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: 1.2rem;
+}
+.stat {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: .9rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.stat-value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+.stat-label { font-size: .85rem; color: var(--ink-soft); }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+.data-table th, .data-table td { text-align: left; padding: .45rem .5rem; }
+.data-table thead th {
+  border-bottom: 2px solid var(--line);
+  font-size: .82rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--ink-soft);
+}
+.data-table tbody tr + tr { border-top: 1px solid var(--line); }
+.table-scroll { overflow-x: auto; }
+
 /* ------------------------------------------------------------------ footer */
 
 .site-foot {
@@ -230,6 +295,8 @@ fieldset.field { border: 1px solid var(--line); border-radius: 10px; padding: .8
   .grid { grid-template-columns: repeat(2, 1fr); }
   .form-grid { grid-template-columns: repeat(2, 1fr); }
   .result-grid { grid-template-columns: 3fr 2fr; }
+  .portal-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (min-width: 960px) {

@@ -33,6 +33,7 @@ urlpatterns = [
     path("api/login/", api_views.api_login, name="api_login"),
     path("api/logout/", api_views.api_logout, name="api_logout"),
     path("api/me/", api_views.api_me, name="api_me"),
+    path("api/admin/stats/", api_views.api_admin_stats, name="api_admin_stats"),
     path("api/destinations/", api_views.api_destinations, name="api_destinations"),
     path(
         "api/destinations/<int:pk>/",

@@ -88,6 +88,12 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CORS_URLS_REGEX = r"^/api/.*$"
 
+# The admin portal signs in and then reads staff-only data, which means the
+# session cookie has to travel with its requests. Allowing credentials is only
+# safe because the origins below are named individually - it would be
+# dangerous combined with a wildcard.
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOWED_ORIGINS = [
     o.strip() for o in os.getenv("FRONTEND_ORIGINS", "").split(",") if o.strip()
 ]
@@ -107,6 +113,18 @@ if DEBUG:
         "http://localhost:5500",
         "http://127.0.0.1:5500",
     ]
+
+# A cross-origin login is still a form post as far as Django is concerned, so
+# every origin allowed to call the API must also be trusted for CSRF.
+CSRF_TRUSTED_ORIGINS += [o for o in CORS_ALLOWED_ORIGINS if o not in CSRF_TRUSTED_ORIGINS]
+CSRF_TRUSTED_ORIGINS += ["https://*.vercel.app"]
+
+# Browsers only attach a cookie to a cross-site request when it is marked
+# SameSite=None, and they only accept that combination over HTTPS. Locally the
+# site runs on plain http, so the stricter default is kept there instead.
+if not DEBUG:
+    SESSION_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SAMESITE = "None"
 
 # --- Groq AI --------------------------------------------------------------
 # One key, three models - each one is good at a different job.

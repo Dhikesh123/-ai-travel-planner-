@@ -11,6 +11,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db import DatabaseError
+from django.db.models import Count, Sum
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -93,6 +94,69 @@ def api_logout(request):
 def api_me(request):
     """GET /api/me/  - who is logged in right now."""
     return Response({"ok": True, "user": UserSerializer(request.user).data})
+
+
+# ===========================================================================
+# Admin portal
+# ===========================================================================
+@api_view(["GET"])
+def api_admin_stats(request):
+    """
+    GET /api/admin/stats/  - the numbers behind the admin portal.
+
+    Staff only. A normal customer asking for this gets 403, not a redirect,
+    because the caller is JavaScript and would not follow one.
+    """
+    if not request.user.is_staff:
+        return error("You need a staff account to view this.", status.HTTP_403_FORBIDDEN)
+
+    trips = Trip.objects.select_related("user", "destination", "cost")
+
+    popular = (
+        Destination.objects.annotate(trip_count=Count("trips"))
+        .filter(trip_count__gt=0)
+        .order_by("-trip_count")[:5]
+    )
+
+    return Response(
+        {
+            "ok": True,
+            "totals": {
+                "customers": User.objects.filter(is_staff=False).count(),
+                "trips": trips.count(),
+                "destinations": Destination.objects.count(),
+                "places": TouristPlace.objects.count(),
+                "chats": ChatMessage.objects.count(),
+                "images": UploadedImage.objects.count(),
+                "value": str(trips.aggregate(total=Sum("cost__total_cost"))["total"] or 0),
+            },
+            "popular_destinations": [
+                {"id": d.id, "name": d.name, "trip_count": d.trip_count} for d in popular
+            ],
+            "recent_customers": [
+                {
+                    "id": u.id,
+                    "username": u.username,
+                    "email": u.email,
+                    "date_joined": u.date_joined,
+                }
+                for u in User.objects.filter(is_staff=False).order_by("-date_joined")[:8]
+            ],
+            "recent_trips": [
+                {
+                    "id": t.id,
+                    "title": t.title,
+                    "username": t.user.username,
+                    "destination": t.destination.name,
+                    "travel_date": t.travel_date,
+                    "travelers": t.travelers,
+                    "days": t.days,
+                    "total_cost": str(getattr(t.cost, "total_cost", "0")),
+                }
+                for t in trips.order_by("-created_at")[:10]
+            ],
+        }
+    )
 
 
 # ===========================================================================

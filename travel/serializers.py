@@ -22,7 +22,10 @@ from .models import (
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "first_name", "last_name", "email"]
+        # is_staff is included because the admin portal has to decide, right
+        # after signing in, whether this account may see the staff figures at
+        # all. It is only ever read, never accepted from the client.
+        fields = ["id", "username", "first_name", "last_name", "email", "is_staff"]
         read_only_fields = fields
 
 

@@ -21,14 +21,22 @@ services:
     branch: main
     autoDeploy: true
     healthCheckPath: /
+    # collectstatic needs no database, so it belongs in the build.
     buildCommand: >-
       pip install -r requirements.txt &&
-      python manage.py collectstatic --no-input &&
-      python manage.py migrate --no-input
+      python manage.py collectstatic --no-input
+    # migrate runs here, not in the build, because the database's internal
+    # hostname only resolves on Render's private network at RUN time - a
+    # build-time migrate dies with "failed to resolve host dpg-...". A
+    # pre-deploy command would be the tidier home for it, but those need a
+    # paid instance type. Re-running migrate on every boot is harmless: it
+    # is idempotent and exits immediately once the tables exist.
+    #
     # 2 workers fits the free plan's 512 MB. The long timeout is deliberate:
     # the vision model regularly takes more than the default 30 seconds, and
     # gunicorn would otherwise kill the request mid-answer.
     startCommand: >-
+      python manage.py migrate --no-input &&
       gunicorn config.wsgi:application
       --bind 0.0.0.0:$PORT
       --workers 2

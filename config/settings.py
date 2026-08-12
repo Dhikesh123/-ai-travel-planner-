@@ -30,9 +30,15 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-insecure-key-change-me")
 # whether we are running on the live site or on this computer.
 ON_VERCEL = bool(os.getenv("VERCEL"))
 
+# Render sets its own marker the same way. The site is deployed to both, so
+# each host is detected separately and "live" means either one.
+ON_RENDER = bool(os.getenv("RENDER"))
+
+ON_LIVE_SITE = ON_VERCEL or ON_RENDER
+
 # Debug mode is helpful locally, but on a live site it shows visitors our
 # settings and file paths, so it stays off there unless we ask for it.
-DEBUG = env_bool("DEBUG", not ON_VERCEL)
+DEBUG = env_bool("DEBUG", not ON_LIVE_SITE)
 
 ALLOWED_HOSTS = [
     h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()
@@ -43,6 +49,14 @@ ALLOWED_HOSTS = [
 if ON_VERCEL:
     # A leading dot means "this domain and any sub-domain of it".
     for host in (".vercel.app", os.getenv("VERCEL_URL", "").strip()):
+        if host and host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
+
+# Render publishes the service's public address the same way, e.g.
+# "ai-travel-planner.onrender.com". The loop below turns whatever lands in
+# ALLOWED_HOSTS into a matching https origin, so CSRF is handled too.
+if ON_RENDER:
+    for host in (".onrender.com", os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()):
         if host and host not in ALLOWED_HOSTS:
             ALLOWED_HOSTS.append(host)
 

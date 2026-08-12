@@ -1,0 +1,75 @@
+# Render Blueprint for the AI Travel Planner.
+#
+# One web service (Django behind gunicorn) and one managed PostgreSQL
+# database. Render reads this file when you create a Blueprint from the
+# repository.
+#
+# The site is deployed to Vercel as well. Nothing here conflicts with
+# vercel.json - each host reads its own file and ignores the other.
+#
+# The build step installs dependencies, collects the CSS/JS that WhiteNoise
+# serves, and runs the migrations, so a fresh deploy comes up with its
+# tables already in place.
+
+services:
+  - type: web
+    name: ai-travel-planner
+    runtime: python
+    plan: free
+    region: singapore
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /
+    buildCommand: >-
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --no-input &&
+      python manage.py migrate --no-input
+    # 2 workers fits the free plan's 512 MB. The long timeout is deliberate:
+    # the vision model regularly takes more than the default 30 seconds, and
+    # gunicorn would otherwise kill the request mid-answer.
+    startCommand: >-
+      gunicorn config.wsgi:application
+      --bind 0.0.0.0:$PORT
+      --workers 2
+      --timeout 120
+    envVars:
+      # Render generates a fresh secret key on the first deploy. Never reuse
+      # the development key from .env here.
+      - key: SECRET_KEY
+        generateValue: true
+
+      # settings.py already turns DEBUG off whenever RENDER is set; this is
+      # belt and braces, and makes the intent obvious in the Dashboard.
+      - key: DEBUG
+        value: "False"
+
+      # ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS pick up the .onrender.com
+      # address automatically from RENDER_EXTERNAL_HOSTNAME. Add your own
+      # domain to ALLOWED_HOSTS here once you have one.
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: travel-db
+          property: connectionString
+
+      # The Groq key is a secret, so Render asks for it in the Dashboard
+      # rather than storing it in this file.
+      - key: GROQ_API_KEY
+        sync: false
+
+      - key: GROQ_CHAT_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_VISION_MODEL
+        value: qwen/qwen3.6-27b
+      - key: GROQ_WHISPER_MODEL
+        value: whisper-large-v3
+
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+databases:
+  - name: travel-db
+    databaseName: travel_planner
+    plan: free
+    postgresMajorVersion: "16"
+    ipAllowList: []

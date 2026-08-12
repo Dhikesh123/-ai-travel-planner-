@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 from django.db import DatabaseError
 from django.db.models import Count, Sum
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -80,12 +81,24 @@ def api_login(request):
         return error("Wrong username or password.", status.HTTP_401_UNAUTHORIZED)
 
     login(request, user)
-    return Response({"ok": True, "user": UserSerializer(user).data})
+
+    # The session cookie above is enough for the Django site itself. A browser
+    # on another domain cannot rely on it - see the authentication note in
+    # settings - so a token goes back as well, for callers that need one.
+    token, _ = Token.objects.get_or_create(user=user)
+
+    return Response(
+        {"ok": True, "user": UserSerializer(user).data, "token": token.key}
+    )
 
 
 @api_view(["POST"])
 def api_logout(request):
-    """POST /api/logout/  - end the session."""
+    """POST /api/logout/  - end the session and invalidate the token."""
+    # Dropping the token matters: signing out has to revoke the credential the
+    # caller actually holds, and for the Vercel frontend that is the token,
+    # not the cookie. Leaving it alive would keep the account reachable.
+    Token.objects.filter(user=request.user).delete()
     logout(request)
     return Response({"ok": True})
 

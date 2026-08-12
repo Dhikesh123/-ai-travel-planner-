@@ -1,16 +1,26 @@
 /*
  * Admin portal.
  *
- * Unlike the customer portal, every call here is authenticated: the browser
- * must send the Django session cookie to a different origin. That needs
- * three things to line up, and all three are easy to get wrong:
+ * Unlike the customer portal, every call here is authenticated - and it
+ * authenticates with a TOKEN, not the session cookie the Django site uses.
  *
- *   1. every fetch uses credentials: "include"
- *   2. the API answers with Access-Control-Allow-Credentials: true
- *   3. writes carry the CSRF token in an X-CSRFToken header
+ * The reason is that the frontend and the API sit on different registrable
+ * domains (vercel.app and onrender.com), which makes the session cookie a
+ * third-party cookie. Chrome and Safari block those by default now, whatever
+ * SameSite says, so a cookie-based sign-in here fails for most visitors with
+ * a 403 that looks like a bug. A token travels in the Authorization header
+ * instead, so none of that applies.
+ *
+ * The token is kept in sessionStorage rather than localStorage so it dies
+ * with the tab instead of lingering on a shared machine.
  */
 const API = window.API_BASE.replace(/\/+$/, "");
 const $ = (id) => document.getElementById(id);
+
+const TOKEN_KEY = "travelAdminToken";
+const getToken = () => sessionStorage.getItem(TOKEN_KEY);
+const setToken = (t) => sessionStorage.setItem(TOKEN_KEY, t);
+const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -38,32 +48,18 @@ function banner(message, kind = "error") {
   $("apiStatus").hidden = false;
 }
 
-/** Read a cookie the API set on this browser. */
-function cookie(name) {
-  return document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(name + "="))
-    ?.split("=")[1];
-}
-
 /**
- * Every request carries the session cookie. Without credentials: "include"
- * the browser silently omits it on a cross-origin call and the API would
- * treat a signed-in admin as an anonymous visitor.
+ * Every authenticated request carries the token in an Authorization header.
+ * No cookies are involved, so there is nothing for a browser's third-party
+ * cookie rules to block and no CSRF token to chase.
  */
 async function api(path, options = {}) {
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
 
-  const token = cookie("csrftoken");
-  if (token && options.method && options.method !== "GET") {
-    headers["X-CSRFToken"] = token;
-  }
+  const token = getToken();
+  if (token) headers["Authorization"] = "Token " + token;
 
-  const response = await fetch(API + path, {
-    credentials: "include",
-    ...options,
-    headers,
-  });
+  const response = await fetch(API + path, { ...options, headers });
 
   let data = null;
   try {
@@ -170,11 +166,9 @@ async function signIn(event) {
   button.textContent = "Signing in…";
 
   try {
-    // Ask for the CSRF cookie first: Django only sets it once something has
-    // touched a view, and the login POST needs it to be there already.
-    await api("/api/destinations/").catch(() => {});
+    clearToken();
 
-    const user = await api("/api/login/", {
+    const result = await api("/api/login/", {
       method: "POST",
       body: JSON.stringify({
         username: $("username").value.trim(),
@@ -182,14 +176,14 @@ async function signIn(event) {
       }),
     });
 
-    if (!user.user.is_staff) {
-      // Signed in fine, but this account may not see the figures.
-      await api("/api/logout/", { method: "POST" }).catch(() => {});
+    if (!result.user.is_staff) {
+      // The password was right, but this account may not see the figures.
       showLogin("That account is not a staff account, so it cannot open the admin portal.");
       return;
     }
 
-    $("whoami").textContent = `Signed in as ${user.user.username}`;
+    setToken(result.token);
+    $("whoami").textContent = `Signed in as ${result.user.username}`;
     await loadDashboard();
   } catch (error) {
     showLogin(error.message);
@@ -204,8 +198,9 @@ async function signOut(event) {
   try {
     await api("/api/logout/", { method: "POST" });
   } catch {
-    /* signing out locally is what matters */
+    /* the token is dropped below regardless, which is what matters here */
   }
+  clearToken();
   location.reload();
 }
 
@@ -214,13 +209,19 @@ async function signOut(event) {
 async function start() {
   $("apiOrigin").textContent = "API: " + API;
 
+  // No token yet means nobody has signed in on this tab, which is the normal
+  // first visit - show the form without pestering the API for a 403 first.
+  if (!getToken()) {
+    showLogin();
+    return;
+  }
+
   const slow = setTimeout(
     () => banner("Waking the backend up — the free Render instance sleeps when idle.", "info"),
     2500
   );
 
   try {
-    // Already signed in from a previous visit?
     const me = await api("/api/me/");
     clearTimeout(slow);
     $("apiStatus").hidden = true;
@@ -229,11 +230,14 @@ async function start() {
       $("whoami").textContent = `Signed in as ${me.user.username}`;
       await loadDashboard();
     } else {
+      clearToken();
       showLogin("That account is not a staff account.");
     }
   } catch (error) {
     clearTimeout(slow);
     if (error.status === 401 || error.status === 403) {
+      // A stale token from an earlier session, or one revoked by signing out.
+      clearToken();
       $("apiStatus").hidden = true;
       showLogin();
     } else {

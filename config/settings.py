@@ -151,6 +151,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party
     "rest_framework",
+    # Issues the API tokens the admin portal signs in with. See the
+    # authentication note in REST_FRAMEWORK below for why it is needed.
+    "rest_framework.authtoken",
     "corsheaders",
     # Our app
     "travel",
@@ -268,8 +271,19 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024
 # --- Django REST Framework ------------------------------------------------
 
 REST_FRAMEWORK = {
+    # Two ways in, for two different callers:
+    #
+    # SessionAuthentication serves the Django site itself, where the browser
+    # is on the same origin as the API and the cookie is first-party.
+    #
+    # TokenAuthentication serves the Vercel frontend. A cookie cannot be
+    # relied on there: vercel.app and onrender.com are separate registrable
+    # domains, so the session cookie is third-party, and browsers now block
+    # those by default no matter what SameSite says. A token sent in the
+    # Authorization header is not a cookie, so none of that applies.
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

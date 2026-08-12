@@ -77,8 +77,14 @@ services:
         value: "3.12.7"
 
 databases:
+  # The region MUST match the web service above. Render's private network does
+  # not cross regions, so a Singapore service cannot resolve an Oregon
+  # database's internal hostname - it fails with "failed to resolve host
+  # dpg-...". Leaving this out is what broke the first deploy: the service
+  # was pinned to singapore and the database quietly defaulted to oregon.
   - name: travel-db
     databaseName: travel_planner
     plan: free
+    region: singapore
     postgresMajorVersion: "16"
     ipAllowList: []

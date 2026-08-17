@@ -141,6 +141,28 @@ textarea { resize: vertical; }
 .form-grid { display: grid; gap: 0 1rem; }
 .form-grid .full, .full { grid-column: 1 / -1; }
 .form-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.2rem; }
+
+/* The planner's action bar sticks to the bottom of the viewport.
+   Its form runs long - ten fields, then a notes box, then a grid of every
+   tourist place in the destination - so the submit button used to sit below
+   all of it, out of reach from the part of the form you were filling in.
+   Sticky keeps one button always to hand instead of adding a second one that
+   would do the same job and raise the question of which is which.
+   The negative margins let the bar's background span the panel's padding, so
+   the fields scroll under a solid strip rather than a floating rectangle. */
+.planner-layout .form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  align-items: center;
+  margin: 1.5rem -1.3rem -1.3rem;
+  padding: .9rem 1.3rem;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: 0 -6px 16px rgba(18, 38, 58, .06);
+}
+.form-actions-hint { color: var(--ink-soft); font-size: .88rem; }
 .filter-bar { display: grid; gap: .6rem; margin-bottom: 1.5rem; }
 
 @media (min-width: 700px) {

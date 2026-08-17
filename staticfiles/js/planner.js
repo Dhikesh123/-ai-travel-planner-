@@ -140,6 +140,10 @@ document.addEventListener("DOMContentLoaded", function () {
   function render(data) {
     const costs = data.costs;
     setText("totalCost", formatRupees(costs.total_cost));
+    // Repeated in the sticky action bar. On a narrow screen the estimate panel
+    // sits below the whole form, so the total would otherwise be off-screen at
+    // the exact moment you are deciding whether to save.
+    setText("actionTotal", "Estimated " + formatRupees(costs.total_cost));
     setText("travelCost", formatRupees(costs.travel_cost));
     setText("hotelCost", formatRupees(costs.hotel_cost));
     setText("foodCost", formatRupees(costs.food_cost));

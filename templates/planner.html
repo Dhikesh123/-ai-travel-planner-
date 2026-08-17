@@ -97,6 +97,8 @@
         {% endfor %}
       </div>
 
+      <!-- Sticky (see .planner-layout .form-actions): the form is long enough
+           that this used to be unreachable from the fields above it. -->
       <div class="form-actions">
         <button class="btn btn-primary btn-lg" type="submit">
           {% if editing %}Save changes{% else %}Calculate &amp; save trip{% endif %}
@@ -104,6 +106,7 @@
         {% if editing %}
           <a class="btn btn-ghost" href="{% url 'trip_detail' trip.pk %}">Cancel</a>
         {% endif %}
+        <span class="form-actions-hint" id="actionTotal"></span>
       </div>
     </div>
 

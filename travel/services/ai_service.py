@@ -63,23 +63,23 @@ How you must behave:
 IMAGE_SYSTEM_PROMPT = """You look at photographs of places and landmarks for a
 travel planning app.
 
-Answer in exactly this shape:
+Reply with exactly these lines and nothing else:
 
-CONFIDENCE: HIGH or LOW
-PLACE: the name of the place, or "Not sure"
+EVIDENCE: what is visible - tower shape, material, signboard script, landscape
+PLACE: the monument's name, or "Not sure"
 LOCATION: city, state, country, or "Not sure"
-ABOUT: two or three sentences about the place
-VISIT: how a traveller can get there and the best time to visit (estimates only)
-NEARBY: two or three other places worth seeing close by
+CONFIDENCE: HIGH or LOW
+ALTERNATIVES: other monuments that would fit, or "None"
+ABOUT: two or three sentences
+VISIT: how to get there and when to go (rough estimates only)
+NEARBY: two or three places close by
 
-Rules:
-- Use CONFIDENCE: LOW whenever you are not certain. It is much better to say
-  you are not sure than to name the wrong monument.
-- If the picture is not a place at all (a person, food, a document), say so in
-  PLACE and keep CONFIDENCE: LOW.
-- Never invent ticket prices, timings or booking details. Anything you say
-  about cost or timing is a rough estimate and must be described that way.
-- Give the final answer only. Do not show your reasoning.
+Answer HIGH only if you can name the exact monument and its city; otherwise
+LOW. Naming the wrong monument confidently is the worst outcome here, and
+"Not sure" with good ALTERNATIVES is a genuinely useful answer.
+
+If the picture is mostly a person, food or a document, say so in PLACE and
+answer LOW. Never invent ticket prices, timings or booking details.
 """
 
 # A friendly message shown when the API key is missing, so the whole site
@@ -120,26 +120,39 @@ def _strip_reasoning(text):
     Some models "think out loud" inside <think>...</think> tags before giving
     the real answer. The customer should only see the answer, so we remove
     those parts.
+
+    Returns "" when the reply was nothing but reasoning. That happens when the
+    model deliberates until it runs out of room and never reaches its answer,
+    and it used to fall back to returning the raw text - which put the model's
+    unfiltered second-guessing ("Wait, is that the French flag? No...") on the
+    page as though it were the result. An empty string lets the caller say
+    plainly that nothing came back, which is the truth and is far less
+    alarming than a wall of visible doubt.
     """
     if not text:
         return ""
     cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
-    # If the model ran out of room and never closed the tag, drop the opener
-    # and everything after it, then fall back to the raw text if nothing is left.
+    # The model ran out of room and never closed the tag: drop the opener and
+    # everything after it.
     cleaned = re.sub(r"<think>.*$", "", cleaned, flags=re.DOTALL).strip()
-    return cleaned or text.strip()
+    return cleaned
 
 
-def _call(messages, model=None, max_tokens=2000):
+def _call(messages, model=None, max_tokens=2000, reasoning_effort=None):
     """One place that actually sends the request and handles every error."""
     import groq
 
     client = _get_client()
+    extra = {}
+    if reasoning_effort:
+        extra["reasoning_effort"] = reasoning_effort
+
     try:
         response = client.chat.completions.create(
             model=model or settings.GROQ_CHAT_MODEL,
             max_tokens=max_tokens,
             messages=messages,
+            **extra,
         )
     except groq.AuthenticationError as exc:
         logger.warning("Groq auth failed: %s", exc)
@@ -167,8 +180,16 @@ def _call(messages, model=None, max_tokens=2000):
     if not response.choices:
         raise AIError("The AI service sent an empty reply. Please try again.")
 
-    text = _strip_reasoning(response.choices[0].message.content)
+    choice = response.choices[0]
+    text = _strip_reasoning(choice.message.content)
     if not text:
+        # Almost always the model deliberating past its token budget rather
+        # than a genuinely blank reply, so say which it was.
+        if getattr(choice, "finish_reason", None) == "length":
+            raise AIError(
+                "The AI ran out of room before it finished answering. "
+                "Try again, or ask a shorter question."
+            )
         raise AIError("The AI service sent an empty reply. Please try again.")
     return text
 
@@ -222,6 +243,46 @@ def translate(text, source_lang="te", target_lang="en"):
 # ---------------------------------------------------------------------------
 # 3. Image recognition (vision)
 # ---------------------------------------------------------------------------
+VISION_MAX_EDGE = 768
+
+
+def _shrink_for_vision(image_bytes, media_type="image/jpeg"):
+    """
+    Shrink a photo before sending it to the vision model.
+
+    A phone camera produces something like 3024x4032. Every pixel of that is
+    charged against the same per-minute token budget the answer has to come out
+    of, and the model gains nothing from it - 768px on the long edge is more
+    than enough to read a temple tower's shape and any signboard in the frame.
+    It also makes the upload and the request noticeably quicker.
+
+    Returns (bytes, media_type). The media type comes back with the bytes
+    because shrinking re-encodes as JPEG: a PNG that went in still described as
+    image/png would produce a data URI that disagrees with its own contents.
+
+    If anything goes wrong - an unreadable file, no Pillow - the original bytes
+    and type are returned untouched, because a slightly expensive request is
+    much better than a failed one.
+    """
+    try:
+        from io import BytesIO
+
+        from PIL import Image
+
+        image = Image.open(BytesIO(image_bytes))
+        if max(image.size) <= VISION_MAX_EDGE:
+            return image_bytes, media_type
+
+        image = image.convert("RGB")
+        image.thumbnail((VISION_MAX_EDGE, VISION_MAX_EDGE))
+        buffer = BytesIO()
+        image.save(buffer, format="JPEG", quality=85)
+        return buffer.getvalue(), "image/jpeg"
+    except Exception as exc:  # noqa: BLE001 - never fail a request over this
+        logger.info("Could not shrink the image, sending it as it is: %s", exc)
+        return image_bytes, media_type
+
+
 def analyse_image(image_bytes, media_type="image/jpeg", question=""):
     """
     Send a photo to the vision model and ask what place it is.
@@ -231,6 +292,7 @@ def analyse_image(image_bytes, media_type="image/jpeg", question=""):
 
     Returns (text, is_confident).
     """
+    image_bytes, media_type = _shrink_for_vision(image_bytes, media_type)
     encoded = base64.standard_b64encode(image_bytes).decode("utf-8")
     prompt = question.strip() or "What place is this, and how can I visit it?"
 
@@ -247,9 +309,22 @@ def analyse_image(image_bytes, media_type="image/jpeg", question=""):
         }
     ]
 
-    # The vision model reasons a lot before answering, so it needs plenty of
-    # room. Too small a limit and it gets cut off mid-thought.
-    text = _call(messages, model=settings.GROQ_VISION_MODEL, max_tokens=4000)
+    # reasoning_effort="none" is the whole difference between this working and
+    # not. Left to deliberate, the model argues itself out of the right answer:
+    # on a photo of the Dwarkadhish Temple it spent thousands of tokens second
+    # guessing a flag and settled on Kedarnath, then on a temple in Sri Lanka,
+    # both with high confidence. With reasoning off it answered "Dwarkadhish
+    # Temple, Dwarka, Gujarat" in nineteen tokens.
+    #
+    # It also fixes the budget. The free tier allows 8000 tokens PER MINUTE for
+    # this model - prompt, image and reply together - so the old 4000-token
+    # deliberations regularly hit the ceiling and returned nothing at all.
+    text = _call(
+        messages,
+        model=settings.GROQ_VISION_MODEL,
+        max_tokens=1500,
+        reasoning_effort="none",
+    )
     is_confident = "CONFIDENCE: HIGH" in text.upper()
     return text, is_confident
 

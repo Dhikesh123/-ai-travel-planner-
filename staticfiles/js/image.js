@@ -103,7 +103,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     resultBox.textContent = data.result;
-    uncertain.hidden = Boolean(data.is_confident);
+
+    // The caveat is shown either way, only worded differently. The model has
+    // answered HIGH while naming a monument in the wrong state, so treating
+    // its own confidence as a reason to say nothing would pass that straight
+    // on to the customer as fact.
+    uncertain.hidden = false;
+    uncertain.className = data.is_confident
+      ? "alert alert-warning small"
+      : "alert alert-error small";
+    uncertain.innerHTML = data.is_confident
+      ? "This is the AI's <strong>best guess</strong>. It identifies buildings " +
+        "from their appearance alone, and similar-looking monuments are easy " +
+        "to confuse - check the name before relying on it."
+      : "The AI is <strong>not confident</strong> about this image. Treat the " +
+        "answer below as a guess, not a fact.";
+
     speakBtn.hidden = false;
   });
 

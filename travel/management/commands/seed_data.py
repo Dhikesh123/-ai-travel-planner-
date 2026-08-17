@@ -18,6 +18,16 @@ TRANSPORT = [
     ("bike", "Bike", "3.50", 45, 2, False),
     ("bus", "Bus", "1.80", 45, 1, True),
     ("train", "Train", "1.20", 65, 1, True),
+    # Flight is a per-person ticket, like bus and train, so seats_per_unit is 1
+    # and charged_per_person is True - the cost rules need no special case.
+    #
+    # 300 km/h is deliberately well under how fast an aircraft flies. The speed
+    # here produces the "travel time" shown to the customer, and that journey
+    # is door to door: reaching the airport, checking in, security, boarding
+    # and the trip into the city at the far end. Quoting cruising speed would
+    # tell someone a 450 km hop takes 50 minutes, which no traveller has ever
+    # experienced.
+    ("flight", "Flight", "7.00", 300, 1, True),
 ]
 
 DESTINATIONS = [

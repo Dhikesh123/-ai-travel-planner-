@@ -7,10 +7,21 @@ through Django settings, and is never sent to the browser.
 
 Groq gives us four things, each with a model that suits the job:
 
-  * chat and translation -> llama-3.3-70b-versatile  (fast, good at Indian
-    languages including Telugu)
+  * chat and translation -> openai/gpt-oss-120b      (handles Telugu well)
   * image recognition    -> qwen/qwen3.6-27b         (the vision model)
   * speech to text       -> whisper-large-v3         (audio to text)
+
+Every model name comes from settings, never from a literal here, because Groq
+retires models: this app was pointed at llama-3.3-70b-versatile until Groq
+withdrew it, and chat and translation returned 503 until the name was changed.
+If they start failing again, list what the key can actually reach with
+
+    curl -H "Authorization: Bearer $GROQ_API_KEY" \
+         https://api.groq.com/openai/v1/models
+
+and set GROQ_CHAT_MODEL to one of those. Note that the gpt-oss models reason
+before answering and those tokens count against max_tokens, so a budget that
+is too small comes back with empty content rather than a short answer.
 """
 import base64
 import logging
@@ -141,6 +152,16 @@ def _call(messages, model=None, max_tokens=2000):
         raise AIError("Could not reach the AI service. Check your internet connection.") from exc
     except groq.APIStatusError as exc:
         logger.warning("Groq API error %s: %s", exc.status_code, exc)
+        # A retired model is worth its own message. Groq withdraws models as
+        # newer ones land - llama-3.3-70b-versatile disappeared from under this
+        # app - and the generic wording sent us to the logs to find out why,
+        # while "please try again" invited a retry that could never work.
+        if exc.status_code == 404:
+            raise AIError(
+                "The configured AI model (%s) is not available on this API key. "
+                "It has probably been retired - set GROQ_CHAT_MODEL to a current "
+                "model." % (model or settings.GROQ_CHAT_MODEL)
+            ) from exc
         raise AIError("The AI service returned an error. Please try again.") from exc
 
     if not response.choices:

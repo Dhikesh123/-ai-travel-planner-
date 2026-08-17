@@ -83,8 +83,12 @@ services:
       - key: GROQ_API_KEY
         sync: false
 
+      # Groq retires models. llama-3.3-70b-versatile vanished from under this
+      # deployment and every chat/translate request answered 503 until this
+      # was changed. Check what the key can reach with GET /openai/v1/models
+      # before editing.
       - key: GROQ_CHAT_MODEL
-        value: llama-3.3-70b-versatile
+        value: openai/gpt-oss-120b
       - key: GROQ_VISION_MODEL
         value: qwen/qwen3.6-27b
       - key: GROQ_WHISPER_MODEL

@@ -68,6 +68,21 @@
             <p id="loginError" class="error-text" hidden></p>
           </form>
 
+          <p class="forgot-line">
+            <a href="#" id="forgotToggle">Forgot your password?</a>
+          </p>
+
+          <!-- Asking for the link happens here; choosing the new password
+               happens on the Django site, which the emailed link points at. -->
+          <form id="forgotForm" class="forgot-box" hidden>
+            <div class="field">
+              <label for="forgotEmail">Account email</label>
+              <input id="forgotEmail" name="email" type="email" autocomplete="email" required>
+            </div>
+            <button class="btn" type="submit" id="forgotBtn">Email me a reset link</button>
+            <p id="forgotNote" class="small" hidden></p>
+          </form>
+
           <p class="restricted-note">
             <span aria-hidden="true">⚠</span>
             <span>

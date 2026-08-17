@@ -1,7 +1,8 @@
 """
 Every web address in the app, and the view that answers it.
 """
-from django.urls import path
+from django.contrib.auth import views as auth_views
+from django.urls import path, reverse_lazy
 
 from . import api_views, views
 
@@ -14,6 +15,43 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("login/", views.CustomerLoginView.as_view(), name="login"),
     path("logout/", views.logout_view, name="logout"),
+    # ---------------- Forgot password -------------
+    # Django's own four-step flow: ask for the address, confirm it was sent,
+    # follow the emailed link, confirm the new password took. Both portals use
+    # these same pages - a customer and a staff member reset a password the
+    # same way, because they are the same kind of account underneath.
+    path(
+        "password-reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="password_reset.html",
+            email_template_name="password_reset_email.html",
+            subject_template_name="password_reset_subject.txt",
+            success_url=reverse_lazy("password_reset_done"),
+        ),
+        name="password_reset",
+    ),
+    path(
+        "password-reset/sent/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="password_reset_sent.html"
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="password_reset_confirm.html",
+            success_url=reverse_lazy("password_reset_complete"),
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="password_reset_complete.html"
+        ),
+        name="password_reset_complete",
+    ),
     # ---------------- Customer portal -------------
     path("dashboard/", views.dashboard, name="dashboard"),
     path("profile/", views.profile_view, name="profile"),
@@ -33,6 +71,11 @@ urlpatterns = [
     path("api/login/", api_views.api_login, name="api_login"),
     path("api/logout/", api_views.api_logout, name="api_logout"),
     path("api/me/", api_views.api_me, name="api_me"),
+    path(
+        "api/password-reset/",
+        api_views.api_password_reset,
+        name="api_password_reset",
+    ),
     path("api/admin/stats/", api_views.api_admin_stats, name="api_admin_stats"),
     path("api/destinations/", api_views.api_destinations, name="api_destinations"),
     path(

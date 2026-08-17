@@ -200,6 +200,123 @@ body[data-portal="customer"] .card .meta span {
   padding: .1rem .6rem;
 }
 
+/* ------------------------------------------------------- destination photo */
+
+/* The photo sits inside the card's padding box, pulled out to the edges so it
+   reads as the card's own header rather than a picture dropped on top of it.
+   A fixed aspect ratio keeps the grid's rows level whatever each photo's
+   proportions are, and object-fit crops rather than squashes. */
+body[data-portal="customer"] .card-media {
+  width: calc(100% + 2.2rem);
+  margin: -1.35rem -1.1rem 1rem;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+  background: #f3e6d4;
+}
+
+/* ------------------------------------------------------------- place picker
+
+   Places used to be bare checkboxes. Each one is now a picture card you tick,
+   because "Elephanta Caves" means a great deal more with the photo beside it.
+   The native checkbox is still the control - it is only visually hidden, so
+   the keyboard, the label click and the form submission all behave as before.
+   -------------------------------------------------------------------------- */
+
+.place-grid {
+  display: grid;
+  gap: .7rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+}
+
+.place-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .45rem .7rem .45rem .45rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color .14s ease, background .14s ease, box-shadow .14s ease;
+}
+.place-card:hover { border-color: var(--brand); box-shadow: var(--shadow); }
+
+/* Visually hidden, not display:none - a removed control is not focusable and
+   would drop straight out of the form. */
+.place-card input {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+.place-card:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: 1px; }
+.place-card:has(input:checked) {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.place-media {
+  flex: 0 0 auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f3e6d4;
+}
+.place-media-empty {
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+}
+
+.place-body { display: flex; flex-direction: column; min-width: 0; gap: .1rem; }
+.place-name {
+  font-weight: 600;
+  font-size: .95rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.place-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .15rem .5rem;
+  font-size: .78rem;
+  color: var(--ink-soft);
+}
+.place-tag {
+  background: #fdf3e3;
+  border-radius: 999px;
+  padding: 0 .45rem;
+  text-transform: capitalize;
+}
+.place-card:has(input:checked) .place-tag { background: #fde8c0; }
+
+/* The tick only appears once the card is chosen. */
+.place-tick {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-size: .8rem;
+  opacity: 0;
+  transform: scale(.7);
+  transition: opacity .14s ease, transform .14s ease;
+}
+.place-card:has(input:checked) .place-tick { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .place-card, .place-tick { transition: none; }
+}
+
 /* ------------------------------------------------------------ planner form */
 
 body[data-portal="customer"] .panel { border-radius: var(--radius); }
@@ -224,6 +341,17 @@ body[data-portal="customer"] .itinerary > li::marker { color: var(--brand); font
 /* ------------------------------------------------------------------ footer */
 
 body[data-portal="customer"] .site-foot { border-top-color: #f3e6d4; }
+
+.account-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem 1.1rem;
+  align-items: baseline;
+  padding-bottom: .8rem;
+  margin-bottom: .8rem;
+  border-bottom: 1px solid #f3e6d4;
+}
+.account-line strong { color: var(--ink); font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) {
   body[data-portal="customer"] .card,

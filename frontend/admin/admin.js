@@ -210,6 +210,49 @@ async function signOut(event) {
   location.reload();
 }
 
+/* -------------------------------------------------------- forgot password */
+
+/**
+ * Ask the API to email a reset link.
+ *
+ * Only the request happens here. The link in the mail points at the Django
+ * site, where the form that sets the new password is a real server-rendered
+ * form with CSRF - the right place for it, and it means staff and customers
+ * reset a password through exactly the same pages.
+ *
+ * The API answers the same way whether or not the address is registered, so
+ * there is nothing here to distinguish the two cases either.
+ */
+async function requestReset(event) {
+  event.preventDefault();
+  const button = $("forgotBtn");
+  const note = $("forgotNote");
+
+  button.disabled = true;
+  button.textContent = "Sending…";
+  note.hidden = true;
+
+  try {
+    const result = await api("/api/password-reset/", {
+      method: "POST",
+      body: JSON.stringify({ email: $("forgotEmail").value.trim() }),
+    });
+    note.textContent = result.delivered_by_email
+      ? result.message
+      : result.message +
+        " (This deployment has no mail credentials set, so the link is written" +
+        " to the server log instead of sent.)";
+    note.className = "small muted";
+  } catch (error) {
+    note.textContent = error.message;
+    note.className = "small error-text";
+  } finally {
+    note.hidden = false;
+    button.disabled = false;
+    button.textContent = "Email me a reset link";
+  }
+}
+
 /* ------------------------------------------------------------------ start */
 
 async function start() {
@@ -262,5 +305,12 @@ async function start() {
 
 $("loginForm").addEventListener("submit", signIn);
 $("signOut").addEventListener("click", signOut);
+$("forgotForm").addEventListener("submit", requestReset);
+$("forgotToggle").addEventListener("click", (event) => {
+  event.preventDefault();
+  const box = $("forgotForm");
+  box.hidden = !box.hidden;
+  if (!box.hidden) $("forgotEmail").focus();
+});
 
 start();

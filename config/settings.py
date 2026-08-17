@@ -259,6 +259,48 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "home"
 
+# --- Email (used by "forgot password") ------------------------------------
+#
+# Password reset is only as good as its delivery: if the mail never arrives,
+# the reset link never reaches the person locked out. So the backend is chosen
+# by whether credentials actually exist, rather than assuming SMTP works.
+#
+#   EMAIL_HOST_USER + EMAIL_HOST_PASSWORD set  ->  real SMTP
+#   either one missing                         ->  print to the console/logs
+#
+# The console fallback is deliberate. A misconfigured SMTP host raises at send
+# time and turns "forgot password" into a 500; printing instead keeps the flow
+# working and puts the link somewhere a developer can still reach it. Nothing
+# is silently lost - the startup banner below says which mode is live.
+#
+# For Gmail this must be an App Password (16 characters, from Google Account ->
+# Security -> App passwords), NOT the normal account password: Google has
+# refused plain passwords for SMTP since 2022.
+
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "").strip()
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "").replace(" ", "")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() != "false"
+EMAIL_TIMEOUT = 20
+
+EMAIL_IS_CONFIGURED = bool(EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
+
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_IS_CONFIGURED
+    else "django.core.mail.backends.console.EmailBackend"
+)
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@ai-travel-planner.local"
+)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# How long a reset link stays valid. Three hours is long enough to find the
+# mail and short enough that a forwarded inbox is not a standing key.
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 3
+
 # --- File upload rules (used by our forms) --------------------------------
 
 MAX_UPLOAD_SIZE_MB = 5

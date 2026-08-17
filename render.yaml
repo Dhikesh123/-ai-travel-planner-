@@ -41,13 +41,17 @@ services:
     # duplicates them. The free plan has no shell and no one-off jobs, so this
     # is the only place the seeding can happen.
     #
-    # createsuperuser only does anything once DJANGO_SUPERUSER_PASSWORD is set
-    # in the Dashboard; it exits non-zero when the account already exists or
-    # the password is missing, so it is wrapped to keep the site booting.
+    # ensure_admin replaces createsuperuser here. createsuperuser refuses to
+    # touch a username that already exists - it failed every boot with "That
+    # username is already taken", the `|| true` hid it, and the password in
+    # DJANGO_SUPERUSER_PASSWORD was never applied. ensure_admin creates the
+    # account when missing and otherwise resets its password, so the variable
+    # in the Dashboard is always the password that actually works. It is a
+    # no-op when no password is set, so it needs no `|| true`.
     startCommand: >-
       python manage.py migrate --no-input &&
       python manage.py seed_data &&
-      (python manage.py createsuperuser --no-input || true) &&
+      python manage.py ensure_admin &&
       gunicorn config.wsgi:application
       --bind 0.0.0.0:$PORT
       --workers 2
@@ -88,6 +92,25 @@ services:
 
       - key: PYTHON_VERSION
         value: "3.12.7"
+
+      # Outgoing mail, used by "forgot password". Until EMAIL_HOST_PASSWORD is
+      # filled in on the Dashboard, settings.py falls back to the console
+      # backend and reset links appear in the service logs instead of being
+      # sent - the flow still works end to end, it just does not leave the box.
+      #
+      # For Gmail this must be an App Password (Google Account -> Security ->
+      # App passwords), not the normal account password. Google stopped
+      # accepting plain passwords for SMTP in 2022.
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        value: yerradhikesh@gmail.com
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
 
       # Admin login for /manage/ and /admin/. The account is only created once
       # you set a password in the Dashboard - until then the createsuperuser

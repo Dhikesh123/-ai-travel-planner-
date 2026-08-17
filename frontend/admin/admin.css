@@ -268,6 +268,16 @@ body[data-portal="admin"] .field label { color: var(--ink-soft); font-size: .78r
 body[data-portal="admin"] .field input { font-family: var(--font-mono); }
 body[data-portal="admin"] .login-box .btn { width: 100%; text-align: center; }
 
+.forgot-line { margin: .9rem 0 0; font-size: .88rem; }
+.forgot-box {
+  margin-top: .7rem;
+  padding-top: .8rem;
+  border-top: 1px dashed var(--line);
+}
+.forgot-box .btn { width: 100%; text-align: center; }
+.forgot-box .field { margin-bottom: .7rem; }
+#forgotNote { margin: .7rem 0 0; }
+
 /* A standing reminder of the boundary between the two portals. */
 .restricted-note {
   display: flex;

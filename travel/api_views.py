@@ -8,7 +8,9 @@ sent to the browser.
 import logging
 from decimal import Decimal, InvalidOperation
 
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.db import DatabaseError
 from django.db.models import Count, Sum
@@ -107,6 +109,55 @@ def api_logout(request):
 def api_me(request):
     """GET /api/me/  - who is logged in right now."""
     return Response({"ok": True, "user": UserSerializer(request.user).data})
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def api_password_reset(request):
+    """
+    POST /api/password-reset/  - email a reset link. Body: {"email": "..."}
+
+    This lets the portals on Vercel start a reset without sending the person
+    off to the Django site first. The link in the mail still points at the
+    Django site, because that is where the form that actually sets the new
+    password lives - and it is a real server-rendered form with CSRF, which is
+    the right place for it.
+
+    The reply is deliberately the same whether or not the address belongs to an
+    account. Saying "no such user" would turn this endpoint into a way to test
+    which email addresses are registered, which is worth more to an attacker
+    than the convenience is worth to anyone else.
+    """
+    email = str(request.data.get("email", "")).strip()
+    if not email:
+        return error("Enter the email address on your account.")
+
+    form = PasswordResetForm(data={"email": email})
+    if form.is_valid():
+        form.save(
+            request=request,
+            use_https=request.is_secure(),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            subject_template_name="password_reset_subject.txt",
+            email_template_name="password_reset_email.html",
+        )
+    else:
+        # A malformed address gets the same answer as a valid one, for the
+        # reason above. It is logged so a typo is still diagnosable.
+        logger.info("Password reset asked for with an unusable address.")
+
+    return Response(
+        {
+            "ok": True,
+            "message": (
+                "If that address belongs to an account, a reset link is on its "
+                "way. It is valid for 3 hours."
+            ),
+            # Tells the portal to warn that mail is not actually being sent, so
+            # a demo deployment does not look like it silently swallowed it.
+            "delivered_by_email": settings.EMAIL_IS_CONFIGURED,
+        }
+    )
 
 
 # ===========================================================================

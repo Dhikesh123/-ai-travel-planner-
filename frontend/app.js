@@ -55,6 +55,31 @@ function esc(text) {
   return d.innerHTML;
 }
 
+/**
+ * A picture for a destination or a place.
+ *
+ * The API hands back whatever the record has - an uploaded file, a web URL, or
+ * nothing at all - so three things are guarded here:
+ *
+ *   - no image at all: return nothing, and the card lays out without a slot
+ *     rather than leaving a broken frame behind
+ *   - a URL that 404s or is blocked: onerror hides the element, for the same
+ *     reason - a broken-image icon looks like a bug in the site
+ *   - only http(s) is allowed through, so a javascript: value coming back from
+ *     the API could never reach the src attribute
+ *
+ * loading="lazy" matters here: a destination list is a screenful of photos and
+ * most are below the fold on a phone.
+ */
+function photo(url, alt, className) {
+  const src = String(url || "");
+  if (!/^https?:\/\//i.test(src)) return "";
+  return (
+    `<img class="${className}" src="${esc(src)}" alt="${esc(alt)}"` +
+    ` loading="lazy" decoding="async" onerror="this.remove()">`
+  );
+}
+
 /* ------------------------------------------------------------ destinations */
 
 let DESTINATIONS = [];
@@ -71,6 +96,7 @@ function drawDestinations(list) {
     .map(
       (d) => `
       <article class="card">
+        ${photo(d.image, d.name, "card-media")}
         <h3>${esc(d.name)}</h3>
         <p class="muted small">${esc(d.state || d.country || "")}</p>
         <p class="small">${esc(d.description || "")}</p>
@@ -96,6 +122,10 @@ function drawDestinations(list) {
 
 async function loadPlaces(destinationId) {
   const box = $("placesList");
+  // Every path below except the grid itself writes a single line of text, so
+  // drop the grid class first rather than leaving one message stretched across
+  // a photo layout from the previously chosen destination.
+  box.classList.remove("place-grid");
   if (!destinationId) {
     box.innerHTML = `<span class="muted">Choose a destination first.</span>`;
     return;
@@ -112,13 +142,29 @@ async function loadPlaces(destinationId) {
     }
 
     box.classList.remove("muted");
+    box.classList.add("place-grid");
     box.innerHTML = places
       .map(
         (p) => `
-        <label class="chip">
+        <label class="place-card">
           <input type="checkbox" name="place" value="${esc(p.id)}">
-          <span>${esc(p.name)}</span>
-          ${Number(p.entry_fee) > 0 ? `<em>${rupees(p.entry_fee)}</em>` : ""}
+          ${photo(p.image, p.name, "place-media") ||
+            `<span class="place-media place-media-empty" aria-hidden="true">📍</span>`}
+          <span class="place-body">
+            <span class="place-name">${esc(p.name)}</span>
+            <span class="place-meta">
+              <span class="place-tag">${esc(p.category_label || p.category || "")}</span>
+              <span>${
+                Number(p.entry_fee) > 0 ? rupees(p.entry_fee) : "Free entry"
+              }</span>
+              ${
+                p.visit_duration_minutes
+                  ? `<span>~${Math.round(p.visit_duration_minutes / 60 * 10) / 10} h</span>`
+                  : ""
+              }
+            </span>
+          </span>
+          <span class="place-tick" aria-hidden="true">✓</span>
         </label>`
       )
       .join("");
@@ -220,6 +266,13 @@ async function calculate(event) {
 async function start() {
   $("apiOrigin").textContent = "API: " + API;
   $("backendLink").href = API;
+
+  // Account pages live on the Django site, so they are built from whatever the
+  // API base happens to be - that keeps them working against a local backend
+  // opened with ?api=http://127.0.0.1:8000 as well as against Render.
+  $("signInLink").href = API + "/login/";
+  $("registerLink").href = API + "/register/";
+  $("forgotLink").href = API + "/password-reset/";
 
   // The Render free plan sleeps when idle, and the first request after that
   // can take the best part of a minute. Say so rather than looking broken.

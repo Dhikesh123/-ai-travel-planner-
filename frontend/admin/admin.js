@@ -80,10 +80,15 @@ async function api(path, options = {}) {
 
 /* ------------------------------------------------------------------ views */
 
+/*
+ * The console rail lists the dashboard's sections, so it is meaningless on the
+ * sign-in screen - it moves with the dashboard rather than standing on its own.
+ */
 function showLogin(message) {
   $("dashView").hidden = true;
   $("loginView").hidden = false;
   $("signOut").hidden = true;
+  $("consoleRail").hidden = true;
   if (message) {
     $("loginError").textContent = message;
     $("loginError").hidden = false;
@@ -94,6 +99,7 @@ function showDashboard() {
   $("loginView").hidden = true;
   $("dashView").hidden = false;
   $("signOut").hidden = false;
+  $("consoleRail").hidden = false;
 }
 
 /* -------------------------------------------------------------- rendering */
@@ -208,6 +214,13 @@ async function signOut(event) {
 
 async function start() {
   $("apiOrigin").textContent = "API: " + API;
+  // Just the host in the rail - the full URL is already in the footer. A bad
+  // ?api= override must not take the whole page down, hence the guard.
+  try {
+    $("railApi").textContent = new URL(API).host;
+  } catch {
+    $("railApi").textContent = API;
+  }
 
   // No token yet means nobody has signed in on this tab, which is the normal
   // first visit - show the form without pestering the API for a 403 first.

@@ -1,0 +1,231 @@
+/* ==========================================================================
+   Customer portal theme
+   Loaded AFTER /style.css, which supplies the skeleton and the default tokens.
+
+   The brief for this portal: warm, sunlit, unhurried - a travel brochure that
+   anyone can walk into without an account. Everything is roomier and rounder
+   than the shared defaults, and the palette moves off the neutral blue onto
+   amber and terracotta.
+
+   It is the deliberate opposite of /admin/admin.css, which is a dark console.
+   Nothing here leaks into that portal: every rule below is scoped to
+   body[data-portal="customer"].
+   ========================================================================== */
+
+body[data-portal="customer"] {
+  /* ---- palette: sand, amber, terracotta ---- */
+  --ink: #2a1f14;
+  --ink-soft: #7a6a58;
+  --line: #efe1cd;
+  --bg: #fdf8f1;
+  --card: #ffffff;
+
+  --brand: #b45309;          /* 4.9:1 on white - safe for text and buttons */
+  --brand-dark: #92400e;
+  --brand-soft: #fef3c7;
+  --brand-soft-hover: #fde68a;
+  --brand-ink: #7c2d12;
+  --accent: #e11d48;         /* the second warm note, used sparingly */
+
+  --input-bg: #fffdf8;
+  --btn-ink: #ffffff;
+  --head-bg: #fffdf9;
+  --foot-bg: #fffaf2;
+
+  /* ---- shape: rounder and softer than the shared default ---- */
+  --radius: 20px;
+  --shadow: 0 4px 20px rgba(124, 45, 18, .07);
+  --shadow-lift: 0 16px 38px rgba(124, 45, 18, .14);
+}
+
+/* ------------------------------------------------------------------ header */
+
+body[data-portal="customer"] .site-head {
+  backdrop-filter: blur(6px);
+  border-bottom-color: #f3e6d4;
+}
+body[data-portal="customer"] .brand { color: var(--brand-ink); }
+
+/* The badge that names the portal you are standing in. The admin portal has
+   the same badge in a completely different colour, which is the point. */
+.portal-badge {
+  display: inline-block;
+  margin-left: .55rem;
+  padding: .12rem .6rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
+body[data-portal="customer"] .head-nav a {
+  color: var(--ink-soft);
+  padding: .25rem .1rem;
+  border-bottom: 2px solid transparent;
+}
+body[data-portal="customer"] .head-nav a:hover {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  text-decoration: none;
+}
+/* The way back to the other portal is a button, not another nav link, so it
+   never gets clicked by accident on the way to "Plan a trip". */
+body[data-portal="customer"] .head-nav .nav-cross {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: .18rem .75rem;
+  font-size: .85rem;
+}
+body[data-portal="customer"] .head-nav .nav-cross:hover {
+  background: var(--brand-soft);
+  border-color: transparent;
+}
+
+/* -------------------------------------------------------------------- hero */
+
+body[data-portal="customer"] .hero {
+  position: relative;
+  overflow: hidden;
+  padding: 4.5rem 0 4rem;
+  border-bottom: 1px solid #f3e6d4;
+  background:
+    radial-gradient(90rem 40rem at 82% -12%, #ffe3b0 0%, rgba(255, 227, 176, 0) 62%),
+    linear-gradient(168deg, #fff6e6 0%, #fdf8f1 58%, #fdf8f1 100%);
+}
+/* A low sun on the horizon. Purely decorative, so it is hidden from readers. */
+body[data-portal="customer"] .hero::after {
+  content: "";
+  position: absolute;
+  right: -6rem;
+  top: -7rem;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fcd34d, #f59e0b 62%, rgba(245, 158, 11, 0) 72%);
+  opacity: .5;
+  pointer-events: none;
+}
+body[data-portal="customer"] .hero > .wrap { position: relative; z-index: 1; }
+
+.hero-eyebrow {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: .5rem;
+}
+body[data-portal="customer"] .hero h1 {
+  font-size: clamp(2.1rem, 6vw, 3.2rem);
+  letter-spacing: -.02em;
+  max-width: 16ch;
+}
+body[data-portal="customer"] .hero h1 em {
+  font-style: normal;
+  background: linear-gradient(100deg, #b45309, #e11d48);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+body[data-portal="customer"] .lede { font-size: 1.12rem; max-width: 46ch; }
+body[data-portal="customer"] .btn { border-radius: 999px; font-weight: 600; }
+body[data-portal="customer"] .btn-lg { padding: .75rem 1.7rem; }
+
+/* The three things this portal does, stated once under the hero. */
+.hero-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem 1.6rem;
+  margin-top: 1.8rem;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-soft);
+  font-size: .95rem;
+}
+.hero-steps li { display: flex; align-items: center; gap: .55rem; }
+.hero-steps b {
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-size: .82rem;
+}
+
+/* ---------------------------------------------------------------- sections */
+
+.section-eyebrow {
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin: 0 0 .15rem;
+}
+body[data-portal="customer"] .section-head h2 { margin-bottom: 0; }
+body[data-portal="customer"] .search { border-radius: 999px; padding: .55rem 1rem; }
+
+/* ------------------------------------------------- destination cards */
+
+body[data-portal="customer"] .card {
+  position: relative;
+  overflow: hidden;          /* so the accent follows the rounded corners */
+  padding-top: 1.35rem;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+/* A warm stripe along the top edge - the customer portal's signature, and the
+   same gesture the landing page's customer card uses. */
+body[data-portal="customer"] .card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f59e0b, #e11d48);
+}
+body[data-portal="customer"] .card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: #f0dcc0;
+}
+body[data-portal="customer"] .card h3 { font-size: 1.15rem; }
+body[data-portal="customer"] .card .meta span {
+  background: #fdf3e3;
+  border-radius: 999px;
+  padding: .1rem .6rem;
+}
+
+/* ------------------------------------------------------------ planner form */
+
+body[data-portal="customer"] .panel { border-radius: var(--radius); }
+body[data-portal="customer"] .chip { border-radius: 999px; }
+body[data-portal="customer"] .chip:hover { background: var(--brand-soft); border-color: var(--brand); }
+body[data-portal="customer"] .chip:has(input:checked) {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------------- results */
+
+body[data-portal="customer"] .costs tfoot th,
+body[data-portal="customer"] .costs tfoot td {
+  border-top-color: var(--brand);
+  color: var(--brand-ink);
+  font-size: 1.05rem;
+}
+body[data-portal="customer"] .itinerary > li::marker { color: var(--brand); font-weight: 700; }
+
+/* ------------------------------------------------------------------ footer */
+
+body[data-portal="customer"] .site-foot { border-top-color: #f3e6d4; }
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-portal="customer"] .card,
+  body[data-portal="customer"] .card:hover { transition: none; transform: none; }
+}

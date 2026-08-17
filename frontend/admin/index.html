@@ -3,19 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin portal — AI Travel Planner</title>
+<title>Admin console — AI Travel Planner</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128202;</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128737;</text></svg>">
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/admin/admin.css">
 </head>
-<body>
+<body data-portal="admin">
 
 <header class="site-head">
   <div class="wrap head-inner">
-    <a class="brand" href="/">✈ AI Travel Planner</a>
+    <a class="brand" href="/">✈ AI Travel Planner<span class="portal-badge">Restricted</span></a>
     <nav class="head-nav">
-      <a href="/customer/">Customer</a>
-      <a href="/admin/" aria-current="page">Admin</a>
+      <a href="/admin/" aria-current="page">Console</a>
+      <a class="nav-cross" href="/customer/">← Customer portal</a>
       <a href="#" id="signOut" hidden>Sign out</a>
     </nav>
   </div>
@@ -26,76 +27,108 @@
 </div>
 
 <main>
+  <div class="console">
 
-  <!-- ========================= Sign in ========================= -->
-  <section class="wrap section" id="loginView" hidden>
-    <div class="login-box panel">
-      <h1>Admin sign in</h1>
-      <p class="muted small">
-        This portal shows staff-only figures. You need an account with staff
-        permission — an ordinary customer login will be refused.
+    <!-- The rail only means anything once signed in, so admin.js unhides it
+         together with the dashboard. -->
+    <aside class="console-rail" id="consoleRail" hidden>
+      <p class="rail-title">Console</p>
+      <a class="rail-link" href="#dashView">▦ Overview</a>
+      <a class="rail-link" href="#panelPopular">★ Popular destinations</a>
+      <a class="rail-link" href="#panelCustomers">◍ Customers</a>
+      <a class="rail-link" href="#panelTrips">✈ Trips</a>
+      <p class="rail-foot">
+        Read-only · staff scope<br>
+        <span id="railApi"></span>
       </p>
+    </aside>
 
-      <form id="loginForm" autocomplete="on">
-        <div class="field">
-          <label for="username">Username</label>
-          <input id="username" name="username" type="text" autocomplete="username" required>
+    <div class="console-main">
+
+      <!-- ========================= Sign in ========================= -->
+      <section class="section" id="loginView" hidden>
+        <div class="login-box panel">
+          <span class="login-lock" aria-hidden="true">🔒</span>
+          <h1>Staff sign in</h1>
+          <p class="muted small">
+            This console shows staff-only figures. You need an account with
+            staff permission — an ordinary customer login will be refused.
+          </p>
+
+          <form id="loginForm" autocomplete="on">
+            <div class="field">
+              <label for="username">Username</label>
+              <input id="username" name="username" type="text" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="password">Password</label>
+              <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </div>
+            <button class="btn btn-lg" type="submit" id="loginBtn">Sign in</button>
+            <p id="loginError" class="error-text" hidden></p>
+          </form>
+
+          <p class="restricted-note">
+            <span aria-hidden="true">⚠</span>
+            <span>
+              Looking to plan a trip? That is the
+              <a href="/customer/">customer portal</a> — it needs no account.
+            </span>
+          </p>
         </div>
-        <div class="field">
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </section>
+
+      <!-- ========================= Dashboard ========================= -->
+      <section class="section" id="dashView" hidden>
+        <div class="console-bar">
+          <div>
+            <span class="crumb">Admin · overview</span>
+            <h1>Service dashboard</h1>
+          </div>
+          <p class="console-who" id="whoami"></p>
         </div>
-        <button class="btn btn-lg" type="submit" id="loginBtn">Sign in</button>
-        <p id="loginError" class="error-text" hidden></p>
-      </form>
+
+        <div class="stat-grid" id="statGrid"></div>
+
+        <div class="result-grid">
+          <div class="panel" id="panelPopular">
+            <h3>Most popular destinations</h3>
+            <table class="data-table">
+              <thead><tr><th>Destination</th><th>Trips</th></tr></thead>
+              <tbody id="popularRows"></tbody>
+            </table>
+            <p class="muted small" id="popularEmpty" hidden>No trips booked yet.</p>
+          </div>
+
+          <div class="panel" id="panelCustomers">
+            <h3>Newest customers</h3>
+            <table class="data-table">
+              <thead><tr><th>Username</th><th>Joined</th></tr></thead>
+              <tbody id="customerRows"></tbody>
+            </table>
+            <p class="muted small" id="customersEmpty" hidden>No customers yet.</p>
+          </div>
+        </div>
+
+        <div class="panel" id="panelTrips">
+          <h3>Recent trips</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Customer</th><th>Destination</th><th>Date</th>
+                  <th>People</th><th>Days</th><th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="tripRows"></tbody>
+            </table>
+          </div>
+          <p class="muted small" id="tripsEmpty" hidden>No trips booked yet.</p>
+        </div>
+      </section>
+
     </div>
-  </section>
-
-  <!-- ========================= Dashboard ========================= -->
-  <section class="wrap section" id="dashView" hidden>
-    <div class="section-head">
-      <h1>Admin dashboard</h1>
-      <p class="muted small" id="whoami"></p>
-    </div>
-
-    <div class="stat-grid" id="statGrid"></div>
-
-    <div class="result-grid">
-      <div class="panel">
-        <h3>Most popular destinations</h3>
-        <table class="data-table">
-          <thead><tr><th>Destination</th><th>Trips</th></tr></thead>
-          <tbody id="popularRows"></tbody>
-        </table>
-        <p class="muted small" id="popularEmpty" hidden>No trips booked yet.</p>
-      </div>
-
-      <div class="panel">
-        <h3>Newest customers</h3>
-        <table class="data-table">
-          <thead><tr><th>Username</th><th>Joined</th></tr></thead>
-          <tbody id="customerRows"></tbody>
-        </table>
-        <p class="muted small" id="customersEmpty" hidden>No customers yet.</p>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>Recent trips</h3>
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Customer</th><th>Destination</th><th>Date</th>
-              <th>People</th><th>Days</th><th>Total</th>
-            </tr>
-          </thead>
-          <tbody id="tripRows"></tbody>
-        </table>
-      </div>
-      <p class="muted small" id="tripsEmpty" hidden>No trips booked yet.</p>
-    </div>
-  </section>
+  </div>
 </main>
 
 <footer class="site-foot">

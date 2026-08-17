@@ -1,0 +1,315 @@
+/* ==========================================================================
+   Admin console theme
+   Loaded AFTER /style.css, which supplies the skeleton and the default tokens.
+
+   The brief for this portal: a dark operations console. Dense, technical,
+   obviously restricted. Numbers are monospaced and right-aligned so columns
+   of figures line up and can be scanned; labels are small and uppercase;
+   corners are sharp where the customer portal's are round.
+
+   It is the deliberate opposite of /customer/customer.css. Every rule below
+   is scoped to body[data-portal="admin"] so the two can never bleed together.
+   ========================================================================== */
+
+body[data-portal="admin"] {
+  /* ---- palette: deep navy shell, cyan instrument light ---- */
+  --ink: #e6edf7;
+  --ink-soft: #8fa3bf;
+  --line: #22314b;
+  --bg: #0b1220;
+  --card: #111c30;
+  --panel-raise: #16233a;
+
+  --brand: #22d3ee;
+  --brand-dark: #67e8f9;
+  --brand-soft: rgba(34, 211, 238, .14);
+  --brand-soft-hover: rgba(34, 211, 238, .24);
+  --btn-ink: #04212b;        /* dark text on the cyan button - 10:1 */
+
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --warn-bg: rgba(251, 191, 36, .12);
+  --danger: #fca5a5;
+  --danger-bg: rgba(248, 113, 113, .12);
+
+  --input-bg: #0c1626;
+  --head-bg: #0a1424;
+  --foot-bg: #0a1424;
+
+  /* ---- shape: sharper and tighter than the shared default ---- */
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+
+  /* A faint blueprint grid. It reads as instrumentation, not decoration. */
+  background-image:
+    linear-gradient(rgba(34, 211, 238, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, .035) 1px, transparent 1px);
+  background-size: 48px 48px, 48px 48px;
+  background-attachment: fixed;
+}
+
+body[data-portal="admin"] a { color: var(--brand); }
+body[data-portal="admin"] ::selection { background: rgba(34, 211, 238, .3); }
+
+/* ------------------------------------------------------------------ header */
+
+body[data-portal="admin"] .site-head {
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 rgba(34, 211, 238, .12);
+}
+body[data-portal="admin"] .brand { color: var(--ink); }
+
+/* Same badge component as the customer portal, opposite colour and wording -
+   a red "restricted" flag instead of a warm "customer" pill. */
+body[data-portal="admin"] .portal-badge {
+  display: inline-block;
+  margin-left: .55rem;
+  padding: .12rem .6rem;
+  border-radius: 4px;
+  background: rgba(248, 113, 113, .14);
+  border: 1px solid rgba(248, 113, 113, .35);
+  color: #fca5a5;
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
+body[data-portal="admin"] .head-nav {
+  font-family: var(--font-mono);
+  font-size: .85rem;
+}
+body[data-portal="admin"] .head-nav a { color: var(--ink-soft); }
+body[data-portal="admin"] .head-nav a:hover { color: var(--brand); text-decoration: none; }
+body[data-portal="admin"] .head-nav a[aria-current="page"] { color: var(--brand); }
+body[data-portal="admin"] .head-nav .nav-cross {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: .15rem .6rem;
+}
+body[data-portal="admin"] .head-nav .nav-cross:hover { border-color: var(--brand); }
+
+body[data-portal="admin"] .btn { border-radius: 6px; font-weight: 600; }
+
+/* ------------------------------------------------------------ console shell
+
+   Two columns on a wide screen: a fixed rail of section links and the working
+   area. The rail is only meaningful once signed in, so admin.js unhides it
+   alongside the dashboard.
+   -------------------------------------------------------------------------- */
+
+.console { width: min(1180px, 94vw); margin: 0 auto; display: block; }
+
+.console-rail {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  padding: 1.4rem 0 1rem;
+}
+/* display:flex above outranks the UA's [hidden] rule, so say it explicitly -
+   admin.js hides the rail whenever the sign-in form is the visible screen. */
+.console-rail[hidden] { display: none; }
+.rail-title {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: .5rem;
+}
+.rail-link {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .42rem .65rem;
+  border-left: 2px solid transparent;
+  border-radius: 0 6px 6px 0;
+  color: var(--ink-soft);
+  font-size: .92rem;
+}
+.rail-link:hover {
+  background: var(--brand-soft);
+  border-left-color: var(--brand);
+  color: var(--ink);
+  text-decoration: none;
+}
+.rail-foot {
+  margin-top: 1rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  word-break: break-all;
+}
+
+.console-main { padding-bottom: 1rem; }
+body[data-portal="admin"] .console-main > .section { padding: 1.6rem 0 2rem; }
+
+/* The strip above the dashboard: what this screen is, and who is reading it. */
+.console-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.2rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: .9rem;
+  margin-bottom: 1.3rem;
+  border-bottom: 1px solid var(--line);
+}
+.console-bar h1 { font-size: 1.45rem; margin: 0; }
+.console-bar .crumb {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--brand);
+  display: block;
+  margin-bottom: .15rem;
+}
+.console-who {
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  color: var(--ink-soft);
+}
+
+/* -------------------------------------------------------------- stat tiles */
+
+body[data-portal="admin"] .stat-grid { gap: .7rem; }
+body[data-portal="admin"] .stat {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--panel-raise), var(--card));
+  border-color: var(--line);
+  padding: .8rem .9rem;
+}
+body[data-portal="admin"] .stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--brand);
+  opacity: .8;
+}
+body[data-portal="admin"] .stat-value {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  color: #ffffff;
+}
+body[data-portal="admin"] .stat-label {
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ data tables */
+
+body[data-portal="admin"] .panel {
+  background: var(--card);
+  border-color: var(--line);
+}
+body[data-portal="admin"] .panel h3 {
+  font-size: .78rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding-bottom: .6rem;
+  margin-bottom: .8rem;
+  border-bottom: 1px solid var(--line);
+}
+body[data-portal="admin"] .data-table {
+  font-family: var(--font-mono);
+  font-size: .86rem;
+}
+body[data-portal="admin"] .data-table thead th {
+  border-bottom-color: var(--line);
+  color: var(--brand);
+  font-size: .7rem;
+}
+body[data-portal="admin"] .data-table tbody tr + tr { border-top-color: rgba(34, 49, 75, .7); }
+body[data-portal="admin"] .data-table tbody tr:hover { background: rgba(34, 211, 238, .06); }
+/* Counts and money read as columns of figures, so right-align and tabularise. */
+body[data-portal="admin"] .data-table td + td,
+body[data-portal="admin"] .data-table th + th { text-align: right; }
+body[data-portal="admin"] .data-table td:first-child { text-align: left; }
+body[data-portal="admin"] .data-table td { font-variant-numeric: tabular-nums; }
+/* Recent trips leads with three text columns (customer, destination, date);
+   only people/days/total are figures, so pull the first three back to left. */
+#panelTrips .data-table th:nth-child(-n+3),
+#panelTrips .data-table td:nth-child(-n+3) { text-align: left; }
+
+/* ------------------------------------------------------------------- login */
+
+body[data-portal="admin"] .login-box {
+  background: linear-gradient(180deg, var(--panel-raise), var(--card));
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+  margin-top: 2.5rem;
+}
+.login-lock {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 8px;
+  background: var(--brand-soft);
+  border: 1px solid rgba(34, 211, 238, .3);
+  font-size: 1.2rem;
+  margin-bottom: .8rem;
+}
+body[data-portal="admin"] .login-box h1 { font-size: 1.35rem; }
+body[data-portal="admin"] .field label { color: var(--ink-soft); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
+body[data-portal="admin"] .field input { font-family: var(--font-mono); }
+body[data-portal="admin"] .login-box .btn { width: 100%; text-align: center; }
+
+/* A standing reminder of the boundary between the two portals. */
+.restricted-note {
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+  margin-top: 1.1rem;
+  padding: .7rem .8rem;
+  border: 1px solid rgba(248, 113, 113, .3);
+  border-radius: 8px;
+  background: rgba(248, 113, 113, .07);
+  color: var(--ink-soft);
+  font-size: .85rem;
+}
+
+/* ------------------------------------------------------------------ footer */
+
+body[data-portal="admin"] .site-foot {
+  border-top-color: var(--line);
+  font-family: var(--font-mono);
+  font-size: .78rem;
+}
+
+/* ------------------------------------------------------------ wider screens */
+
+@media (min-width: 900px) {
+  /* Two columns only while the rail is up. On the sign-in screen the rail is
+     hidden and the shell collapses to one column, so the form stays centred
+     instead of being pushed off to the right of an empty gutter. */
+  .console { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+  .console:has(> .console-rail:not([hidden])) { grid-template-columns: 13.5rem 1fr; }
+  .console-rail {
+    position: sticky;
+    top: 4.2rem;
+    align-self: start;
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    border-right: 1px solid var(--line);
+    padding-right: 1rem;
+  }
+}
+
+@media (min-width: 640px) {
+  /* Seven tiles: four then three reads better than four then a stranded row. */
+  body[data-portal="admin"] .stat-grid { grid-template-columns: repeat(4, 1fr); }
+}

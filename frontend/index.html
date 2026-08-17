@@ -34,7 +34,8 @@
   <section class="wrap section">
     <div class="portal-grid">
 
-      <a class="portal-card" href="/customer/">
+      <a class="portal-card portal-card-customer" href="/customer/">
+        <span class="portal-kind">Public</span>
         <span class="portal-icon" aria-hidden="true">🧳</span>
         <h2>Customer portal</h2>
         <p>
@@ -52,8 +53,9 @@
       </a>
 
       <a class="portal-card portal-card-admin" href="/admin/">
-        <span class="portal-icon" aria-hidden="true">📊</span>
-        <h2>Admin portal</h2>
+        <span class="portal-kind">Staff only</span>
+        <span class="portal-icon" aria-hidden="true">🛡️</span>
+        <h2>Admin console</h2>
         <p>
           Staff view of the service: how many customers have signed up, what
           they are booking, and which destinations are the most popular.
@@ -69,6 +71,23 @@
       </a>
 
     </div>
+
+    <table class="portal-compare">
+      <caption class="muted small">
+        The two portals are deliberately built and styled apart, so nobody
+        mistakes one for the other.
+      </caption>
+      <thead>
+        <tr><th scope="col"></th><th scope="col">Customer portal</th><th scope="col">Admin console</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Who it is for</th><td>Anyone planning a trip</td><td>Staff accounts only</td></tr>
+        <tr><th scope="row">Sign in</th><td>None — open the page and plan</td><td>Token sign-in, staff flag checked</td></tr>
+        <tr><th scope="row">Look</th><td>Warm and sunlit, roomy cards</td><td>Dark console, dense data tables</td></tr>
+        <tr><th scope="row">What it does</th><td>Reads destinations, costs a trip</td><td>Reads service-wide totals and activity</td></tr>
+        <tr><th scope="row">Address</th><td><code>/customer/</code></td><td><code>/admin/</code></td></tr>
+      </tbody>
+    </table>
   </section>
 </main>
 

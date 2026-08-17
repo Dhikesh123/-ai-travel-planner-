@@ -175,6 +175,9 @@ async function loadPlaces(destinationId) {
     box.innerHTML = `<span class="muted">Could not load places: ${esc(error.message)}</span>`;
   }
   refreshPlaceControls();
+  // A new destination means new places and none of them chosen, so the entry
+  // fees in the running total are stale until it is recomputed.
+  scheduleLiveCost();
 }
 
 /* ------------------------------------------------------- place selection
@@ -210,6 +213,8 @@ function setAllPlaces(checked) {
     box.checked = checked;
   });
   refreshPlaceControls();
+  // Ticking boxes in code fires no change event, so ask for the recount here.
+  scheduleLiveCost();
 }
 
 /* --------------------------------------------------------------- calculate */
@@ -260,19 +265,12 @@ function drawResults(data) {
   $("results").hidden = false;
 }
 
-async function calculate(event) {
-  event.preventDefault();
-
-  const button = $("calcBtn");
-  const note = $("calcNote");
-  button.disabled = true;
-  note.textContent = "Calculating…";
-
-  const placeIds = [...document.querySelectorAll('input[name="place"]:checked')].map(
-    (input) => input.value
-  );
-
-  const body = {
+/**
+ * The form as the API wants it. One reader, so the running total and the full
+ * plan can never be costing two different trips.
+ */
+function formPayload() {
+  return {
     source: $("fSource").value.trim(),
     destination_id: Number($("fDest").value),
     travelers: Number($("fTravelers").value),
@@ -281,8 +279,21 @@ async function calculate(event) {
     hotel_category: $("fHotel").value,
     food_budget: $("fFood").value,
     activity_budget: $("fActivity").value || "0",
-    place_ids: placeIds,
+    place_ids: [...document.querySelectorAll('input[name="place"]:checked')].map(
+      (input) => input.value
+    ),
   };
+}
+
+async function calculate(event) {
+  event.preventDefault();
+
+  const button = $("calcBtn");
+  const note = $("calcNote");
+  button.disabled = true;
+  note.textContent = "Calculating…";
+
+  const body = formPayload();
 
   try {
     const data = await api("/api/calculate-cost/", {
@@ -297,6 +308,84 @@ async function calculate(event) {
     note.className = "error-text";
   } finally {
     button.disabled = false;
+  }
+}
+
+/* ------------------------------------------------------ running total
+
+   The cost of a choice should be visible when the choice is made, not after
+   a trip through a button. Every change to the form re-costs the trip.
+
+   Three things this has to get right:
+
+     - the arithmetic stays on the server. Recomputing it here would mean two
+       implementations of the same pricing, and they would drift.
+     - typing must not fire a request per keystroke, so changes are debounced.
+     - replies can arrive out of order on a sleepy free-tier backend, so each
+       request carries a sequence number and a stale one is discarded rather
+       than allowed to overwrite a newer total.
+   -------------------------------------------------------------------------- */
+
+const LIVE_LINES = {
+  travel_cost: "Travel",
+  hotel_cost: "Hotel",
+  food_cost: "Food",
+  local_transport_cost: "Local transport",
+  activity_cost: "Places & activities",
+  other_cost: "Buffer (8%)",
+};
+
+let liveTimer = null;
+let liveSeq = 0;
+
+function liveMessage(text) {
+  $("liveLines").innerHTML = `<span class="live-cost-hint">${esc(text)}</span>`;
+  $("liveTotal").textContent = "—";
+  $("livePerPerson").textContent = "";
+}
+
+function scheduleLiveCost() {
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(updateLiveCost, 400);
+}
+
+async function updateLiveCost() {
+  const body = formPayload();
+
+  // The two selects are filled from the API, so on a cold load they are empty
+  // for a moment. Asking to cost a trip with no destination just earns a 400.
+  if (!body.destination_id || !body.transportation_id) {
+    liveMessage("Choose a destination to see the running total.");
+    return;
+  }
+
+  const seq = ++liveSeq;
+  $("liveCost").classList.add("is-updating");
+
+  try {
+    const data = await api("/api/calculate-cost/", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (seq !== liveSeq) return; // a newer request has already been sent
+
+    const chosen = body.place_ids.length;
+    $("liveLines").innerHTML = Object.entries(LIVE_LINES)
+      .map(([key, label]) => {
+        const name = key === "activity_cost" && chosen ? `${label} (${chosen})` : label;
+        return `<span class="live-line"><span>${esc(name)}</span><b>${rupees(
+          data.costs[key]
+        )}</b></span>`;
+      })
+      .join("");
+
+    $("liveTotal").textContent = rupees(data.costs.total_cost);
+    $("livePerPerson").textContent = `${rupees(data.details.per_person)} per person`;
+  } catch (error) {
+    if (seq !== liveSeq) return;
+    liveMessage(error.message);
+  } finally {
+    if (seq === liveSeq) $("liveCost").classList.remove("is-updating");
   }
 }
 
@@ -343,6 +432,7 @@ async function start() {
       .join("");
 
     if (DESTINATIONS.length) loadPlaces(DESTINATIONS[0].id);
+    scheduleLiveCost();
   } catch (error) {
     clearTimeout(slow);
     banner(`Could not reach the API at ${API} - ${error.message}`, "error");
@@ -361,6 +451,11 @@ $("clearPlaces").addEventListener("click", () => setAllPlaces(false));
 $("placesList").addEventListener("change", (event) => {
   if (event.target.name === "place") refreshPlaceControls();
 });
+
+// Anything that can change the price re-costs the trip. "input" covers typing
+// and the number steppers; "change" covers the selects and the checkboxes.
+$("planForm").addEventListener("input", scheduleLiveCost);
+$("planForm").addEventListener("change", scheduleLiveCost);
 $("destSearch").addEventListener("input", (e) => {
   const q = e.target.value.trim().toLowerCase();
   drawDestinations(

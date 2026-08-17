@@ -141,8 +141,22 @@
         <div id="placesList" class="chips muted">Choose a destination first.</div>
       </fieldset>
 
+      <!-- Updates itself whenever anything above changes, so the cost of a
+           choice is visible at the moment it is made rather than after a
+           round trip through a button. -->
+      <div class="field-wide live-cost" id="liveCost" aria-live="polite">
+        <div class="live-cost-lines" id="liveLines">
+          <span class="live-cost-hint">Choose a destination to see the running total.</span>
+        </div>
+        <div class="live-cost-total">
+          <span class="live-cost-label">Running total</span>
+          <span class="live-cost-value" id="liveTotal">—</span>
+          <span class="live-cost-per" id="livePerPerson"></span>
+        </div>
+      </div>
+
       <div class="field field-wide actions">
-        <button class="btn btn-lg" type="submit" id="calcBtn">Calculate</button>
+        <button class="btn btn-lg" type="submit" id="calcBtn">Show the day-by-day plan</button>
         <span id="calcNote" class="muted"></span>
       </div>
     </form>

@@ -128,16 +128,19 @@ async function loadPlaces(destinationId) {
   box.classList.remove("place-grid");
   if (!destinationId) {
     box.innerHTML = `<span class="muted">Choose a destination first.</span>`;
+    refreshPlaceControls();
     return;
   }
 
   box.innerHTML = `<span class="muted">Loading places…</span>`;
+  refreshPlaceControls();
   try {
     const { destination } = await api(`/api/destinations/${destinationId}/`);
     const places = destination.places || [];
 
     if (!places.length) {
       box.innerHTML = `<span class="muted">No places listed for this destination.</span>`;
+      refreshPlaceControls();
       return;
     }
 
@@ -171,6 +174,42 @@ async function loadPlaces(destinationId) {
   } catch (error) {
     box.innerHTML = `<span class="muted">Could not load places: ${esc(error.message)}</span>`;
   }
+  refreshPlaceControls();
+}
+
+/* ------------------------------------------------------- place selection
+
+   "Select all" is the shortcut most people want: a destination has a handful
+   of places and seeing what the whole lot costs is the usual first question.
+   Everything below reads and writes the checkboxes themselves, so the count,
+   the buttons and the form can never disagree about what is selected.
+   -------------------------------------------------------------------------- */
+
+const placeBoxes = () => [...document.querySelectorAll('input[name="place"]')];
+
+/** Keep the count line and the two buttons in step with the checkboxes. */
+function refreshPlaceControls() {
+  const boxes = placeBoxes();
+  const chosen = boxes.filter((box) => box.checked).length;
+
+  $("placesCount").textContent = !boxes.length
+    ? "No places to choose from"
+    : chosen === 0
+    ? `None of ${boxes.length} chosen — the cost will cover travel, hotel and food only`
+    : chosen === boxes.length
+    ? `All ${boxes.length} places chosen`
+    : `${chosen} of ${boxes.length} places chosen`;
+
+  // Nothing to select, or everything already is: the button would do nothing.
+  $("selectAllPlaces").disabled = !boxes.length || chosen === boxes.length;
+  $("clearPlaces").disabled = chosen === 0;
+}
+
+function setAllPlaces(checked) {
+  placeBoxes().forEach((box) => {
+    box.checked = checked;
+  });
+  refreshPlaceControls();
 }
 
 /* --------------------------------------------------------------- calculate */
@@ -313,6 +352,15 @@ async function start() {
 
 $("planForm").addEventListener("submit", calculate);
 $("fDest").addEventListener("change", (e) => loadPlaces(e.target.value));
+
+$("selectAllPlaces").addEventListener("click", () => setAllPlaces(true));
+$("clearPlaces").addEventListener("click", () => setAllPlaces(false));
+
+// Delegated, because the checkboxes are replaced every time the destination
+// changes - a listener bound to each one would die with it.
+$("placesList").addEventListener("change", (event) => {
+  if (event.target.name === "place") refreshPlaceControls();
+});
 $("destSearch").addEventListener("input", (e) => {
   const q = e.target.value.trim().toLowerCase();
   drawDestinations(

@@ -223,6 +223,30 @@ body[data-portal="customer"] .card-media {
    the keyboard, the label click and the form submission all behave as before.
    -------------------------------------------------------------------------- */
 
+/* The count sits on the left and the two buttons on the right, so the line
+   reads as "here is the state, here is what you can do about it". */
+.places-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem .9rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .7rem;
+}
+.places-count { font-size: .86rem; font-weight: 400; color: var(--ink-soft); }
+.places-actions { display: flex; gap: .4rem; }
+
+body[data-portal="customer"] .btn-sm {
+  padding: .22rem .75rem;
+  font-size: .84rem;
+  font-weight: 600;
+}
+body[data-portal="customer"] .btn-sm:disabled {
+  opacity: .45;
+  cursor: default;
+}
+body[data-portal="customer"] .btn-sm:disabled:hover { background: var(--brand-soft); }
+
 .place-grid {
   display: grid;
   gap: .7rem;

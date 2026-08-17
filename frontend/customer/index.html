@@ -121,6 +121,23 @@
 
       <fieldset class="field field-wide" id="placesBox">
         <legend>Places to visit</legend>
+
+        <!-- type="button" matters: a bare <button> inside a form submits it,
+             and these must not run the cost calculation. -->
+        <div class="places-head">
+          <span class="places-count" id="placesCount" aria-live="polite">
+            No places chosen yet
+          </span>
+          <span class="places-actions">
+            <button type="button" class="btn btn-quiet btn-sm" id="selectAllPlaces">
+              Select all
+            </button>
+            <button type="button" class="btn btn-quiet btn-sm" id="clearPlaces">
+              Clear
+            </button>
+          </span>
+        </div>
+
         <div id="placesList" class="chips muted">Choose a destination first.</div>
       </fieldset>
 

@@ -17,17 +17,21 @@
 const Speech = (function () {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  // One microphone session is stopped by us after this long, so a forgotten
-  // open microphone does not listen all day.
-  const MAX_SESSION_MS = 120000;
-  // Chrome ends recognition on its own after a few seconds of quiet. We start
-  // it again so pauses in a sentence do not end the session - but after this
-  // many silent stretches in a row we stop and say so.
-  const MAX_SILENT_RESTARTS = 2;
+  // Listening ends when the user clicks stop - never on a timer, and never
+  // because the room went quiet for a while.
+  //
   // Restarting inside onend throws InvalidStateError, so wait a moment first.
   const RESTART_DELAY_MS = 250;
-  // Longest recording we send to the server (the API rejects big uploads).
-  const MAX_RECORDING_MS = 45000;
+  // After this many quiet stretches, say we are still listening, so a muted
+  // microphone is not mistaken for patience. We keep listening either way.
+  const QUIET_HINT_AFTER = 3;
+  // A healthy listening turn lasts seconds. Anything shorter that also heard
+  // nothing means the browser is refusing to listen rather than waiting.
+  const MIN_HEALTHY_TURN_MS = 1000;
+  const MAX_RAPID_FAILURES = 5;
+  // The one real limit: the transcription API rejects very large uploads, and
+  // this is minutes of speech, well past a single spoken request.
+  const MAX_RECORDING_MS = 600000;
 
   const ERROR_MESSAGES = {
     "audio-capture":
@@ -135,12 +139,13 @@ const Speech = (function () {
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
-    const startedAt = Date.now();
     let stoppedByUser = false;
     let finished = false;
     let starts = 0;
+    let turnStartedAt = 0;
     let heardThisTurn = false;
-    let silentRestarts = 0;
+    let quietTurns = 0;
+    let rapidFailures = 0;
     let fatalMessage = null;
     let fallbackError = null;
     let restartTimer = null;
@@ -155,9 +160,12 @@ const Speech = (function () {
     recognition.onstart = function () {
       starts += 1;
       heardThisTurn = false;
+      turnStartedAt = Date.now();
       // Only announce the first start; the restarts are our business, not the
       // user's, and would wipe out whatever the page is showing.
-      if (starts === 1) onStatus && onStatus("Listening... speak now, then click again to stop.");
+      if (starts === 1) {
+        onStatus && onStatus("Listening... speak now. I will keep listening until you click stop.");
+      }
     };
 
     recognition.onresult = function (event) {
@@ -216,23 +224,42 @@ const Speech = (function () {
         finish();
         return;
       }
-      if (Date.now() - startedAt > MAX_SESSION_MS) {
-        onStatus &&
-          onStatus("Stopped listening after two minutes. Click the microphone to carry on.");
+
+      // Everything below is Chrome closing its own session - after a few
+      // seconds of quiet, or at the end of a phrase. That is never a reason
+      // to stop: only the user's stop click ends the microphone. So we start
+      // it again and carry on, however long the silence lasts.
+      if (heardThisTurn) {
+        quietTurns = 0;
+      } else {
+        quietTurns += 1;
+        // Say we are still here, so a muted microphone does not look like
+        // patience. We keep listening either way.
+        if (quietTurns === QUIET_HINT_AFTER) {
+          onStatus &&
+            onStatus(
+              "Still listening - nothing heard yet. Check your microphone is unmuted, or click stop when you are done."
+            );
+        }
+      }
+
+      // The one thing we will not do is spin: a browser that closes the
+      // session instantly, again and again, is refusing to listen rather
+      // than waiting for speech, and restarting forever would hang the page.
+      if (!heardThisTurn && Date.now() - turnStartedAt < MIN_HEALTHY_TURN_MS) {
+        rapidFailures += 1;
+      } else {
+        rapidFailures = 0;
+      }
+      if (rapidFailures >= MAX_RAPID_FAILURES) {
+        onError &&
+          onError(
+            "The browser keeps closing the microphone straight away. Check that the right microphone is selected and allowed, then try again."
+          );
         finish();
         return;
       }
-      if (!heardThisTurn) {
-        silentRestarts += 1;
-        if (silentRestarts > MAX_SILENT_RESTARTS) {
-          onError &&
-            onError(
-              "I did not hear anything. Check that the right microphone is selected and unmuted, then try again."
-            );
-          finish();
-          return;
-        }
-      }
+
       restartTimer = setTimeout(function () {
         if (finished || stoppedByUser) return;
         try {

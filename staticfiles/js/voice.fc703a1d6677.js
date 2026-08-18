@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let capture = null;
   let listening = false;
+  let restartInNewLanguage = false;
   let lastTranslation = "";
 
   // Only warn if there is NO way at all to use the microphone. If the browser
@@ -51,16 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const MIC_IDLE_LABEL = "&#127908; Start listening";
   const MIC_BUSY_LABEL = "&#9209; Stop listening";
 
-  micBtn.addEventListener("click", async function () {
-    // "listening" is the truth about the microphone, not "capture". A capture
-    // can finish the instant it starts (permission blocked, for example), and
-    // then its controller is already dead - checking "capture" instead would
-    // leave the button stuck on stop and the microphone would never open again.
-    if (listening) {
-      if (capture) capture.stop();
-      return;
-    }
-
+  async function startListening() {
     showError(errorBox, "");
 
     // Say something useful before the browser fails with a cryptic error.
@@ -103,18 +95,40 @@ document.addEventListener("DOMContentLoaded", function () {
         capture = null;
         micBtn.classList.remove("mic-active");
         micBtn.innerHTML = MIC_IDLE_LABEL;
+        // Only a language change asks for this: pick the microphone straight
+        // back up so the user never has to press start again themselves.
+        if (restartInNewLanguage) {
+          restartInNewLanguage = false;
+          startListening();
+        }
       },
     });
 
     // If the capture already finished during startCapture, onEnd has run and
     // this controller is spent - drop it so the next click starts fresh.
     if (!listening) capture = null;
+  }
+
+  micBtn.addEventListener("click", function () {
+    // "listening" is the truth about the microphone, not "capture". A capture
+    // can finish the instant it starts (permission blocked, for example), and
+    // then its controller is already dead - checking "capture" instead would
+    // leave the button stuck on stop and the microphone would never open again.
+    if (listening) {
+      if (capture) capture.stop(); // the only thing that ends listening
+      return;
+    }
+    startListening();
   });
 
-  // Changing the language mid-session would be ignored by the recogniser, so
-  // stop listening and let the user start again in the new language.
+  // The recogniser cannot change language mid-session, so swap it out and
+  // carry on listening. The button stays on stop, because the user has not
+  // pressed it.
   sourceLang.addEventListener("change", function () {
-    if (listening && capture) capture.stop();
+    if (!listening || !capture) return;
+    restartInNewLanguage = true;
+    micStatus.textContent = "Switching to " + (sourceLang.value === "te" ? "Telugu" : "English") + "...";
+    capture.stop();
   });
 
   // ---------------------------------------------------------------------

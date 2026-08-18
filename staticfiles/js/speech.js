@@ -6,15 +6,51 @@
 
      1. The browser's own SpeechRecognition (Chrome, Edge) - instant, free,
         nothing is sent to our server.
-     2. If the browser cannot do that (Safari, Firefox), we record the
-        microphone with MediaRecorder and send the audio to our server,
-        which passes it to Whisper. Slower, but it works everywhere.
+     2. If the browser cannot do that (Safari, Firefox), or if it cannot
+        handle the chosen language, we record the microphone with
+        MediaRecorder and send the audio to our server, which passes it to
+        Whisper. Slower, but it works everywhere and understands Telugu.
 
    Speaking text out loud uses the browser's speechSynthesis in both cases.
    ========================================================================== */
 
 const Speech = (function () {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  // One microphone session is stopped by us after this long, so a forgotten
+  // open microphone does not listen all day.
+  const MAX_SESSION_MS = 120000;
+  // Chrome ends recognition on its own after a few seconds of quiet. We start
+  // it again so pauses in a sentence do not end the session - but after this
+  // many silent stretches in a row we stop and say so.
+  const MAX_SILENT_RESTARTS = 2;
+  // Restarting inside onend throws InvalidStateError, so wait a moment first.
+  const RESTART_DELAY_MS = 250;
+  // Longest recording we send to the server (the API rejects big uploads).
+  const MAX_RECORDING_MS = 45000;
+
+  const ERROR_MESSAGES = {
+    "audio-capture":
+      "No microphone was found. Plug one in, or choose the right one in your browser's microphone settings.",
+    "not-allowed":
+      "Microphone permission was blocked. Click the padlock in the address bar, allow the microphone, then reload this page.",
+    "service-not-allowed":
+      "The browser's speech service is not available. Please type instead.",
+    network: "Speech recognition needs an internet connection.",
+    "language-not-supported":
+      "This browser has no voice pack for that language. Try English, or type instead.",
+    "bad-grammar": "Speech recognition failed. Please try again.",
+  };
+
+  // Errors that mean the browser's own recogniser cannot do this job. When we
+  // see one of these we quietly switch to recording + server transcription
+  // instead of showing the user a dead end.
+  const FALLBACK_ERRORS = ["language-not-supported", "service-not-allowed", "network"];
+
+  // Languages this browser's recogniser has already refused. Once we know it
+  // cannot do Telugu we go straight to recording, instead of making the user
+  // wait through the same failure on every click.
+  const unsupportedLanguages = [];
 
   /** Turn "te" into "te-IN" for the browser recogniser. */
   function fullCode(lang) {
@@ -50,40 +86,161 @@ const Speech = (function () {
     return "speechSynthesis" in window;
   }
 
+  /**
+   * Browsers only allow the microphone on a secure page. localhost counts as
+   * secure; opening the site by its network address over plain http does not,
+   * and that is the most common reason the microphone "does nothing".
+   */
+  function isSecureContext() {
+    if (window.isSecureContext !== undefined) return Boolean(window.isSecureContext);
+    return location.protocol === "https:" || location.hostname === "localhost";
+  }
+
+  /**
+   * Ask the browser whether microphone permission is already blocked, so we
+   * can say something useful instead of waiting for a cryptic error. Returns
+   * "granted", "denied", "prompt" or "unknown".
+   */
+  async function permissionState() {
+    if (!navigator.permissions || !navigator.permissions.query) return "unknown";
+    try {
+      const status = await navigator.permissions.query({ name: "microphone" });
+      return status.state || "unknown";
+    } catch (err) {
+      return "unknown"; // Firefox and Safari do not know this permission name
+    }
+  }
+
   // -----------------------------------------------------------------------
   // Method 1: the browser's own speech recognition
+  //
+  // Returns a small object with .stop(). It keeps listening through the
+  // natural pauses in a sentence and only finishes when the caller stops it,
+  // when the language is unsupported, or after a long silence.
   // -----------------------------------------------------------------------
-  function listen({ lang = "en-IN", onResult, onError, onEnd }) {
+  function listen({ lang = "en-IN", onResult, onInterim, onStatus, onError, onEnd, onGiveUp }) {
     if (!canListen()) {
       onError && onError("This browser cannot listen to the microphone.");
       onEnd && onEnd();
-      return null;
+      return { stop: function () {} };
     }
 
     const recognition = new Recognition();
     recognition.lang = fullCode(lang);
-    recognition.interimResults = false;
+    // People pause while they think, and Telugu sentences are long. Without
+    // continuous mode the browser stops at the first pause, so only the first
+    // few words are ever captured.
+    recognition.continuous = true;
+    // Interim results let the page show the words as they are being heard.
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-    recognition.continuous = false;
+
+    const startedAt = Date.now();
+    let stoppedByUser = false;
+    let finished = false;
+    let starts = 0;
+    let heardThisTurn = false;
+    let silentRestarts = 0;
+    let fatalMessage = null;
+    let fallbackError = null;
+    let restartTimer = null;
+
+    function finish() {
+      if (finished) return;
+      finished = true;
+      clearTimeout(restartTimer);
+      onEnd && onEnd();
+    }
+
+    recognition.onstart = function () {
+      starts += 1;
+      heardThisTurn = false;
+      // Only announce the first start; the restarts are our business, not the
+      // user's, and would wipe out whatever the page is showing.
+      if (starts === 1) onStatus && onStatus("Listening... speak now, then click again to stop.");
+    };
 
     recognition.onresult = function (event) {
-      onResult && onResult(event.results[0][0].transcript);
+      let interim = "";
+      // In continuous mode the results pile up, so read only what is new.
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const result = event.results[i];
+        const text = (result[0] && result[0].transcript) || "";
+        if (result.isFinal) {
+          const trimmed = text.trim();
+          if (trimmed) {
+            heardThisTurn = true;
+            silentRestarts = 0;
+            onResult && onResult(trimmed);
+          }
+        } else {
+          interim += text;
+        }
+      }
+      if (interim.trim()) {
+        heardThisTurn = true;
+        silentRestarts = 0;
+        onInterim && onInterim(interim.trim());
+      }
     };
 
     recognition.onerror = function (event) {
-      const messages = {
-        "no-speech": "I did not hear anything. Please try again.",
-        "audio-capture": "No microphone found. Please check your device.",
-        "not-allowed": "Microphone permission was blocked. Allow it in your browser settings.",
-        network: "Speech recognition needs an internet connection.",
-        "language-not-supported":
-          "This browser has no voice pack for that language. Try English, or type instead.",
-      };
-      onError && onError(messages[event.error] || "Speech recognition failed. Please type instead.");
+      const code = event.error;
+      // "no-speech" is Chrome saying the room went quiet, and "aborted" is our
+      // own restart. Neither is a failure - onend decides what happens next.
+      if (code === "no-speech" || code === "aborted") return;
+      if (FALLBACK_ERRORS.indexOf(code) !== -1 && onGiveUp) {
+        fallbackError = code;
+        return;
+      }
+      fatalMessage = ERROR_MESSAGES[code] || "Speech recognition failed. Please type instead.";
     };
 
     recognition.onend = function () {
-      onEnd && onEnd();
+      if (finished) return;
+
+      if (fallbackError) {
+        const code = fallbackError;
+        // Hand over without firing onEnd - the fallback owns the session now.
+        finished = true;
+        clearTimeout(restartTimer);
+        onGiveUp(code);
+        return;
+      }
+      if (fatalMessage) {
+        onError && onError(fatalMessage);
+        finish();
+        return;
+      }
+      if (stoppedByUser) {
+        finish();
+        return;
+      }
+      if (Date.now() - startedAt > MAX_SESSION_MS) {
+        onStatus &&
+          onStatus("Stopped listening after two minutes. Click the microphone to carry on.");
+        finish();
+        return;
+      }
+      if (!heardThisTurn) {
+        silentRestarts += 1;
+        if (silentRestarts > MAX_SILENT_RESTARTS) {
+          onError &&
+            onError(
+              "I did not hear anything. Check that the right microphone is selected and unmuted, then try again."
+            );
+          finish();
+          return;
+        }
+      }
+      restartTimer = setTimeout(function () {
+        if (finished || stoppedByUser) return;
+        try {
+          recognition.start();
+        } catch (err) {
+          finish();
+        }
+      }, RESTART_DELAY_MS);
     };
 
     try {
@@ -91,14 +248,55 @@ const Speech = (function () {
     } catch (err) {
       onError && onError("Could not start the microphone. Please try again.");
       onEnd && onEnd();
-      return null;
+      return { stop: function () {} };
     }
-    return recognition;
+
+    return {
+      stop: function () {
+        stoppedByUser = true;
+        clearTimeout(restartTimer);
+        try {
+          recognition.stop(); // lets the last words come through before onend
+        } catch (err) {
+          finish();
+        }
+      },
+    };
   }
 
   // -----------------------------------------------------------------------
   // Method 2: record the microphone and let our server transcribe it
   // -----------------------------------------------------------------------
+
+  /** Pick a recording format this browser actually supports. */
+  function pickRecordingType() {
+    const candidates = [
+      { mime: "audio/webm;codecs=opus", ext: "webm" },
+      { mime: "audio/webm", ext: "webm" },
+      { mime: "audio/ogg;codecs=opus", ext: "ogg" },
+      { mime: "audio/mp4", ext: "m4a" }, // Safari records mp4, never webm
+    ];
+    const supported = window.MediaRecorder && window.MediaRecorder.isTypeSupported;
+    if (supported) {
+      for (let i = 0; i < candidates.length; i += 1) {
+        if (window.MediaRecorder.isTypeSupported(candidates[i].mime)) return candidates[i];
+      }
+    }
+    return { mime: "", ext: "webm" }; // let the browser choose
+  }
+
+  /** Work out the file extension from whatever the recorder actually used. */
+  function extensionFor(mimeType) {
+    const type = (mimeType || "").toLowerCase();
+    if (type.indexOf("ogg") !== -1) return "ogg";
+    if (type.indexOf("mp4") !== -1 || type.indexOf("m4a") !== -1 || type.indexOf("aac") !== -1) {
+      return "m4a";
+    }
+    if (type.indexOf("mpeg") !== -1 || type.indexOf("mp3") !== -1) return "mp3";
+    if (type.indexOf("wav") !== -1) return "wav";
+    return "webm";
+  }
+
   async function record({ lang = "en", onText, onError, onStatus, onEnd }) {
     if (!canRecord()) {
       onError && onError("This browser cannot record audio. Please type instead.");
@@ -110,32 +308,46 @@ const Speech = (function () {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
-      const denied = err && (err.name === "NotAllowedError" || err.name === "SecurityError");
-      onError && onError(
-        denied
-          ? "Microphone permission was blocked. Allow it in your browser settings."
-          : "No microphone was found. Please check your device."
-      );
+      const name = err && err.name;
+      let message = "No microphone was found. Please check your device.";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        message =
+          "Microphone permission was blocked. Click the padlock in the address bar, allow the microphone, then reload this page.";
+      } else if (name === "NotReadableError" || name === "AbortError") {
+        message =
+          "Another program is using the microphone. Close it (a video call, for example) and try again.";
+      }
+      onError && onError(message);
       onEnd && onEnd();
       return null;
     }
 
     const chunks = [];
+    const chosen = pickRecordingType();
     let recorder;
     try {
-      recorder = new MediaRecorder(stream);
+      recorder = chosen.mime
+        ? new MediaRecorder(stream, { mimeType: chosen.mime })
+        : new MediaRecorder(stream);
     } catch (err) {
-      stream.getTracks().forEach((t) => t.stop());
-      onError && onError("This browser could not start recording. Please type instead.");
-      onEnd && onEnd();
-      return null;
+      try {
+        recorder = new MediaRecorder(stream); // fall back to the default format
+      } catch (err2) {
+        stream.getTracks().forEach((t) => t.stop());
+        onError && onError("This browser could not start recording. Please type instead.");
+        onEnd && onEnd();
+        return null;
+      }
     }
+
+    let stopTimer = null;
 
     recorder.ondataavailable = (event) => {
       if (event.data && event.data.size > 0) chunks.push(event.data);
     };
 
     recorder.onstop = async function () {
+      clearTimeout(stopTimer);
       stream.getTracks().forEach((t) => t.stop()); // release the microphone
 
       if (!chunks.length) {
@@ -146,25 +358,34 @@ const Speech = (function () {
 
       onStatus && onStatus("Sending your recording to be written out...");
 
-      const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
-      const extension = (recorder.mimeType || "audio/webm").includes("ogg") ? "ogg" : "webm";
+      // Name the file after the format the recorder really used - Safari
+      // records mp4, and calling that ".webm" makes the server reject it.
+      const mimeType = recorder.mimeType || chosen.mime || "audio/webm";
+      const blob = new Blob(chunks, { type: mimeType });
 
       const formData = new FormData();
-      formData.append("audio", blob, `recording.${extension}`);
+      formData.append("audio", blob, "recording." + extensionFor(mimeType));
       formData.append("language", shortCode(lang));
 
       const data = await postForm("/api/transcribe/", formData);
 
       if (!data.ok) {
         onError && onError(data.error || "Could not understand that recording.");
+      } else if (!data.text || !data.text.trim()) {
+        onError && onError("I could not make out any words in that recording. Please try again.");
       } else {
-        onText && onText(data.text);
+        onText && onText(data.text.trim());
       }
       onEnd && onEnd();
     };
 
     recorder.start();
-    onStatus && onStatus("Recording... click again to stop.");
+    // Stop on our own if the user forgets, so the upload stays small enough.
+    stopTimer = setTimeout(function () {
+      if (recorder.state === "recording") recorder.stop();
+    }, MAX_RECORDING_MS);
+
+    onStatus && onStatus("Recording... click the microphone again to stop.");
     return recorder;
   }
 
@@ -172,44 +393,86 @@ const Speech = (function () {
   // The one function the pages actually use.
   // It picks the best available method and hides the difference.
   // -----------------------------------------------------------------------
-  function startCapture({ lang = "en", onText, onError, onStatus, onEnd }) {
+  function startCapture({ lang = "en", onText, onInterim, onError, onStatus, onEnd }) {
     // A small object the caller keeps so it can stop the capture later.
     const controller = { stop: function () {}, mode: "none" };
+    let stopped = false;
 
-    if (canListen()) {
+    if (!isSecureContext()) {
+      onError &&
+        onError(
+          "The microphone only works on a secure page. Open this site as http://127.0.0.1:8000/ or over https."
+        );
+      onEnd && onEnd();
+      return controller;
+    }
+
+    // Record the microphone and let the server write it out.
+    function startRecording(noticeMessage) {
+      controller.mode = "server";
+      if (noticeMessage) onStatus && onStatus(noticeMessage);
+
+      let recorder = null;
+      controller.stop = function () {
+        stopped = true;
+        if (recorder && recorder.state === "recording") recorder.stop();
+      };
+
+      record({ lang, onText, onError, onStatus, onEnd }).then((started) => {
+        recorder = started;
+        // If the user clicked stop before the microphone finished opening
+        if (stopped && recorder && recorder.state === "recording") recorder.stop();
+      });
+    }
+
+    if (canListen() && unsupportedLanguages.indexOf(fullCode(lang)) === -1) {
       controller.mode = "browser";
-      onStatus && onStatus("Listening... speak now.");
-      const recognition = listen({
+      const session = listen({
         lang: fullCode(lang),
         onResult: onText,
+        onInterim: onInterim,
+        onStatus: onStatus,
         onError: onError,
         onEnd: onEnd,
+        // The browser recogniser cannot handle this language (Telugu is the
+        // usual case). Switch to recording instead of giving up.
+        onGiveUp: function (code) {
+          // A missing voice pack will not appear between two clicks, so
+          // remember it. A network or service problem might, so do not.
+          if (code === "language-not-supported" && unsupportedLanguages.indexOf(fullCode(lang)) === -1) {
+            unsupportedLanguages.push(fullCode(lang));
+          }
+          if (stopped) {
+            onEnd && onEnd();
+            return;
+          }
+          if (canRecord()) {
+            startRecording(
+              "This browser cannot understand that language on its own, so your voice is being recorded for the server to write out. Speak now, then click the microphone again."
+            );
+            return;
+          }
+          onError &&
+            onError(ERROR_MESSAGES[code] || "Speech recognition failed. Please type instead.");
+          onEnd && onEnd();
+        },
       });
       controller.stop = function () {
-        if (recognition) recognition.stop();
+        stopped = true;
+        session.stop();
       };
       return controller;
     }
 
     if (canRecord()) {
-      controller.mode = "server";
-      let recorder = null;
-      let stopped = false;
-      record({ lang, onText, onError, onStatus, onEnd }).then((r) => {
-        recorder = r;
-        // If the user clicked stop before the microphone finished opening
-        if (stopped && recorder && recorder.state === "recording") recorder.stop();
-      });
-      controller.stop = function () {
-        stopped = true;
-        if (recorder && recorder.state === "recording") recorder.stop();
-      };
+      startRecording(null);
       return controller;
     }
 
-    onError && onError(
-      "This browser cannot use the microphone. Try Chrome or Edge, or type your message instead."
-    );
+    onError &&
+      onError(
+        "This browser cannot use the microphone. Try Chrome or Edge, or type your message instead."
+      );
     onEnd && onEnd();
     return controller;
   }
@@ -217,6 +480,17 @@ const Speech = (function () {
   // -----------------------------------------------------------------------
   // Text to speech
   // -----------------------------------------------------------------------
+
+  // Chrome fills the voice list in late, so keep our own copy and refresh it.
+  let voiceCache = [];
+
+  function refreshVoices() {
+    if (!canSpeak()) return [];
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length) voiceCache = voices;
+    return voiceCache;
+  }
+
   function speak(text, lang = "en") {
     if (!canSpeak() || !text) return false;
 
@@ -227,20 +501,26 @@ const Speech = (function () {
     utterance.lang = wanted;
     utterance.rate = 0.95;
 
-    const voices = window.speechSynthesis.getVoices();
+    const voices = refreshVoices();
     const match =
       voices.find((v) => v.lang === wanted) ||
-      voices.find((v) => v.lang.startsWith(wanted.slice(0, 2)));
+      voices.find((v) => v.lang && v.lang.replace("_", "-").startsWith(wanted.slice(0, 2)));
     if (match) utterance.voice = match;
 
     window.speechSynthesis.speak(utterance);
     return true;
   }
 
-  /** Is a Telugu voice installed on this device? */
+  /**
+   * Is a Telugu voice installed on this device? When the browser has not
+   * loaded its voice list yet we answer "yes" and let it try, because saying
+   * "no" would block a device that can actually speak Telugu.
+   */
   function hasTeluguVoice() {
     if (!canSpeak()) return false;
-    return window.speechSynthesis.getVoices().some((v) => v.lang.startsWith("te"));
+    const voices = refreshVoices();
+    if (!voices.length) return true;
+    return voices.some((v) => v.lang && v.lang.replace("_", "-").toLowerCase().startsWith("te"));
   }
 
   function stopSpeaking() {
@@ -249,10 +529,8 @@ const Speech = (function () {
 
   // Some browsers load the voice list late; ask for it once on start-up.
   if (canSpeak()) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = function () {
-      window.speechSynthesis.getVoices();
-    };
+    refreshVoices();
+    window.speechSynthesis.onvoiceschanged = refreshVoices;
   }
 
   return {
@@ -260,6 +538,8 @@ const Speech = (function () {
     canRecord,
     canCapture,
     canSpeak,
+    isSecureContext,
+    permissionState,
     listen,
     record,
     startCapture,

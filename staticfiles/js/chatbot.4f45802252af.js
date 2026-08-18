@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const clearBtn = document.getElementById("clearChat");
 
   let capture = null;
+  let listening = false;
   let attachedFile = null;
 
   scrollToBottom();
@@ -81,13 +82,19 @@ document.addEventListener("DOMContentLoaded", function () {
   // Microphone
   // ---------------------------------------------------------------------
   micBtn.addEventListener("click", function () {
-    if (capture) {
-      capture.stop();
+    // Track the microphone with "listening", not with "capture": a capture can
+    // end the moment it starts (blocked permission, unsupported browser), and
+    // then its controller is already spent - testing "capture" would leave the
+    // button stuck on stop and the microphone would never open again.
+    if (listening) {
+      if (capture) capture.stop();
       return;
     }
     showError(errorBox, "");
+    Speech.stopSpeaking(); // do not record the answer being read aloud
+    listening = true;
     micBtn.classList.add("mic-active");
-    micBtn.textContent = "Click to stop";
+    micBtn.innerHTML = "&#9209; Stop";
 
     // startCapture uses the browser's own recogniser when it can, and
     // otherwise records and sends the audio to our server for Whisper.
@@ -98,15 +105,19 @@ document.addEventListener("DOMContentLoaded", function () {
         textBox.focus();
       },
       onStatus: (message) => {
-        micBtn.textContent = message.includes("Sending") ? "Writing it out..." : "Click to stop";
+        micBtn.innerHTML = message.indexOf("Sending") !== -1 ? "Writing it out..." : "&#9209; Stop";
       },
       onError: (message) => showError(errorBox, message),
       onEnd: () => {
+        listening = false;
         capture = null;
         micBtn.classList.remove("mic-active");
         micBtn.innerHTML = "&#127908; Speak";
       },
     });
+
+    // The capture may already have finished inside startCapture.
+    if (!listening) capture = null;
   });
 
   // ---------------------------------------------------------------------

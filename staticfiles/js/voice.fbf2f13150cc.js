@@ -16,13 +16,22 @@ document.addEventListener("DOMContentLoaded", function () {
   const errorBox = document.getElementById("voiceError");
 
   let capture = null;
+  let listening = false;
   let lastTranslation = "";
 
   // Only warn if there is NO way at all to use the microphone. If the browser
   // cannot listen by itself we can still record and let the server do it.
+  const banner = document.getElementById("speechSupport");
   if (!Speech.canCapture()) {
-    const banner = document.getElementById("speechSupport");
     if (banner) banner.hidden = false;
+  } else if (!Speech.isSecureContext()) {
+    // The microphone is blocked on plain http, which is what happens when the
+    // site is opened by its network address instead of 127.0.0.1.
+    if (banner) {
+      banner.textContent =
+        "The microphone only works on a secure page. Open this site as http://127.0.0.1:8000/ (or over https) to speak. You can still type and translate.";
+      banner.hidden = false;
+    }
   } else if (!Speech.canListen()) {
     micStatus.textContent =
       "This browser will record your voice and send it to the server to be written out.";
@@ -39,20 +48,48 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------------------------------------------------------------------
   // Microphone
   // ---------------------------------------------------------------------
-  micBtn.addEventListener("click", function () {
-    if (capture) {
-      capture.stop();
+  const MIC_IDLE_LABEL = "&#127908; Start listening";
+  const MIC_BUSY_LABEL = "&#9209; Stop listening";
+
+  micBtn.addEventListener("click", async function () {
+    // "listening" is the truth about the microphone, not "capture". A capture
+    // can finish the instant it starts (permission blocked, for example), and
+    // then its controller is already dead - checking "capture" instead would
+    // leave the button stuck on stop and the microphone would never open again.
+    if (listening) {
+      if (capture) capture.stop();
       return;
     }
+
     showError(errorBox, "");
+
+    // Say something useful before the browser fails with a cryptic error.
+    if ((await Speech.permissionState()) === "denied") {
+      showError(
+        errorBox,
+        "Microphone permission is blocked for this site. Click the padlock in the address bar, allow the microphone, then reload this page."
+      );
+      return;
+    }
+
+    // Never listen to ourselves reading the last answer aloud.
+    Speech.stopSpeaking();
+
+    listening = true;
     micBtn.classList.add("mic-active");
-    micBtn.textContent = "Click to stop";
+    micBtn.innerHTML = MIC_BUSY_LABEL;
+    micStatus.textContent = "Starting the microphone...";
 
     capture = Speech.startCapture({
       lang: sourceLang.value,
       onText: (text) => {
         sourceText.value = sourceText.value ? sourceText.value + " " + text : text;
-        micStatus.textContent = "Got it. You can translate now.";
+        micStatus.textContent = "Got it - keep speaking, or click stop.";
+      },
+      // Words heard so far, before the browser has settled on them. Showing
+      // these is how the user knows the microphone is really working.
+      onInterim: (text) => {
+        micStatus.textContent = "Hearing: " + text;
       },
       onStatus: (message) => {
         micStatus.textContent = message;
@@ -62,11 +99,22 @@ document.addEventListener("DOMContentLoaded", function () {
         micStatus.textContent = "";
       },
       onEnd: () => {
+        listening = false;
         capture = null;
         micBtn.classList.remove("mic-active");
-        micBtn.innerHTML = "&#127908; Start listening";
+        micBtn.innerHTML = MIC_IDLE_LABEL;
       },
     });
+
+    // If the capture already finished during startCapture, onEnd has run and
+    // this controller is spent - drop it so the next click starts fresh.
+    if (!listening) capture = null;
+  });
+
+  // Changing the language mid-session would be ignored by the recogniser, so
+  // stop listening and let the user start again in the new language.
+  sourceLang.addEventListener("change", function () {
+    if (listening && capture) capture.stop();
   });
 
   // ---------------------------------------------------------------------

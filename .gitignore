@@ -30,3 +30,7 @@ Thumbs.db
 .vercel
 .env*
 !.env.example
+
+# Editor / script backups
+*.bak
+*.bak2

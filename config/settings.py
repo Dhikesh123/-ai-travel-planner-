@@ -187,6 +187,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Supplies ASSET_V, the cache-buster on the CSS/JS URLs.
+                "travel.context_processors.asset_version",
             ],
         },
     },

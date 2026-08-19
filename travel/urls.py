@@ -93,6 +93,7 @@ urlpatterns = [
     ),
     path("api/calculate-cost/", api_views.api_calculate_cost, name="api_calculate_cost"),
     path("api/chat/", api_views.api_chat, name="api_chat"),
+    path("api/chat/stream/", api_views.api_chat_stream, name="api_chat_stream"),
     path("api/chat/history/", api_views.api_chat_history, name="api_chat_history"),
     path("api/translate/", api_views.api_translate, name="api_translate"),
     path(

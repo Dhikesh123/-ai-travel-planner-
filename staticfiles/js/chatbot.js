@@ -154,7 +154,27 @@ document.addEventListener("DOMContentLoaded", function () {
       imageInput.value = "";
       attachName.textContent = "";
     } else {
-      data = await postJSON("/api/chat/", { message: message });
+      // Fill one bubble as the answer is written, rather than making the
+      // customer watch the typing dots until the whole reply is ready.
+      let bubble = null;
+      data = await postChatStream({ message: message }, (answerSoFar) => {
+        if (!bubble) {
+          typing.hidden = true;
+          bubble = addBubble("assistant", "");
+        }
+        bubble.querySelector(".bubble-text").textContent = answerSoFar;
+        scrollToBottom();
+      });
+
+      if (bubble) {
+        // The bubble is already on screen, so there is nothing left to add.
+        typing.hidden = true;
+        sendBtn.disabled = false;
+        if (!data.ok) {
+          showError(errorBox, data.error || "The assistant could not reply. Please try again.");
+        }
+        return;
+      }
     }
 
     typing.hidden = true;

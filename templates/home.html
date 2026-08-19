@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}AI Travel Planner &amp; Smart Trip Assistant{% endblock %}
 
 {% block content %}
@@ -53,6 +53,40 @@
         <button class="btn btn-primary" type="submit">Search destinations</button>
       </form>
     </div>
+  </div>
+</section>
+
+<section class="container section">
+  <h2>Ask the AI assistant</h2>
+  <p class="muted">
+    Ask anything about planning a trip in India. Answers are AI generated and
+    every figure is a demonstration estimate.
+  </p>
+
+  {% comment %}
+    data-auth tells the script whether to send or to ask for a login first, so
+    a logged-out visitor gets a useful sentence instead of a 403.
+  {% endcomment %}
+  <div class="home-chat" id="homeChat" data-auth="{% if user.is_authenticated %}1{% else %}0{% endif %}">
+    <div class="home-chat-messages" id="homeChatMessages">
+      <div class="w-bubble w-bubble-assistant">Hi! Try &ldquo;Plan a 3-day trip from Hyderabad to Goa for 2 people&rdquo; or &ldquo;What is the best time to visit Jaipur?&rdquo;</div>
+    </div>
+    <form class="home-chat-form" id="homeChatForm">
+      <textarea id="homeChatInput" rows="1" placeholder="Ask about your trip..."></textarea>
+      <button class="btn btn-primary" type="submit" id="homeChatSend">Send</button>
+    </form>
+  </div>
+
+  <div class="home-chat-more">
+    {% if user.is_authenticated %}
+      <span class="muted small">
+        Photo identification and voice translation are in the
+        <strong>assistant button</strong> at the bottom-right of every page.
+      </span>
+    {% else %}
+      <a class="btn btn-outline btn-sm" href="{% url 'login' %}">Login to chat</a>
+      <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Create a free account</a>
+    {% endif %}
   </div>
 </section>
 
@@ -136,4 +170,8 @@
   {% endif %}
 </section>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/home_chat.js' %}?v={{ ASSET_V }}"></script>
 {% endblock %}

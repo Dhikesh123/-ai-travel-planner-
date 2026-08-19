@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}AI Travel Planner{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ ASSET_V }}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9992;</text></svg>">
 </head>
 <body>
@@ -26,9 +26,11 @@
         <a href="{% url 'planner' %}">Plan Trip</a>
         <a href="{% url 'calculator' %}">Calculator</a>
         <a href="{% url 'trip_list' %}">My Trips</a>
-        <a href="{% url 'chatbot' %}">AI Assistant</a>
-        <a href="{% url 'image_recognition' %}">Image AI</a>
-        <a href="{% url 'voice_assistant' %}">Voice</a>
+        {% comment %}
+          Chat, Image AI and Voice all live in the floating assistant button in
+          the corner, so they no longer need three nav links of their own. The
+          three pages still exist and still work if visited directly.
+        {% endcomment %}
         {% if user.is_staff %}
           <a href="{% url 'admin_dashboard' %}" class="staff-link">Admin</a>
         {% endif %}
@@ -91,12 +93,104 @@
     <span class="muted small">Internship project &middot; Django + Groq AI</span>
   </div>
 </footer>
+{% if user.is_authenticated %}
+<button class="chat-fab" id="chatFab" aria-label="Open travel assistant" aria-expanded="false">
+  <svg class="fab-open" viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM7 9h10v2H7V9zm0 4h7v2H7v-2z"/></svg>
+  <svg class="fab-close" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+</button>
+
+<div class="chat-widget" id="chatWidget" hidden>
+  <div class="widget-head">
+    <div>
+      <h4>Travel Assistant</h4>
+      <p>Estimates only &middot; English or Telugu</p>
+    </div>
+    <button class="widget-close" id="widgetClose" aria-label="Close">&times;</button>
+  </div>
+  <div class="widget-tabs" role="tablist">
+    <button class="widget-tab is-active" data-panel="panelChat" role="tab" aria-selected="true">Chat</button>
+    <button class="widget-tab" data-panel="panelImage" role="tab" aria-selected="false">Image AI</button>
+    <button class="widget-tab" data-panel="panelVoice" role="tab" aria-selected="false">Voice</button>
+  </div>
+
+  {# ---- Chat ---- #}
+  <div class="widget-panel is-active" id="panelChat" role="tabpanel">
+    {% comment %}
+      The greeting is rendered here rather than pushed in by JavaScript, so the
+      panel is never an empty white box if a script is slow or cached. It is on
+      one line because the bubble is white-space: pre-wrap - indentation here
+      would appear as real spaces on screen.
+    {% endcomment %}
+    <div class="widget-messages" id="widgetMessages">
+      <div class="w-bubble w-bubble-assistant">Hello! Ask me anything about planning a trip &mdash; for example &ldquo;Plan a 3-day trip from Pune to Mumbai for 2 people.&rdquo; Use the tabs above to identify a photo or to speak instead.</div>
+    </div>
+    <form class="widget-form" id="widgetForm">
+      <textarea id="widgetInput" rows="1" placeholder="Ask about your trip..."></textarea>
+      <button class="btn btn-primary" type="submit" id="widgetSend">Send</button>
+    </form>
+  </div>
+
+  {# ---- Image AI ---- #}
+  <div class="widget-panel" id="panelImage" role="tabpanel" hidden>
+    <div class="widget-scroll">
+      <button type="button" class="w-drop" id="wDrop">
+        <img id="wPreview" alt="" hidden>
+        <span id="wDropText">Click to choose a photo<br><small>JPG, PNG, WEBP, GIF &middot; max 5 MB</small></span>
+      </button>
+      <input type="file" id="wImageInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+      <input type="text" id="wImageQuestion" class="w-text" placeholder="Ask something about it (optional)">
+      <div class="w-result" id="wImageResult"><p class="muted small">The answer will appear here.</p></div>
+      <p class="w-note" id="wImageNote" hidden></p>
+      <p class="w-err" id="wImageError" hidden></p>
+    </div>
+    <div class="widget-form">
+      <button class="btn btn-primary" type="button" id="wAnalyse">Identify this place</button>
+    </div>
+  </div>
+
+  {# ---- Voice ---- #}
+  <div class="widget-panel" id="panelVoice" role="tabpanel" hidden>
+    <div class="widget-scroll">
+      <div class="w-row">
+        <select id="wSourceLang" class="w-text">
+          <option value="en">English</option>
+          <option value="te">Telugu</option>
+        </select>
+        <span class="w-arrow">&rarr;</span>
+        <select id="wTargetLang" class="w-text">
+          <option value="te">Telugu</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <button type="button" class="btn btn-outline w-mic" id="wMic">&#127908; Start listening</button>
+      <p class="w-status" id="wMicStatus"></p>
+      <textarea id="wSourceText" class="w-text" rows="2" placeholder="Speak or type here..."></textarea>
+      <div class="w-row">
+        <button type="button" class="btn btn-outline btn-sm" id="wTranslate">Translate</button>
+        <button type="button" class="btn btn-outline btn-sm" id="wSpeak">Read aloud</button>
+        <button type="button" class="btn btn-outline btn-sm" id="wVoiceClear">Clear</button>
+      </div>
+      <div class="w-result" id="wTranslationBox"><p class="muted small">Your translation will appear here.</p></div>
+      <div class="w-result" id="wVoiceAi"><p class="muted small">The AI answer will appear here.</p></div>
+      <p class="w-err" id="wVoiceError" hidden></p>
+    </div>
+    <div class="widget-form">
+      <button class="btn btn-primary" type="button" id="wAskAi">Ask the AI</button>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <script>
   // Make the CSRF token available to every fetch() call in our JS files.
   window.CSRF_TOKEN = "{{ csrf_token }}";
 </script>
-<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'js/app.js' %}?v={{ ASSET_V }}"></script>
+{% if user.is_authenticated %}
+  {# speech.js must load first - the widget's Voice tab uses its Speech helper. #}
+  <script src="{% static 'js/speech.js' %}?v={{ ASSET_V }}"></script>
+  <script src="{% static 'js/widget.js' %}?v={{ ASSET_V }}"></script>
+{% endif %}
 {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -101,9 +101,35 @@ def is_configured():
     return bool(settings.GROQ_API_KEY)
 
 
+# How long we wait for Groq before giving up. Without this the library waits
+# ten minutes, so a stalled request leaves the customer watching a spinner.
+REQUEST_TIMEOUT_SECONDS = 30.0
+
+# How hard the chat model thinks before it starts answering. Groq accepts
+# "low", "medium" or "high" here - not "none", which is a vision-model
+# setting. Travel questions do not need deliberation, and every reasoning
+# token is time the customer waits.
+CHAT_REASONING_EFFORT = "low"
+
+# One client, kept for the life of the process.
+_client = None
+_client_key = None
+
+
 def _get_client():
-    """Create the Groq client. The import is inside the function so the site
-    still runs even if the library is missing."""
+    """
+    Return the Groq client, building it once and reusing it afterwards.
+
+    This used to build a fresh client for every single request, which cost
+    between a third and two thirds of a second each time - a new TLS handshake
+    to Groq before a word of the question had been sent. Keeping the client
+    keeps the connection alive, so that price is paid once at start-up.
+
+    The import is inside the function so the site still runs even if the
+    library is missing.
+    """
+    global _client, _client_key
+
     try:
         from groq import Groq
     except ImportError as exc:  # pragma: no cover
@@ -112,7 +138,15 @@ def _get_client():
     if not is_configured():
         raise AIError(NO_KEY_MESSAGE)
 
-    return Groq(api_key=settings.GROQ_API_KEY)
+    # Rebuild if the key changed under us (tests, or a settings reload).
+    if _client is None or _client_key != settings.GROQ_API_KEY:
+        _client = Groq(
+            api_key=settings.GROQ_API_KEY,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+            max_retries=2,
+        )
+        _client_key = settings.GROQ_API_KEY
+    return _client
 
 
 def _strip_reasoning(text):
@@ -160,6 +194,11 @@ def _call(messages, model=None, max_tokens=2000, reasoning_effort=None):
     except groq.RateLimitError as exc:
         logger.warning("Groq rate limited: %s", exc)
         raise AIError("Too many requests right now. Please try again in a moment.") from exc
+    except groq.APITimeoutError as exc:
+        logger.warning("Groq timed out after %ss: %s", REQUEST_TIMEOUT_SECONDS, exc)
+        raise AIError(
+            "The AI service took too long to answer. Please try again, or ask a shorter question."
+        ) from exc
     except groq.APIConnectionError as exc:
         logger.warning("Groq connection error: %s", exc)
         raise AIError("Could not reach the AI service. Check your internet connection.") from exc
@@ -197,13 +236,8 @@ def _call(messages, model=None, max_tokens=2000, reasoning_effort=None):
 # ---------------------------------------------------------------------------
 # 1. Chat
 # ---------------------------------------------------------------------------
-def chat(user_message, history=None, trip_context=""):
-    """
-    Send one customer message (plus recent history) to the AI.
-
-    history = list of {"role": "user"/"assistant", "content": "..."}
-    trip_context = optional text describing the trip the customer is viewing.
-    """
+def _chat_messages(user_message, history=None, trip_context=""):
+    """Build the message list for a chat turn. Shared by chat and chat_stream."""
     system = TRAVEL_SYSTEM_PROMPT
     if trip_context:
         system += f"\n\nThe customer is currently looking at this trip:\n{trip_context}"
@@ -213,8 +247,143 @@ def chat(user_message, history=None, trip_context=""):
         if item.get("content"):
             messages.append({"role": item["role"], "content": item["content"]})
     messages.append({"role": "user", "content": user_message})
+    return messages
 
-    return _call(messages)
+
+def chat(user_message, history=None, trip_context=""):
+    """
+    Send one customer message (plus recent history) to the AI.
+
+    history = list of {"role": "user"/"assistant", "content": "..."}
+    trip_context = optional text describing the trip the customer is viewing.
+    """
+    # The chat model reasons before it answers, and those tokens cost time the
+    # customer spends watching a spinner - and room the answer itself needs.
+    # "low" answers a trip question in about a second instead of up to four,
+    # and leaves the budget for the itinerary rather than the deliberation.
+    return _call(
+        _chat_messages(user_message, history=history, trip_context=trip_context),
+        reasoning_effort=CHAT_REASONING_EFFORT,
+    )
+
+
+class _ReasoningFilter:
+    """
+    Removes <think>...</think> from a reply that arrives piece by piece.
+
+    _strip_reasoning() can only work on a finished answer. While streaming we
+    have to decide what to show before the closing tag exists, so this holds
+    back anything inside a think block, and holds back the tail of a chunk
+    when it might be the start of a tag split across two chunks.
+    """
+
+    OPEN, CLOSE = "<think>", "</think>"
+
+    def __init__(self):
+        self.buffer = ""
+        self.thinking = False
+
+    def feed(self, chunk):
+        """Return the part of chunk that is safe to show now."""
+        self.buffer += chunk
+        out = []
+        while self.buffer:
+            if self.thinking:
+                end = self.buffer.find(self.CLOSE)
+                if end == -1:
+                    # Keep only what might be a partial closing tag.
+                    self.buffer = self.buffer[-len(self.CLOSE) :]
+                    break
+                self.buffer = self.buffer[end + len(self.CLOSE) :]
+                self.thinking = False
+                continue
+
+            start = self.buffer.find(self.OPEN)
+            if start != -1:
+                out.append(self.buffer[:start])
+                self.buffer = self.buffer[start + len(self.OPEN) :]
+                self.thinking = True
+                continue
+
+            # No tag in sight. Show everything except a tail that could still
+            # turn into "<think>" once the next chunk arrives.
+            keep = 0
+            for size in range(min(len(self.OPEN) - 1, len(self.buffer)), 0, -1):
+                if self.buffer.endswith(self.OPEN[:size]):
+                    keep = size
+                    break
+            if keep:
+                out.append(self.buffer[:-keep])
+                self.buffer = self.buffer[-keep:]
+            else:
+                out.append(self.buffer)
+                self.buffer = ""
+            break
+        return "".join(out)
+
+    def finish(self):
+        """Whatever is left once the stream ends."""
+        if self.thinking:
+            return ""
+        left, self.buffer = self.buffer, ""
+        return left
+
+
+def chat_stream(user_message, history=None, trip_context=""):
+    """
+    The same answer as chat(), but handed over a few words at a time.
+
+    A trip itinerary takes the model a couple of seconds to write. Waiting for
+    the last word before showing the first one makes the assistant feel slow
+    even when it is not, so the page reads it out as it is written.
+
+    Yields plain strings. Raises AIError before the first piece if the request
+    cannot be made at all.
+    """
+    import groq
+
+    client = _get_client()
+    messages = _chat_messages(user_message, history=history, trip_context=trip_context)
+
+    try:
+        stream = client.chat.completions.create(
+            model=settings.GROQ_CHAT_MODEL,
+            max_tokens=2000,
+            messages=messages,
+            reasoning_effort=CHAT_REASONING_EFFORT,
+            stream=True,
+        )
+    except groq.AuthenticationError as exc:
+        raise AIError("The Groq API key is missing or invalid.") from exc
+    except groq.RateLimitError as exc:
+        raise AIError("Too many requests right now. Please try again in a moment.") from exc
+    except groq.APITimeoutError as exc:
+        raise AIError("The AI service took too long to answer. Please try again.") from exc
+    except groq.APIConnectionError as exc:
+        raise AIError("Could not reach the AI service. Check your internet connection.") from exc
+    except groq.APIStatusError as exc:
+        logger.warning("Groq stream error %s: %s", exc.status_code, exc)
+        if exc.status_code == 404:
+            raise AIError(
+                "The configured AI model (%s) is not available on this API key."
+                % settings.GROQ_CHAT_MODEL
+            ) from exc
+        raise AIError("The AI service returned an error. Please try again.") from exc
+
+    cleaner = _ReasoningFilter()
+    for event in stream:
+        if not event.choices:
+            continue
+        piece = event.choices[0].delta.content
+        if not piece:
+            continue
+        visible = cleaner.feed(piece)
+        if visible:
+            yield visible
+
+    tail = cleaner.finish()
+    if tail:
+        yield tail
 
 
 # ---------------------------------------------------------------------------
@@ -237,6 +406,8 @@ def translate(text, source_lang="te", target_lang="en"):
     return _call(
         [{"role": "system", "content": system}, {"role": "user", "content": text}],
         max_tokens=1000,
+        # Translating a sentence is not a problem that wants deliberation.
+        reasoning_effort=CHAT_REASONING_EFFORT,
     )
 
 
@@ -379,5 +550,6 @@ def suggest_itinerary(trip_summary):
         [
             {"role": "system", "content": TRAVEL_SYSTEM_PROMPT},
             {"role": "user", "content": message},
-        ]
+        ],
+        reasoning_effort=CHAT_REASONING_EFFORT,
     )

@@ -211,10 +211,15 @@ document.addEventListener("DOMContentLoaded", function () {
     showError(errorBox, "");
     aiBox.innerHTML = '<p class="muted small">The AI is thinking...</p>';
 
-    const data = await postJSON("/api/chat/", { message: message });
+    // The answer is shown as it is written, so the first words appear in
+    // about a second instead of after the whole itinerary is finished.
+    const data = await postChatStream({ message: message }, (answerSoFar) => {
+      aiBox.textContent = answerSoFar;
+    });
 
     if (!data.ok) {
-      aiBox.innerHTML = '<p class="muted small">No answer.</p>';
+      // Keep whatever did arrive - half an answer beats losing it.
+      if (!data.reply) aiBox.innerHTML = '<p class="muted small">No answer.</p>';
       showError(errorBox, data.error || "The assistant could not reply.");
       return;
     }

@@ -5,6 +5,7 @@ Every endpoint returns JSON, never HTML. Login is required except where
 noted. The Groq API key is used only here on the server - it is never
 sent to the browser.
 """
+import json
 import logging
 from decimal import Decimal, InvalidOperation
 
@@ -14,6 +15,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.db import DatabaseError
 from django.db.models import Count, Sum
+from django.http import StreamingHttpResponse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, parser_classes, permission_classes
@@ -454,23 +456,7 @@ def api_chat(request):
     if not ai_service.is_configured():
         return error(ai_service.NO_KEY_MESSAGE, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    # Optional: give the AI the trip the customer is looking at
-    trip_context = ""
-    trip_id = request.data.get("trip_id")
-    if trip_id:
-        trip = Trip.objects.filter(pk=trip_id, user=request.user).first()
-        if trip:
-            trip_context = trip_summary_text(trip)
-
-    language = speech_service.detect_language(message)
-
-    # Recent conversation so the AI remembers the topic
-    recent = ChatMessage.objects.filter(user=request.user).order_by("-created_at")[:10]
-    history = [{"role": m.role, "content": m.content} for m in reversed(list(recent))]
-
-    ChatMessage.objects.create(
-        user=request.user, role="user", content=message, language=language
-    )
+    history, trip_context, language = _chat_turn_context(request, message)
 
     try:
         reply = ai_service.chat(message, history=history, trip_context=trip_context)
@@ -482,6 +468,98 @@ def api_chat(request):
     )
 
     return Response({"ok": True, "reply": reply, "language": language})
+
+
+def _chat_turn_context(request, message):
+    """
+    The work both chat endpoints do before the AI is asked anything: the trip
+    being viewed, the recent conversation, and saving what the customer said.
+
+    Returns (history, trip_context, language).
+    """
+    trip_context = ""
+    trip_id = request.data.get("trip_id")
+    if trip_id:
+        trip = Trip.objects.filter(pk=trip_id, user=request.user).first()
+        if trip:
+            trip_context = trip_summary_text(trip)
+
+    language = speech_service.detect_language(message)
+
+    recent = ChatMessage.objects.filter(user=request.user).order_by("-created_at")[:10]
+    history = [{"role": m.role, "content": m.content} for m in reversed(list(recent))]
+
+    ChatMessage.objects.create(
+        user=request.user, role="user", content=message, language=language
+    )
+    return history, trip_context, language
+
+
+@api_view(["POST"])
+def api_chat_stream(request):
+    """
+    POST /api/chat/stream/ - the same answer as /api/chat/, sent as it is
+    written instead of all at once.
+
+    The reply is a stream of server-sent events, one JSON object per event:
+
+        data: {"delta": "Day 1: "}
+        data: {"done": true}
+        data: {"error": "..."}
+
+    An itinerary takes the model a couple of seconds to write out. Holding it
+    back until the final word is what made the assistant feel slow, so the
+    words go to the page as they arrive. /api/chat/ stays as it is for
+    anything that cannot read a stream.
+    """
+    message = (request.data.get("message") or "").strip()
+    if not message:
+        return error("Please type a message first.")
+    if len(message) > 4000:
+        return error("That message is too long. Please keep it under 4000 characters.")
+
+    if not ai_service.is_configured():
+        return error(ai_service.NO_KEY_MESSAGE, status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    history, trip_context, language = _chat_turn_context(request, message)
+    user = request.user
+
+    def events():
+        def event(payload):
+            return "data: " + json.dumps(payload) + "\n\n"
+
+        pieces = []
+        try:
+            for piece in ai_service.chat_stream(
+                message, history=history, trip_context=trip_context
+            ):
+                pieces.append(piece)
+                yield event({"delta": piece})
+        except ai_service.AIError as exc:
+            yield event({"error": str(exc)})
+            return
+        except Exception:  # noqa: BLE001 - the browser must hear something
+            logger.exception("Chat stream failed")
+            yield event({"error": "The assistant could not finish that answer. Please try again."})
+            return
+
+        reply = "".join(pieces).strip()
+        if not reply:
+            yield event({"error": "The AI service sent an empty reply. Please try again."})
+            return
+
+        # Only a finished answer is worth remembering.
+        ChatMessage.objects.create(
+            user=user, role="assistant", content=reply, language=language
+        )
+        yield event({"done": True})
+
+    response = StreamingHttpResponse(events(), content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache"
+    # Tells nginx and friends not to hold the pieces back until the end, which
+    # would undo the whole point of streaming.
+    response["X-Accel-Buffering"] = "no"
+    return response
 
 
 @api_view(["GET", "DELETE"])

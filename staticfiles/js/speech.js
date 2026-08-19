@@ -178,7 +178,7 @@ const Speech = (function () {
           const trimmed = text.trim();
           if (trimmed) {
             heardThisTurn = true;
-            silentRestarts = 0;
+            quietTurns = 0;
             onResult && onResult(trimmed);
           }
         } else {
@@ -187,7 +187,7 @@ const Speech = (function () {
       }
       if (interim.trim()) {
         heardThisTurn = true;
-        silentRestarts = 0;
+        quietTurns = 0;
         onInterim && onInterim(interim.trim());
       }
     };

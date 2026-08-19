@@ -101,6 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
     clearTimeout(closeTimer);
     panel.classList.remove("is-closing");
     panel.hidden = false;
+    panel.style.display = ""; // hand control back to the stylesheet
     fab.classList.add("is-open");
     fab.setAttribute("aria-expanded", "true");
     // The greeting is already in the HTML, so there is nothing to add here.
@@ -112,20 +113,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     fab.classList.remove("is-open");
     fab.setAttribute("aria-expanded", "false");
-    // Never leave the microphone or a voice reading running behind a closed
-    // panel - the user has no way to stop it once it is out of sight.
-    stopListening();
-    Speech.stopSpeaking();
 
-    // Let the closing animation play, THEN hide. A timer rather than
-    // animationend, because that event never fires when animations are
-    // switched off and the panel would then stay on screen forever.
+    // The hide is scheduled FIRST, before anything that could throw. Tidying
+    // up the microphone below is worth doing but must never be able to leave
+    // the panel stuck open if it fails.
     panel.classList.add("is-closing");
     clearTimeout(closeTimer);
     closeTimer = setTimeout(function () {
       panel.classList.remove("is-closing");
       panel.hidden = true;
+      // An inline style outranks every stylesheet rule, so the panel closes
+      // even if a browser is still holding an old style.css that lacks the
+      // .chat-widget[hidden] rule. `hidden` alone is not enough: the base
+      // .chat-widget rule sets display:flex, which beats the browser default.
+      panel.style.display = "none";
     }, CLOSE_MS);
+
+    // Never leave the microphone or a voice reading running behind a closed
+    // panel - the user has no way to stop it once it is out of sight.
+    try {
+      stopListening();
+      if (typeof Speech !== "undefined") Speech.stopSpeaking();
+    } catch (err) {
+      /* the panel is already on its way out; nothing here is worth blocking it */
+    }
   }
 
   fab.addEventListener("click", function () {

@@ -86,6 +86,9 @@
       </div>
     </div>
 
+    {# Both asides live in one grid cell, otherwise the second would wrap onto
+       a new row under the itinerary instead of stacking in the sidebar. #}
+    <div class="detail-side">
     <aside class="panel estimate-panel">
       <h2>Estimated cost</h2>
       {% if trip.cost %}
@@ -110,6 +113,62 @@
         database. They are not live fares, live hotel rates or live availability.
       </p>
     </aside>
+
+    <aside class="panel suggest-panel">
+      <div class="suggest-head">
+        <h2>You could also visit</h2>
+        <span class="suggest-count">{{ suggested_places|length }}</span>
+      </div>
+
+      {% if suggested_places %}
+        <p class="muted small">
+          Places near {{ trip.destination.name }} that are not in your plan yet.
+        </p>
+
+        <ul class="suggest-list">
+          {% for place in suggested_places %}
+            {# --stagger drives the entrance animation, so the cards arrive in order. #}
+            <li class="suggest-card" style="--stagger: {{ forloop.counter0 }}">
+              <a class="suggest-link" href="{% url 'destination_detail' place.destination.pk %}">
+                <span class="suggest-thumb"
+                      {% if place.display_image %}style="background-image:url('{{ place.display_image }}')"{% endif %}>
+                  {% if not place.display_image %}<span class="suggest-initial">{{ place.name|slice:":1" }}</span>{% endif %}
+                </span>
+
+                <span class="suggest-body">
+                  <span class="suggest-name">{{ place.name }}</span>
+                  <span class="suggest-meta">
+                    {{ place.get_category_display }}
+                    &middot; about {{ place.visit_duration_minutes }} min
+                  </span>
+                  <span class="suggest-tags">
+                    {% if place.entry_fee > 0 %}
+                      <span class="suggest-tag">~ Rs {{ place.entry_fee|floatformat:0 }} (est.)</span>
+                    {% else %}
+                      <span class="suggest-tag suggest-tag-free">Free entry</span>
+                    {% endif %}
+                    {% if place.is_nearby %}
+                      <span class="suggest-tag suggest-tag-near">{{ place.destination.name }}</span>
+                    {% endif %}
+                  </span>
+                </span>
+
+                <span class="suggest-go" aria-hidden="true">&rarr;</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+
+        <a class="btn btn-outline btn-sm suggest-add" href="{% url 'trip_edit' trip.pk %}">
+          Add places to this trip
+        </a>
+      {% else %}
+        <p class="muted small">
+          Every place we have for {{ trip.destination.name }} is already in your plan.
+        </p>
+      {% endif %}
+    </aside>
+    </div>
   </div>
 </section>
 {% endblock %}

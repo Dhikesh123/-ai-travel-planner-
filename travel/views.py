@@ -25,6 +25,11 @@ from .models import (
 from .services import ai_service
 from .utils import recalculate_trip
 
+# How many "you could also visit" places the trip page offers alongside the
+# itinerary. Ten fills the sidebar on a tall screen without turning it into a
+# second list to read.
+SUGGESTION_LIMIT = 10
+
 
 # ---------------------------------------------------------------------------
 # Public pages
@@ -208,6 +213,39 @@ def trip_detail(request, pk):
     for tp in trip_places:
         itinerary.setdefault(tp.day_number, []).append(tp.place)
 
+    # Places worth adding: everything at this destination that is not already
+    # in the plan, then - if that runs thin - places from other destinations in
+    # the same state, which are the realistic "while you are there" additions.
+    chosen_ids = [tp.place_id for tp in trip_places]
+
+    suggested_places = list(
+        TouristPlace.objects.filter(destination=trip.destination)
+        .exclude(pk__in=chosen_ids)
+        .order_by("entry_fee", "name")[:SUGGESTION_LIMIT]
+    )
+
+    # Top up from further afield until the sidebar is full: first the same
+    # state, which is the realistic "while you are there" add-on, then anywhere
+    # else. Without the second pass a destination that is the only one in its
+    # state - Goa, in the sample data - offers almost nothing.
+    for extra in (
+        TouristPlace.objects.filter(destination__state=trip.destination.state).exclude(
+            destination=trip.destination
+        ),
+        TouristPlace.objects.exclude(destination__state=trip.destination.state),
+    ):
+        if len(suggested_places) >= SUGGESTION_LIMIT:
+            break
+        already = chosen_ids + [p.pk for p in suggested_places]
+        for place in (
+            extra.exclude(pk__in=already)
+            .select_related("destination")
+            .order_by("entry_fee", "name")[: SUGGESTION_LIMIT - len(suggested_places)]
+        ):
+            # Read in the template to label these with their own city.
+            place.is_nearby = True
+            suggested_places.append(place)
+
     return render(
         request,
         "trip_detail.html",
@@ -215,6 +253,7 @@ def trip_detail(request, pk):
             "trip": trip,
             "trip_places": trip_places,
             "itinerary_days": sorted(itinerary.items()),
+            "suggested_places": suggested_places,
             "ai_ready": ai_service.is_configured(),
         },
     )

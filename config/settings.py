@@ -5,6 +5,7 @@ Everything secret (passwords, API keys) is read from the .env file,
 NEVER written directly in this file.
 """
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -345,3 +346,11 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = "DENY"
+
+
+# Password hashing is deliberately slow - that is the point of PBKDF2 - but the
+# test suite creates a user and logs in for all 63 tests, and that hashing was
+# most of a run that took minutes. Tests do not need the real hasher to prove
+# that login works, so under "manage.py test" only, use the cheap one.
+if "test" in sys.argv:
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

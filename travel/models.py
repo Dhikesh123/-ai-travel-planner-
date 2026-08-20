@@ -58,6 +58,33 @@ class Profile(models.Model):
 # ---------------------------------------------------------------------------
 # 2. Destination (a city you can travel to)
 # ---------------------------------------------------------------------------
+class Theme(models.Model):
+    """
+    A way of travelling rather than a kind of place.
+
+    "Temple" exists on TouristPlace already, but that answers "what is this
+    building"; a theme answers "who is this trip for". Udaipur is historical by
+    category and honeymoon by theme, and the explorer needs to filter on the
+    second without redefining the first.
+
+    A table rather than a column because a destination belongs to several -
+    Goa is beach, family and weekend at once - and a many-to-many filters in
+    SQL without the leading-comma tricks a packed CharField would need.
+    """
+
+    slug = models.SlugField(max_length=40, unique=True)
+    name = models.CharField(max_length=60)
+    # Lower sorts first, so the explorer's chips open on the broad themes
+    # rather than alphabetically on "Adventure".
+    display_order = models.PositiveSmallIntegerField(default=100)
+
+    class Meta:
+        ordering = ["display_order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Destination(models.Model):
     name = models.CharField(max_length=100, unique=True)
     state = models.CharField(max_length=80, blank=True)
@@ -82,6 +109,29 @@ class Destination(models.Model):
     )
     recommended_days = models.PositiveSmallIntegerField(default=3)
     is_popular = models.BooleanField(default=True)
+
+    themes = models.ManyToManyField(
+        Theme,
+        blank=True,
+        related_name="destinations",
+        help_text="Who the trip suits: family, honeymoon, weekend and so on.",
+    )
+    best_time = models.CharField(
+        max_length=90,
+        blank=True,
+        help_text="e.g. 'October to March'. Free text, shown on the card.",
+    )
+    sample_rating = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        default=Decimal("4.0"),
+        help_text=(
+            "ILLUSTRATIVE score for the demo, in the same spirit as the sample "
+            "prices. It is NOT an average of real visitor reviews, and the "
+            "template labels it so - never present it as one."
+        ),
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

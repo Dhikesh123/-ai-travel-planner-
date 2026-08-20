@@ -43,6 +43,15 @@ FAMILY_CATEGORIES = {"temple", "nature", "beach", "museum", "food"}
 RECOMMENDED_COUNT = 4
 
 
+def _positive_int(raw, fallback):
+    """A whole number above zero from the query string, or the fallback."""
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return fallback
+    return value if value > 0 else fallback
+
+
 def _spread_by_category(queryset, limit):
     """
     Take places one category at a time instead of cheapest-first.
@@ -78,6 +87,9 @@ def home(request):
         "home.html",
         {
             "destinations": Destination.objects.filter(is_popular=True)[:6],
+            # The hero's trip search offers every destination, not just the six
+            # featured as cards further down the page.
+            "all_destinations": Destination.objects.only("pk", "name", "state"),
             "places": TouristPlace.objects.select_related("destination")[:8],
             "transports": Transportation.objects.filter(is_active=True),
             "ai_ready": ai_service.is_configured(),
@@ -217,7 +229,20 @@ def planner(request):
             return redirect("trip_detail", pk=trip.pk)
         messages.error(request, "Please fix the errors below.")
     else:
-        form = TripForm(initial={"travel_date": timezone.localdate(), "travelers": 2, "days": 3})
+        # The home page's trip search posts here by GET, so whatever the
+        # customer already typed on the hero card arrives filled in rather
+        # than being asked for a second time. Anything absent or unparseable
+        # falls back to the same defaults the page has always opened with.
+        initial = {
+            "travel_date": request.GET.get("travel_date") or timezone.localdate(),
+            "travelers": _positive_int(request.GET.get("travelers"), 2),
+            "days": _positive_int(request.GET.get("days"), 3),
+        }
+        if request.GET.get("source"):
+            initial["source"] = request.GET["source"].strip()
+        if (request.GET.get("destination") or "").isdigit():
+            initial["destination"] = request.GET["destination"]
+        form = TripForm(initial=initial)
 
     return render(
         request,

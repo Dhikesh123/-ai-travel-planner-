@@ -5,6 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}AI Travel Planner{% endblock %}</title>
+  <!-- Plus Jakarta Sans carries the headings and the trip search. Only the
+       four weights actually used are requested, and display=swap means the
+       page renders in the fallback stack rather than waiting on it. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
   <!-- Every destination photograph comes from upload.wikimedia.org, so the DNS
        lookup and TLS handshake are opened alongside the stylesheet rather than
        waiting for the first card to be parsed. -->

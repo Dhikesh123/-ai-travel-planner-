@@ -903,3 +903,282 @@ button:focus-visible,
   .card:hover .card-image { transform: none; }
   .btn:hover { transform: none; }
 }
+
+/* ============== Premium layer: type, depth, hero, trip search ============ */
+/* Loaded after everything above, so these override the base rules without
+   editing them - the older pages keep working untouched. */
+
+:root {
+  /* Plus Jakarta Sans carries the brand; the stack behind it is the original
+     one, so a blocked or slow font never leaves the page unstyled. */
+  --font-ui: "Plus Jakarta Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Gold against the blue. One accent, used sparingly - on the pill, on
+     hover underlines - is what separates premium from busy. */
+  --gold: #c8a24a;
+  --gold-soft: #f6efdd;
+
+  --ink-deep: #0a1a2f;
+
+  /* A real elevation ladder rather than two ad-hoc shadows. Each level is a
+     tight contact shadow plus a wider ambient one. */
+  --e1: 0 1px 2px rgba(10, 26, 47, .06), 0 1px 3px rgba(10, 26, 47, .05);
+  --e2: 0 2px 4px rgba(10, 26, 47, .05), 0 6px 16px rgba(10, 26, 47, .08);
+  --e3: 0 4px 8px rgba(10, 26, 47, .05), 0 16px 32px rgba(10, 26, 47, .10);
+  --e4: 0 8px 16px rgba(10, 26, 47, .06), 0 28px 60px rgba(10, 26, 47, .16);
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+}
+
+body { font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+
+/* Tighter tracking as type gets larger, which is what stops big headings
+   reading as a shouty default. */
+h1, h2, h3, h4 { font-family: var(--font-ui); letter-spacing: -.018em; }
+h1 { letter-spacing: -.03em; }
+
+.card { border-radius: var(--r-lg); box-shadow: var(--e1); }
+.card:hover { box-shadow: var(--e3); }
+.panel { border-radius: var(--r-lg); }
+
+/* ------------------------------ Hero ------------------------------------ */
+.hero {
+  position: relative;
+  padding: 3.5rem 0 5.5rem;
+  color: #fff;
+  background:
+    /* Two scrims: a vertical one so the headline always has contrast, and a
+       colour wash that ties the photograph back to the brand blue. */
+    linear-gradient(180deg, rgba(6, 20, 38, .78) 0%, rgba(6, 20, 38, .55) 45%, rgba(6, 20, 38, .82) 100%),
+    linear-gradient(115deg, rgba(11, 63, 143, .55), rgba(10, 26, 47, .25)),
+    var(--brand-dark) url("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Kumarakom_backwaters_panorama.jpg/1280px-Kumarakom_backwaters_panorama.jpg")
+      center / cover no-repeat;
+}
+
+@media (min-width: 900px) {
+  .hero {
+    padding: 5rem 0 7rem;
+    background-image:
+      linear-gradient(180deg, rgba(6, 20, 38, .74) 0%, rgba(6, 20, 38, .48) 45%, rgba(6, 20, 38, .80) 100%),
+      linear-gradient(115deg, rgba(11, 63, 143, .5), rgba(10, 26, 47, .2)),
+      url("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Kumarakom_backwaters_panorama.jpg/1920px-Kumarakom_backwaters_panorama.jpg");
+  }
+}
+
+.hero-inner { display: block; max-width: 720px; }
+
+.hero h1 {
+  font-size: clamp(2rem, 6.2vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.08;
+  margin: 0 0 .9rem;
+  text-shadow: 0 2px 24px rgba(6, 20, 38, .45);
+}
+.hero-sub {
+  font-size: clamp(1rem, 2.4vw, 1.2rem);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, .93);
+  max-width: 34em;
+  margin: 0 0 1.6rem;
+}
+
+.hero .pill {
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: .02em;
+  padding: .34rem .9rem;
+  box-shadow: inset 0 0 0 1px rgba(200, 162, 74, .25);
+}
+
+.hero-actions { gap: .7rem; margin: 0; }
+.hero .btn-lg { border-radius: var(--r-sm); font-weight: 700; }
+.hero .btn-primary { box-shadow: var(--e3); }
+
+/* Glass secondary button - readable over a photograph, where a plain
+   transparent outline would vanish against a pale patch of water. */
+.btn-glass {
+  background: rgba(255, 255, 255, .13);
+  border-color: rgba(255, 255, 255, .5);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.btn-glass:hover { background: rgba(255, 255, 255, .24); color: #fff; }
+
+/* --------------------------- Trip search -------------------------------- */
+/* Rides up over the seam between the hero and the page, the way a booking
+   site's search panel does. */
+.searchbar-wrap { margin-top: -3.25rem; position: relative; z-index: 4; }
+
+.searchbar {
+  background: var(--card);
+  border: 1px solid rgba(18, 38, 58, .07);
+  border-radius: var(--r-xl);
+  box-shadow: var(--e4);
+  padding: 1rem;
+  display: grid;
+  gap: .85rem;
+}
+
+.searchbar-fields { display: grid; gap: .7rem; }
+
+.sb-field { display: flex; flex-direction: column; gap: .25rem; }
+.sb-field label {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0;
+}
+/* The fields read as one continuous panel rather than five boxed inputs -
+   the divider between them does the separating instead of a border each. */
+.sb-field input, .sb-field select {
+  margin-top: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: #f7f9fc;
+  padding: .6rem .7rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.sb-field input:focus, .sb-field select:focus {
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--brand);
+}
+.sb-field input::placeholder { font-weight: 500; color: #93a3b8; }
+
+.sb-submit {
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  letter-spacing: .01em;
+  padding: .8rem 1.4rem;
+  box-shadow: var(--e2);
+}
+
+.sb-note {
+  margin: .8rem .2rem 0;
+  font-size: .8rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+@media (min-width: 760px) {
+  .searchbar {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding: 1.1rem 1.2rem;
+  }
+  .searchbar-fields {
+    grid-template-columns: 1.2fr 1.4fr 1fr .7fr .7fr;
+    gap: 0;
+  }
+  /* One hairline between fields, not around each. */
+  .sb-field + .sb-field {
+    border-left: 1px solid var(--line);
+    padding-left: .9rem;
+    margin-left: .9rem;
+  }
+  .sb-submit { align-self: end; }
+}
+
+/* ------------------------- Section rhythm ------------------------------- */
+.section h2 {
+  font-size: clamp(1.3rem, 2.6vw, 1.75rem);
+  font-weight: 750;
+  margin-bottom: .3rem;
+}
+
+/* A short gold rule under each section heading - the one decorative flourish,
+   repeated, which is what makes it read as a system rather than an accident. */
+.section > h2::after {
+  content: "";
+  display: block;
+  width: 34px; height: 3px;
+  margin-top: .55rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold), rgba(200, 162, 74, .25));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero { background-attachment: scroll; }
+}
+
+/* ==================== Premium assistant ================================= */
+
+.chat-widget {
+  border-radius: var(--r-lg);
+  box-shadow: var(--e4);
+  overflow: hidden;
+  border: 1px solid rgba(18, 38, 58, .08);
+}
+
+/* A deep gradient header with a faint gold hairline under it, which is the
+   same accent the section headings use. */
+.widget-head {
+  background: linear-gradient(135deg, #0b3f8f 0%, #0a1a2f 100%);
+  border-bottom: 1px solid rgba(200, 162, 74, .35);
+  padding: .9rem 1rem;
+}
+.widget-head h4 { font-weight: 700; letter-spacing: -.01em; }
+
+.widget-messages { padding: 1rem .9rem; gap: .6rem; background: #fbfcfe; }
+
+/* Bubbles get a corner cut on the side they belong to, so who is speaking is
+   legible from shape alone and not only from colour. */
+.w-bubble {
+  border-radius: 16px;
+  padding: .6rem .85rem;
+  line-height: 1.5;
+  font-size: .9rem;
+  max-width: 85%;
+  box-shadow: var(--e1);
+  animation: bubbleIn .26s cubic-bezier(.2, .7, .3, 1) backwards;
+}
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(6px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+.w-bubble-user {
+  background: linear-gradient(135deg, #1f6feb, #0b3f8f);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+.w-bubble-assistant {
+  background: #fff;
+  border: 1px solid rgba(18, 38, 58, .09);
+  border-bottom-left-radius: 5px;
+}
+
+.w-typing { padding: .7rem .9rem; }
+.w-typing span { background: var(--brand); opacity: .55; }
+
+/* The home page chat box gets the same treatment as the floating one, so the
+   two do not look like different products. */
+.home-chat {
+  border-radius: var(--r-lg);
+  box-shadow: var(--e2);
+  border: 1px solid rgba(18, 38, 58, .08);
+  overflow: hidden;
+}
+.home-chat-messages { background: #fbfcfe; }
+
+.chat-shell { border-radius: var(--r-lg); box-shadow: var(--e2); }
+.chat-typing span { background: var(--brand); opacity: .55; }
+
+/* The assistant button reads as one solid object rather than a flat circle. */
+.chat-fab {
+  box-shadow: var(--e4), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .w-bubble { animation: none; }
+}

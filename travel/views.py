@@ -3,6 +3,8 @@ Views = the Python functions that build each web page.
 
 A view receives a request, does some work, and returns a rendered HTML page.
 """
+from itertools import chain, zip_longest
+
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -26,9 +28,44 @@ from .services import ai_service
 from .utils import recalculate_trip
 
 # How many "you could also visit" places the trip page offers alongside the
-# itinerary. Ten fills the sidebar on a tall screen without turning it into a
-# second list to read.
-SUGGESTION_LIMIT = 10
+# itinerary. Fourteen fills the sidebar on a tall screen without turning it
+# into a second list to read.
+SUGGESTION_LIMIT = 14
+
+# Categories a family with young children can take on without planning the day
+# around it. "adventure" is the deliberate omission - rafting and trekking are
+# not the same kind of afternoon - and so is "shopping", which is an errand.
+FAMILY_CATEGORIES = {"temple", "nature", "beach", "museum", "food"}
+
+# How many of the suggestions carry the "Recommended" badge. Four is about one
+# screenful at the top of the sidebar; badging more of them makes the word stop
+# meaning anything.
+RECOMMENDED_COUNT = 4
+
+
+def _spread_by_category(queryset, limit):
+    """
+    Take places one category at a time instead of cheapest-first.
+
+    Ordering purely by price buries whole categories. The sample data is seven
+    historical sites against three temples, so a straight cheapest-first list
+    runs historical almost the whole way down and the temples never surface.
+    Round-robin puts a temple, a beach and a museum near the top where someone
+    reading the sidebar will actually see them.
+    """
+    buckets = {}
+    # Capped rather than unbounded: the spread only needs enough candidates to
+    # fill the sidebar, not the whole table.
+    for place in queryset[: limit * 3]:
+        buckets.setdefault(place.category, []).append(place)
+
+    # The cheapest place in a category decides how early that category starts,
+    # so a free temple still outranks a paid museum.
+    ordered = sorted(
+        buckets.values(), key=lambda bucket: (bucket[0].entry_fee, bucket[0].name)
+    )
+    spread = chain.from_iterable(zip_longest(*ordered))
+    return [place for place in spread if place is not None][:limit]
 
 
 # ---------------------------------------------------------------------------
@@ -218,11 +255,12 @@ def trip_detail(request, pk):
     # the same state, which are the realistic "while you are there" additions.
     chosen_ids = [tp.place_id for tp in trip_places]
 
-    suggested_places = list(
+    suggested_places = _spread_by_category(
         TouristPlace.objects.filter(destination=trip.destination)
         .select_related("destination")
         .exclude(pk__in=chosen_ids)
-        .order_by("entry_fee", "name")[:SUGGESTION_LIMIT]
+        .order_by("entry_fee", "name"),
+        SUGGESTION_LIMIT,
     )
 
     # Top up from further afield until the sidebar is full: first the same
@@ -238,14 +276,22 @@ def trip_detail(request, pk):
         if len(suggested_places) >= SUGGESTION_LIMIT:
             break
         already = chosen_ids + [p.pk for p in suggested_places]
-        for place in (
+        for place in _spread_by_category(
             extra.exclude(pk__in=already)
             .select_related("destination")
-            .order_by("entry_fee", "name")[: SUGGESTION_LIMIT - len(suggested_places)]
+            .order_by("entry_fee", "name"),
+            SUGGESTION_LIMIT - len(suggested_places),
         ):
             # Read in the template to label these with their own city.
             place.is_nearby = True
             suggested_places.append(place)
+
+    # Badges the template reads. "Recommended" goes to the head of the spread,
+    # which is where the cheapest place of each category has surfaced, so the
+    # badged four are already a mixed set rather than four of one kind.
+    for position, place in enumerate(suggested_places):
+        place.is_recommended = position < RECOMMENDED_COUNT
+        place.is_family = place.category in FAMILY_CATEGORIES
 
     return render(
         request,

@@ -136,7 +136,10 @@
                 </span>
 
                 <span class="suggest-body">
-                  <span class="suggest-name">{{ place.name }}</span>
+                  <span class="suggest-name">
+                    {{ place.name }}
+                    {% if place.is_recommended %}<span class="suggest-badge">Recommended</span>{% endif %}
+                  </span>
                   <span class="suggest-meta">
                     {{ place.get_category_display }}
                     &middot; about {{ place.visit_duration_minutes }} min
@@ -146,6 +149,9 @@
                       <span class="suggest-tag">~ Rs {{ place.entry_fee|floatformat:0 }} (est.)</span>
                     {% else %}
                       <span class="suggest-tag suggest-tag-free">Free entry</span>
+                    {% endif %}
+                    {% if place.is_family %}
+                      <span class="suggest-tag suggest-tag-family">Family friendly</span>
                     {% endif %}
                     {% if place.is_nearby %}
                       <span class="suggest-tag suggest-tag-near">{{ place.destination.name }}</span>

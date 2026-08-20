@@ -694,6 +694,7 @@ textarea.w-text { min-height: 4.6rem; }
 .suggest-body { display: flex; flex-direction: column; gap: .16rem; min-width: 0; }
 .suggest-name {
   font-weight: 620; font-size: .95rem; color: var(--ink); line-height: 1.25;
+  display: flex; align-items: baseline; gap: .4rem;
 }
 .suggest-link:hover .suggest-name { color: #0b3f8f; }
 .suggest-meta { font-size: .74rem; color: var(--ink-soft); }
@@ -704,6 +705,18 @@ textarea.w-text { min-height: 4.6rem; }
 }
 .suggest-tag-free { background: #e6f6ef; color: var(--ok); }
 .suggest-tag-near { background: var(--brand-soft); color: #0b3f8f; }
+
+/* Recommended rides on the name row, pushed to the right edge. Amber rather
+   than the brand blue, so it reads as a mark on the place and not as another
+   link. */
+.suggest-badge {
+  margin-left: auto; flex: none;
+  font-size: .6rem; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; white-space: nowrap;
+  padding: .12rem .38rem; border-radius: 999px;
+  background: var(--warn-bg); color: var(--warn);
+}
+.suggest-tag-family { background: #f3edfd; color: #6b3fa0; }
 
 .suggest-go {
   margin-left: auto; color: var(--brand); font-size: 1.05rem;

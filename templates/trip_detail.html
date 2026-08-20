@@ -96,14 +96,44 @@
           <span class="muted small">Estimated total</span>
           <span class="big-number">Rs {{ trip.cost.total_cost|floatformat:0 }}</span>
         </div>
-        <table class="cost-table">
-          <tr><td>Travel</td><td>Rs {{ trip.cost.travel_cost|floatformat:0 }}</td></tr>
-          <tr><td>Hotel</td><td>Rs {{ trip.cost.hotel_cost|floatformat:0 }}</td></tr>
-          <tr><td>Food</td><td>Rs {{ trip.cost.food_cost|floatformat:0 }}</td></tr>
-          <tr><td>Local transport</td><td>Rs {{ trip.cost.local_transport_cost|floatformat:0 }}</td></tr>
-          <tr><td>Activities</td><td>Rs {{ trip.cost.activity_cost|floatformat:0 }}</td></tr>
-          <tr><td>Other expenses</td><td>Rs {{ trip.cost.other_cost|floatformat:0 }}</td></tr>
-        </table>
+
+        {% comment %}
+          Three figures rather than one, because a total on its own is hard to
+          judge. Per person is what someone in the group actually pays, and the
+          daily average is the number people compare between destinations.
+        {% endcomment %}
+        <div class="cost-tiles">
+          <div class="cost-tile">
+            <span class="cost-tile-label">Per person</span>
+            <span class="cost-tile-value">Rs {{ trip.cost.per_person|floatformat:0 }}</span>
+            <span class="cost-tile-note">{{ trip.travelers }} travelling</span>
+          </div>
+          <div class="cost-tile">
+            <span class="cost-tile-label">Per day</span>
+            <span class="cost-tile-value">Rs {{ trip.cost.per_day|floatformat:0 }}</span>
+            <span class="cost-tile-note">over {{ trip.days }} day{{ trip.days|pluralize }}</span>
+          </div>
+        </div>
+
+        <ul class="cost-bars">
+          {% for row in trip.cost.breakdown %}
+            <li class="cost-row">
+              <div class="cost-row-head">
+                <span class="cost-label">{{ row.label }}</span>
+                <span class="cost-amount">Rs {{ row.amount|floatformat:0 }}</span>
+              </div>
+              {% comment %}
+                The bar is decoration over the numbers either side of it, which
+                is why it is aria-hidden - a screen reader would otherwise read
+                the same figure twice, once as text and once as a percentage.
+              {% endcomment %}
+              <div class="cost-track" aria-hidden="true">
+                <span class="cost-fill cost-fill-{{ row.slug }}" style="width: {{ row.percent }}%"></span>
+              </div>
+              <span class="cost-share">{{ row.percent }}% of the total</span>
+            </li>
+          {% endfor %}
+        </ul>
       {% else %}
         <p class="muted">No cost calculated yet. Edit and save the trip to calculate.</p>
       {% endif %}

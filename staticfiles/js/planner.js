@@ -151,6 +151,29 @@ document.addEventListener("DOMContentLoaded", function () {
     setText("activityCost", formatRupees(costs.activity_cost));
     setText("otherCost", formatRupees(costs.other_cost));
     setText("perPerson", formatRupees(data.details.per_person) + " per person (estimate)");
+
+    // The dashboard tiles and bars. The old table ids above still carry the
+    // figures; these add the proportions beside them.
+    setText("perPersonValue", formatRupees(data.details.per_person));
+    setText("perDayValue", formatRupees(costs.total_cost / Math.max(1, Number(data.details.days) || 1)));
+    setText("perPersonNote", (data.details.travelers || 1) + " travelling");
+    setText("perDayNote", "over " + (data.details.days || 1) + " days");
+
+    // Share of the total, not of the largest line: the bars are meant to be
+    // read against each other and against the whole.
+    var total = Number(costs.total_cost) || 0;
+    [
+      ["travelBar", costs.travel_cost],
+      ["hotelBar", costs.hotel_cost],
+      ["foodBar", costs.food_cost],
+      ["localBar", costs.local_transport_cost],
+      ["activityBar", costs.activity_cost],
+      ["otherBar", costs.other_cost],
+    ].forEach(function (pair) {
+      var bar = document.getElementById(pair[0]);
+      if (!bar) return;
+      bar.style.width = total ? (Number(pair[1]) / total) * 100 + "%" : "0%";
+    });
     setText("distance", data.distance_km + " km");
     setText("travelTime", Number(data.travel_hours).toFixed(1) + " hrs");
 

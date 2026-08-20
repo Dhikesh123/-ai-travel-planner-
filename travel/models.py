@@ -372,6 +372,57 @@ class TripCost(models.Model):
     def __str__(self):
         return f"Cost for {self.trip} = Rs {self.total_cost}"
 
+    # The order here is the order the dashboard draws, largest first in the
+    # sample data. Slugs drive the bar colours in CSS.
+    COMPONENTS = [
+        ("travel", "Transport", "travel_cost"),
+        ("hotel", "Hotels", "hotel_cost"),
+        ("food", "Food", "food_cost"),
+        ("local", "Local transport", "local_transport_cost"),
+        ("activity", "Activities", "activity_cost"),
+        # travel_service builds this as 8% of everything above, for shopping,
+        # tips and anything unplanned. It is one line because it is calculated
+        # as one number - splitting it into "shopping" and "emergency" on the
+        # page would invent a division the figure does not have.
+        ("buffer", "Shopping & buffer", "other_cost"),
+    ]
+
+    def breakdown(self):
+        """
+        Rows for the cost dashboard: label, amount and share of the total.
+
+        Percentages are worked out here rather than in the template because
+        Django templates cannot divide, and doing it in the view would mean
+        repeating it for the trip page and the calculator both.
+        """
+        total = self.total_cost or 0
+        rows = []
+        for slug, label, field in self.COMPONENTS:
+            amount = getattr(self, field) or Decimal("0")
+            # Against a zero total every share is zero, not a division error.
+            share = float(amount) / float(total) * 100 if total else 0.0
+            rows.append(
+                {
+                    "slug": slug,
+                    "label": label,
+                    "amount": amount,
+                    "percent": round(share, 1),
+                }
+            )
+        return rows
+
+    @property
+    def per_person(self):
+        """Total split across the party, or the whole total for a party of one."""
+        travellers = self.trip.travelers or 1
+        return (self.total_cost or Decimal("0")) / travellers
+
+    @property
+    def per_day(self):
+        """What the trip averages a day - the number people compare against."""
+        days = self.trip.days or 1
+        return (self.total_cost or Decimal("0")) / days
+
 
 # ---------------------------------------------------------------------------
 # 9. ChatMessage (history of the AI assistant)

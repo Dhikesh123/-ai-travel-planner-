@@ -79,16 +79,49 @@
         <span class="muted small" id="perPerson"></span>
       </div>
 
-      <table class="cost-table">
-        <tbody>
-          <tr><td>Travel</td><td id="travelCost">Rs 0</td></tr>
-          <tr><td>Hotel</td><td id="hotelCost">Rs 0</td></tr>
-          <tr><td>Food</td><td id="foodCost">Rs 0</td></tr>
-          <tr><td>Local transport</td><td id="localCost">Rs 0</td></tr>
-          <tr><td>Activities</td><td id="activityCost">Rs 0</td></tr>
-          <tr><td>Other expenses</td><td id="otherCost">Rs 0</td></tr>
-        </tbody>
-      </table>
+      {% comment %}
+        Same dashboard as the trip page. The ids stay exactly as they were so
+        planner.js keeps filling them; it now also sets the bar widths.
+      {% endcomment %}
+      <div class="cost-tiles">
+        <div class="cost-tile">
+          <span class="cost-tile-label">Per person</span>
+          <span class="cost-tile-value" id="perPersonValue">Rs 0</span>
+          <span class="cost-tile-note" id="perPersonNote">estimate</span>
+        </div>
+        <div class="cost-tile">
+          <span class="cost-tile-label">Per day</span>
+          <span class="cost-tile-value" id="perDayValue">Rs 0</span>
+          <span class="cost-tile-note" id="perDayNote">estimate</span>
+        </div>
+      </div>
+
+      <ul class="cost-bars">
+        <li class="cost-row">
+          <div class="cost-row-head"><span class="cost-label">Transport</span><span class="cost-amount" id="travelCost">Rs 0</span></div>
+          <div class="cost-track" aria-hidden="true"><span class="cost-fill cost-fill-travel" id="travelBar"></span></div>
+        </li>
+        <li class="cost-row">
+          <div class="cost-row-head"><span class="cost-label">Hotels</span><span class="cost-amount" id="hotelCost">Rs 0</span></div>
+          <div class="cost-track" aria-hidden="true"><span class="cost-fill cost-fill-hotel" id="hotelBar"></span></div>
+        </li>
+        <li class="cost-row">
+          <div class="cost-row-head"><span class="cost-label">Food</span><span class="cost-amount" id="foodCost">Rs 0</span></div>
+          <div class="cost-track" aria-hidden="true"><span class="cost-fill cost-fill-food" id="foodBar"></span></div>
+        </li>
+        <li class="cost-row">
+          <div class="cost-row-head"><span class="cost-label">Local transport</span><span class="cost-amount" id="localCost">Rs 0</span></div>
+          <div class="cost-track" aria-hidden="true"><span class="cost-fill cost-fill-local" id="localBar"></span></div>
+        </li>
+        <li class="cost-row">
+          <div class="cost-row-head"><span class="cost-label">Activities</span><span class="cost-amount" id="activityCost">Rs 0</span></div>
+          <div class="cost-track" aria-hidden="true"><span class="cost-fill cost-fill-activity" id="activityBar"></span></div>
+        </li>
+        <li class="cost-row">
+          <div class="cost-row-head"><span class="cost-label">Shopping &amp; buffer</span><span class="cost-amount" id="otherCost">Rs 0</span></div>
+          <div class="cost-track" aria-hidden="true"><span class="cost-fill cost-fill-buffer" id="otherBar"></span></div>
+        </li>
+      </ul>
 
       <div class="estimate-facts">
         <div><span class="muted small">Distance</span><strong id="distance">-</strong></div>

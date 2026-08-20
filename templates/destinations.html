@@ -59,6 +59,32 @@
       </div>
     {% endif %}
 
+    {% comment %}
+      A whole-trip budget, not a per-day band: party size and length are part
+      of the question, because 10,000 is three comfortable days for two and an
+      impossible week for four. The estimate is cost-per-day x people x days,
+      which is the same sample rate the cards already show.
+    {% endcomment %}
+    <div class="budget-bar">
+      <label class="bg-field bg-field-money">
+        <span>Your total budget</span>
+        <span class="bg-input">
+          <span class="bg-prefix" aria-hidden="true">Rs</span>
+          <input type="number" name="max_total" value="{{ max_total }}"
+                 min="1000" max="500000" step="500" placeholder="10000" inputmode="numeric">
+        </span>
+      </label>
+      <label class="bg-field">
+        <span>Travellers</span>
+        <input type="number" name="travellers" value="{{ party }}" min="1" max="20" inputmode="numeric">
+      </label>
+      <label class="bg-field">
+        <span>Days</span>
+        <input type="number" name="trip_days" value="{{ trip_days }}" min="1" max="30" inputmode="numeric">
+      </label>
+      <button class="btn btn-primary bg-go" type="submit">Fit my budget</button>
+    </div>
+
     <div class="explorer-selects">
       <label class="ex-field">
         <span>Kind of place</span>
@@ -128,6 +154,11 @@
             <span class="tag">~ Rs {{ destination.estimated_cost_per_day|floatformat:0 }}/day (est.)</span>
             <span class="tag">{{ destination.recommended_days }} days</span>
             <span class="tag">{{ destination.place_count }} place{{ destination.place_count|pluralize }}</span>
+            {% if destination.trip_total %}
+              <span class="tag tag-total">
+                ~ Rs {{ destination.trip_total|floatformat:0 }} for {{ party }} &times; {{ trip_days }}d
+              </span>
+            {% endif %}
             {# Labelled "sample" on purpose - it is not a visitor review score. #}
             <span class="tag tag-rating" title="Illustrative demo score, not visitor reviews">
               &#9733; {{ destination.sample_rating }} sample
@@ -150,7 +181,12 @@
       <div class="empty-state">
         <p class="empty-title">Nothing matches those filters yet</p>
         <p class="muted small">
-          {% if region == 'international' %}
+          {% if max_total %}
+            Nothing comes in under Rs {{ max_total|floatformat:0 }} for {{ party }}
+            traveller{{ party|pluralize }} over {{ trip_days }} day{{ trip_days|pluralize }}.
+            The cheapest destination works out at about
+            Rs {{ cheapest_total|floatformat:0 }}. Try a shorter trip, or raise the budget.
+          {% elif region == 'international' %}
             Every destination loaded so far is in India, so the international
             filter has nothing to show.
           {% else %}

@@ -12,7 +12,14 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
-from django.db.models import Count, Q, Sum
+from django.db.models import (
+    Count,
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    Q,
+    Sum,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -231,7 +238,23 @@ def destination_list(request, preset_theme=None, heading=None, intro=None):
     duration = (request.GET.get("duration") or "").strip()
     region = (request.GET.get("region") or "").strip()
 
-    destinations = Destination.objects.annotate(place_count=Count("places"))
+    # "What can I do with X?" - a whole-trip budget rather than a per-day
+    # band. Party size and length are part of the question: 10,000 is a
+    # comfortable three days for two and an impossible week for four.
+    max_total = _positive_int(request.GET.get("max_total"), 0)
+    party = _positive_int(request.GET.get("travellers"), 2)
+    trip_days = _positive_int(request.GET.get("trip_days"), 3)
+
+    # Annotated rather than worked out per row in Python, so the budget
+    # filter runs in the database and the cards can show the figure they
+    # were filtered on.
+    destinations = Destination.objects.annotate(
+        place_count=Count("places"),
+        trip_total=ExpressionWrapper(
+            F("estimated_cost_per_day") * party * trip_days,
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        ),
+    )
 
     if query:
         destinations = destinations.filter(
@@ -265,6 +288,9 @@ def destination_list(request, preset_theme=None, heading=None, intro=None):
 
     # Everything seeded is in India, so "international" correctly returns
     # nothing rather than pretending otherwise.
+    if max_total:
+        destinations = destinations.filter(trip_total__lte=max_total)
+
     if region == "domestic":
         destinations = destinations.filter(country__iexact="India")
     elif region == "international":
@@ -290,6 +316,19 @@ def destination_list(request, preset_theme=None, heading=None, intro=None):
             "budget": budget,
             "duration": duration,
             "region": region,
+            "max_total": max_total or "",
+            # Quoted in the empty state so "nothing fits" comes with the
+            # number that would.
+            "cheapest_total": (
+                Destination.objects.order_by("estimated_cost_per_day")
+                .values_list("estimated_cost_per_day", flat=True)
+                .first()
+                or 0
+            )
+            * party
+            * trip_days,
+            "party": party,
+            "trip_days": trip_days,
             "categories": TouristPlace.CATEGORY_CHOICES,
             "themes": Theme.objects.filter(kind=Theme.KIND_TRIP),
             "circuits": Theme.objects.filter(kind=Theme.KIND_PILGRIMAGE),
@@ -297,7 +336,7 @@ def destination_list(request, preset_theme=None, heading=None, intro=None):
             "intro": intro,
             "result_count": destinations.count(),
             "any_filter": any(
-                [query, category, theme, circuit, budget, duration, region]
+                [query, category, theme, circuit, budget, duration, region, max_total]
             ),
         },
     )

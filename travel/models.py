@@ -72,8 +72,20 @@ class Theme(models.Model):
     SQL without the leading-comma tricks a packed CharField would need.
     """
 
+    # A pilgrimage circuit is still a theme - it answers the same "who is this
+    # trip for" question - but it belongs in its own row of chips. Kind keeps
+    # both in one table and one relation instead of a second model and a
+    # second many-to-many that would have to be joined separately.
+    KIND_TRIP = "trip"
+    KIND_PILGRIMAGE = "pilgrimage"
+    KIND_CHOICES = [
+        (KIND_TRIP, "Trip theme"),
+        (KIND_PILGRIMAGE, "Pilgrimage circuit"),
+    ]
+
     slug = models.SlugField(max_length=40, unique=True)
     name = models.CharField(max_length=60)
+    kind = models.CharField(max_length=12, choices=KIND_CHOICES, default=KIND_TRIP)
     # Lower sorts first, so the explorer's chips open on the broad themes
     # rather than alphabetically on "Adventure".
     display_order = models.PositiveSmallIntegerField(default=100)

@@ -5,8 +5,8 @@
 <section class="container section">
   <div class="page-head">
     <div>
-      <h1>Destinations</h1>
-      <p class="muted">Search by name, or filter by the kind of places you like.</p>
+      <h1>{{ heading }}</h1>
+      <p class="muted">{{ intro }}</p>
     </div>
   </div>
 
@@ -38,6 +38,26 @@
         </label>
       {% endfor %}
     </div>
+
+    {% if circuits and theme == 'temple' %}
+      {% comment %}
+        Circuits only appear once the temple theme is on. Shown against the
+        whole catalogue they would read as five more trip themes, which they
+        are not - they are subdivisions of this one.
+      {% endcomment %}
+      <div class="chips chips-sub" role="group" aria-label="Pilgrimage circuit">
+        <label class="chip{% if not circuit %} is-on{% endif %}">
+          <input type="radio" name="circuit" value="" {% if not circuit %}checked{% endif %}>
+          <span>All circuits</span>
+        </label>
+        {% for c in circuits %}
+          <label class="chip{% if circuit == c.slug %} is-on{% endif %}">
+            <input type="radio" name="circuit" value="{{ c.slug }}" {% if circuit == c.slug %}checked{% endif %}>
+            <span>{{ c.name }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <div class="explorer-selects">
       <label class="ex-field">
@@ -153,7 +173,7 @@
     var form = document.getElementById("explorerForm");
     if (!form) return;
     form.addEventListener("change", function (event) {
-      if (event.target.matches("input[name='theme'], select")) form.submit();
+      if (event.target.matches("input[name='theme'], input[name='circuit'], select")) form.submit();
     });
   })();
 </script>

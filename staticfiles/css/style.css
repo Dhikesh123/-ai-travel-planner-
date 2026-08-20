@@ -1321,3 +1321,16 @@ h1 { letter-spacing: -.03em; }
 @media (prefers-reduced-motion: reduce) {
   .chip span { transition: none; }
 }
+
+/* Circuit chips are a subdivision of the temple theme, not a second row of
+   equals, so they sit indented behind a gold rule that matches the section
+   headings. */
+.chips-sub {
+  padding-left: .8rem;
+  border-left: 3px solid var(--gold);
+  margin-left: .1rem;
+}
+.chips-sub .chip span { font-size: .78rem; }
+.chips-sub .chip.is-on span {
+  background: linear-gradient(135deg, #c8a24a, #9a7726);
+}

@@ -680,6 +680,564 @@ DESTINATIONS = [
              "A sandbar reached by boat across the Chunnambar backwater."),
         ],
     },
+    {
+        "name": "Tirupati",
+        "state": "Andhra Pradesh",
+        "description": "The hill shrine of Venkateswara at Tirumala, among the "
+                       "most visited places of worship anywhere in the world.",
+        "cost": "1800",
+        "days": 2,
+        "places": [
+            ("Tirumala Venkateswara Temple", "temple", "300", 240,
+             "Open almost around the clock; darshan by token",
+             "The main shrine on the seventh hill. Queue times swing from two "
+             "hours to more than twelve, so book a slotted darshan ahead."),
+            ("Sri Padmavathi Temple", "temple", "0", 60,
+             "Usually 6 AM - 8 PM",
+             "At Tiruchanur, dedicated to the consort of Venkateswara. Custom "
+             "is to visit here after Tirumala."),
+            ("Sri Kapileswara Swamy Temple", "temple", "0", 60,
+             "Usually 6 AM - 8 PM",
+             "The only Shiva temple in Tirupati, beside a waterfall at the "
+             "foot of the hills."),
+            ("Silathoranam", "nature", "0", 45,
+             "Daylight hours",
+             "A natural rock arch on Tirumala, one of very few of its kind, "
+             "dated to the Precambrian."),
+        ],
+    },
+    {
+        "name": "Srisailam",
+        "state": "Andhra Pradesh",
+        "description": "A Jyotirlinga and a Shakti Peetha on one hill above "
+                       "the Krishna, inside a tiger reserve.",
+        "cost": "1500",
+        "days": 2,
+        "places": [
+            ("Mallikarjuna Jyotirlinga Temple", "temple", "0", 150,
+             "Usually 4:30 AM - 10 PM",
+             "One of the twelve Jyotirlingas and one of the eighteen Maha "
+             "Shakti Peethas - a rare pairing at a single site."),
+            ("Srisailam Dam", "nature", "0", 60,
+             "Viewing usually 9 AM - 6 PM",
+             "A masonry dam across the Krishna in a gorge, with a viewpoint "
+             "over the reservoir."),
+            ("Patala Ganga", "nature", "0", 60,
+             "Daylight hours",
+             "The bathing ghat on the Krishna below the temple, reached by a "
+             "long stair or a ropeway."),
+        ],
+    },
+    {
+        "name": "Vijayawada",
+        "state": "Andhra Pradesh",
+        "description": "A Krishna-river city under the Indrakeeladri hill, "
+                       "built around the Kanaka Durga temple.",
+        "cost": "1800",
+        "days": 2,
+        "places": [
+            ("Kanaka Durga Temple", "temple", "0", 120,
+             "Usually 4 AM - 9 PM",
+             "On Indrakeeladri hill above the Krishna, and one of the most "
+             "visited Durga shrines in the south."),
+            ("Undavalli Caves", "historical", "25", 90,
+             "Usually 9 AM - 5:30 PM",
+             "Four storeys cut into a sandstone hillside in the 7th century, "
+             "holding a reclining Vishnu carved from one block."),
+            ("Prakasam Barrage", "nature", "0", 45,
+             "Open all day; lit after dark",
+             "A 1,200-metre barrage across the Krishna, carrying road and "
+             "canal traffic over the river."),
+            ("Bhavani Island", "nature", "50", 120,
+             "Ferries roughly 10 AM - 6 PM",
+             "A river island upstream of the barrage, among the largest on "
+             "any Indian river."),
+        ],
+    },
+    {
+        "name": "Srikalahasti",
+        "state": "Andhra Pradesh",
+        "description": "The Vayu Lingam temple on the Swarnamukhi, the place "
+                       "people come to for Rahu-Ketu rituals.",
+        "cost": "1400",
+        "days": 1,
+        "places": [
+            ("Srikalahasteeswara Temple", "temple", "0", 150,
+             "Usually 6 AM - 9 PM",
+             "One of the Pancha Bhoota Sthalams, representing wind. The lamp "
+             "in the inner shrine flickers in still air."),
+            ("Kalahasti Fort", "historical", "0", 45,
+             "Daylight hours",
+             "Ruined ramparts on the hill behind the temple, with the town "
+             "and the river below."),
+            ("Bharadwaja Tirtham", "nature", "0", 45,
+             "Daylight hours",
+             "A spring and small waterfall in the hills a short way out of "
+             "town, used for ritual bathing."),
+        ],
+    },
+    {
+        "name": "Annavaram",
+        "state": "Andhra Pradesh",
+        "description": "The Satyanarayana Swamy temple on Ratnagiri hill, "
+                       "where vratam ceremonies run all day.",
+        "cost": "1300",
+        "days": 1,
+        "places": [
+            ("Sri Veera Venkata Satyanarayana Swamy Temple", "temple", "0", 150,
+             "Usually 6 AM - 9 PM; vratam from early morning",
+             "On Ratnagiri hill above the Pampa. Families come to perform the "
+             "Satyanarayana vratam together."),
+            ("Pampa River Ghat", "nature", "0", 45,
+             "Daylight hours",
+             "The bathing ghat at the foot of the hill, where pilgrims bathe "
+             "before climbing."),
+            ("Ratnagiri Hill Steps", "adventure", "0", 60,
+             "Daylight hours",
+             "The stepped path up the hill, an alternative to the ghat road "
+             "for anyone walking."),
+        ],
+    },
+    {
+        "name": "Yadadri",
+        "state": "Telangana",
+        "description": "The Lakshmi Narasimha temple on Yadagirigutta, rebuilt "
+                       "through the 2010s entirely in black granite.",
+        "cost": "1400",
+        "days": 1,
+        "places": [
+            ("Yadadri Lakshmi Narasimha Temple", "temple", "0", 150,
+             "Usually 4 AM - 9 PM",
+             "A cave shrine rebuilt as a granite complex, with the original "
+             "rock sanctum kept at its heart."),
+            ("Yadagirigutta Hill", "nature", "0", 45,
+             "Daylight hours",
+             "The hill the temple stands on, with the Telangana plain running "
+             "out in every direction."),
+            ("Sri Lakshmi Narasimha Pushkarini", "temple", "0", 30,
+             "Daylight hours",
+             "The temple tank below the complex, used for ritual bathing "
+             "before darshan."),
+        ],
+    },
+    {
+        "name": "Bhadrachalam",
+        "state": "Telangana",
+        "description": "The Rama temple on the Godavari, at the place the "
+                       "Ramayana associates with Parnasala.",
+        "cost": "1400",
+        "days": 2,
+        "places": [
+            ("Sri Sita Ramachandraswamy Temple", "temple", "0", 150,
+             "Usually 4 AM - 9 PM",
+             "Built in the 17th century by Kancherla Gopanna, whose songs to "
+             "Rama are still sung as the Ramadasu kirtanas."),
+            ("Parnasala", "historical", "0", 90,
+             "Daylight hours",
+             "35 km upriver, held by tradition to be where Sita was taken "
+             "from the forest hut."),
+            ("Godavari Ghat", "nature", "0", 45,
+             "Open all day",
+             "The riverfront steps below the temple, busiest during the "
+             "Sri Rama Navami celebrations."),
+        ],
+    },
+    {
+        "name": "Basara",
+        "state": "Telangana",
+        "description": "One of very few Saraswati temples in India, where "
+                       "children are brought for their first lesson.",
+        "cost": "1200",
+        "days": 1,
+        "places": [
+            ("Gnana Saraswati Temple", "temple", "0", 120,
+             "Usually 4 AM - 8 PM",
+             "On the Godavari. The Akshara Abhyasam ceremony, a child's first "
+             "written letter, is performed here through the day."),
+            ("Godavari Ghat Basara", "nature", "0", 45,
+             "Daylight hours",
+             "The bathing steps beside the temple, quieter than the larger "
+             "river towns downstream."),
+            ("Vyasa Maharshi Cave", "historical", "0", 30,
+             "Daylight hours",
+             "A small rock shrine near the temple, associated by tradition "
+             "with the sage Vyasa."),
+        ],
+    },
+    {
+        "name": "Rameswaram",
+        "state": "Tamil Nadu",
+        "description": "An island temple town at the tip of the Pamban, both "
+                       "a Char Dham site and a Jyotirlinga.",
+        "cost": "1700",
+        "days": 2,
+        "places": [
+            ("Ramanathaswamy Temple", "temple", "0", 180,
+             "Usually 5 AM - 1 PM and 3 PM - 9 PM",
+             "Its third corridor is the longest in any Indian temple at some "
+             "1,200 metres. Twenty-two wells inside are bathed in in order."),
+            ("Pamban Bridge", "historical", "0", 45,
+             "Open all day",
+             "India's first sea bridge, opened 1914, running two kilometres "
+             "across the strait to the mainland."),
+            ("Dhanushkodi", "beach", "0", 150,
+             "Daylight hours only",
+             "A town abandoned after the 1964 cyclone, at the sand spit where "
+             "the Bay of Bengal meets the Indian Ocean."),
+            ("Agnitheertham", "beach", "0", 45,
+             "Best at sunrise",
+             "The shore directly east of the temple, where pilgrims bathe "
+             "before entering."),
+        ],
+    },
+    {
+        "name": "Kanchipuram",
+        "state": "Tamil Nadu",
+        "description": "The city of a thousand temples, and of the silk saris "
+                       "woven in its lanes.",
+        "cost": "1500",
+        "days": 2,
+        "places": [
+            ("Kamakshi Amman Temple", "temple", "0", 120,
+             "Usually 5:30 AM - 12 PM and 4 PM - 8:30 PM",
+             "One of the principal Shakti Peethas, and the only temple in "
+             "Kanchipuram to Kamakshi."),
+            ("Ekambareswarar Temple", "temple", "0", 120,
+             "Usually 6 AM - 12:30 PM and 4 PM - 8:30 PM",
+             "The earth element among the Pancha Bhoota Sthalams, with a "
+             "mango tree in the courtyard said to be very old."),
+            ("Kailasanathar Temple", "historical", "0", 90,
+             "Usually 6 AM - 6 PM",
+             "The oldest structure in the city, built in sandstone by the "
+             "Pallavas around 700 CE."),
+            ("Kanchipuram Silk Weavers", "shopping", "0", 90,
+             "Workshops usually 9 AM - 8 PM",
+             "Handloom units where the zari-bordered saris are woven, often "
+             "open to visitors."),
+        ],
+    },
+    {
+        "name": "Srirangam",
+        "state": "Tamil Nadu",
+        "description": "An island between two rivers holding the largest "
+                       "working temple complex in the world.",
+        "cost": "1500",
+        "days": 2,
+        "places": [
+            ("Ranganathaswamy Temple", "temple", "0", 180,
+             "Usually 6 AM - 1 PM and 3 PM - 9 PM",
+             "156 acres inside 21 gopurams. The Rajagopuram at 72 metres is "
+             "the tallest temple tower in Asia."),
+            ("Jambukeswarar Temple", "temple", "0", 90,
+             "Usually 6 AM - 1 PM and 4 PM - 9:30 PM",
+             "The water element among the Pancha Bhoota Sthalams; a spring "
+             "keeps the sanctum permanently wet."),
+            ("Rockfort Temple", "temple", "10", 90,
+             "Usually 6 AM - 8 PM",
+             "437 steps cut through a rock 83 metres above Tiruchirappalli, "
+             "to a Ganesha shrine at the top."),
+        ],
+    },
+    {
+        "name": "Guruvayur",
+        "state": "Kerala",
+        "description": "The Krishna temple Keralites call Bhuloka Vaikunta, "
+                       "and the elephant sanctuary beside it.",
+        "cost": "1600",
+        "days": 1,
+        "places": [
+            ("Guruvayur Sri Krishna Temple", "temple", "0", 150,
+             "Usually 3 AM - 1 PM and 4:30 PM - 9:30 PM",
+             "Non-Hindus are not admitted, and a dress code applies. Among "
+             "the most sought-after wedding venues in Kerala."),
+            ("Punnathur Kotta Elephant Sanctuary", "wildlife", "50", 90,
+             "Usually 8 AM - 6 PM",
+             "The temple's elephants are kept in the grounds of a former "
+             "palace three kilometres away."),
+            ("Mammiyoor Temple", "temple", "0", 45,
+             "Usually 5 AM - 8 PM",
+             "A Shiva temple a short walk from the main shrine; custom is to "
+             "visit both on the same day."),
+        ],
+    },
+    {
+        "name": "Shirdi",
+        "state": "Maharashtra",
+        "description": "The town Sai Baba lived in, and the samadhi mandir "
+                       "built over his resting place.",
+        "cost": "1600",
+        "days": 1,
+        "places": [
+            ("Sai Baba Samadhi Mandir", "temple", "0", 150,
+             "Open 4 AM - 11:30 PM",
+             "Built over the samadhi in white marble. Darshan queues run long "
+             "on Thursdays and through Ram Navami."),
+            ("Dwarkamai", "historical", "0", 45,
+             "Open with the main temple",
+             "The mosque Sai Baba lived in for six decades; the fire he lit "
+             "is still kept burning."),
+            ("Chavadi", "historical", "0", 30,
+             "Open with the main temple",
+             "Where he slept on alternate nights, and where the Thursday "
+             "palanquin procession ends."),
+        ],
+    },
+    {
+        "name": "Trimbakeshwar",
+        "state": "Maharashtra",
+        "description": "A Jyotirlinga at the source of the Godavari, in the "
+                       "hills above Nashik.",
+        "cost": "1500",
+        "days": 1,
+        "places": [
+            ("Trimbakeshwar Temple", "temple", "0", 120,
+             "Usually 5:30 AM - 9 PM",
+             "Its lingam has three faces for Brahma, Vishnu and Shiva, which "
+             "no other Jyotirlinga does."),
+            ("Kushavarta Kund", "temple", "0", 45,
+             "Daylight hours",
+             "The stepped tank held to be the true source of the Godavari, "
+             "and the bathing point during Simhastha Kumbh Mela."),
+            ("Brahmagiri Hill", "adventure", "0", 180,
+             "Daylight hours",
+             "About 700 steps to the ridge where the river rises, with the "
+             "Western Ghats laid out below."),
+        ],
+    },
+    {
+        "name": "Somnath",
+        "state": "Gujarat",
+        "description": "The first of the twelve Jyotirlingas, on the Arabian "
+                       "Sea coast of Saurashtra.",
+        "cost": "1700",
+        "days": 1,
+        "places": [
+            ("Somnath Temple", "temple", "0", 120,
+             "Usually 6 AM - 9:30 PM; sound and light show after dark",
+             "Destroyed and rebuilt repeatedly over a thousand years; the "
+             "present temple was completed in 1951."),
+            ("Bhalka Tirth", "temple", "0", 45,
+             "Usually 7 AM - 7 PM",
+             "Where tradition places the death of Krishna, five kilometres "
+             "along the coast."),
+            ("Triveni Sangam Somnath", "nature", "0", 45,
+             "Daylight hours",
+             "Where the Hiran, Kapila and Saraswati are said to meet the sea."),
+        ],
+    },
+    {
+        "name": "Dwarka",
+        "state": "Gujarat",
+        "description": "One of the four Char Dham, on the westernmost point "
+                       "of the Gujarat coast.",
+        "cost": "1800",
+        "days": 2,
+        "places": [
+            ("Dwarkadhish Temple", "temple", "0", 120,
+             "Usually 6:30 AM - 1 PM and 5 PM - 9:30 PM",
+             "A five-storey shrine on 72 pillars. The flag above it is "
+             "changed five times a day."),
+            ("Bet Dwarka", "beach", "0", 180,
+             "Ferries in daylight hours",
+             "An island reached by boat, held to be where Krishna lived; the "
+             "crossing takes about 20 minutes."),
+            ("Nageshwar Jyotirlinga", "temple", "0", 90,
+             "Usually 6 AM - 9 PM",
+             "One of the twelve Jyotirlingas, under a 25-metre statue of "
+             "Shiva on the road to Bet Dwarka."),
+            ("Rukmini Devi Temple", "historical", "0", 45,
+             "Usually 6 AM - 8 PM",
+             "A 12th century temple two kilometres out of town, carved on "
+             "every outer face."),
+        ],
+    },
+    {
+        "name": "Ayodhya",
+        "state": "Uttar Pradesh",
+        "description": "A Sarayu-river city, the birthplace of Rama in the "
+                       "Ramayana and one of the seven Sapta Puri.",
+        "cost": "1600",
+        "days": 2,
+        "places": [
+            ("Ram Janmabhoomi Temple", "temple", "0", 150,
+             "Usually 7 AM - 11:30 AM and 2 PM - 7 PM",
+             "The sandstone temple consecrated in January 2024, built in the "
+             "Nagara style without structural steel."),
+            ("Hanuman Garhi", "temple", "0", 90,
+             "Usually 5 AM - 10 PM",
+             "76 steps to a fortified hilltop shrine; custom is to come here "
+             "before the Janmabhoomi."),
+            ("Ram Ki Paidi", "nature", "0", 60,
+             "Open all day; lit after dark",
+             "A long run of bathing ghats on the Sarayu, where the Deepotsav "
+             "lamps are floated at Diwali."),
+        ],
+    },
+    {
+        "name": "Ujjain",
+        "state": "Madhya Pradesh",
+        "description": "A Shipra-river city holding the Mahakaleshwar "
+                       "Jyotirlinga, and one of the four Kumbh Mela sites.",
+        "cost": "1500",
+        "days": 2,
+        "places": [
+            ("Mahakaleshwar Jyotirlinga", "temple", "0", 150,
+             "Usually 4 AM - 11 PM; Bhasma Aarti at dawn",
+             "The only Jyotirlinga facing south, and the only one where the "
+             "dawn aarti uses sacred ash. That slot books out well ahead."),
+            ("Ram Ghat", "nature", "0", 45,
+             "Open all day",
+             "The main bathing ghat on the Shipra and the centre of the "
+             "Simhastha Kumbh Mela."),
+            ("Kal Bhairav Temple", "temple", "0", 60,
+             "Usually 6 AM - 8 PM",
+             "The offering here is liquor, poured to the deity - a practice "
+             "particular to this shrine."),
+            ("Vedh Shala Observatory", "museum", "25", 60,
+             "Usually 9 AM - 6 PM",
+             "Jantar Mantar of 1725, still used to compute the panchang."),
+        ],
+    },
+    {
+        "name": "Puri",
+        "state": "Odisha",
+        "description": "One of the four Char Dham, on the Bay of Bengal, "
+                       "where the Rath Yatra draws a million people.",
+        "cost": "1700",
+        "days": 2,
+        "places": [
+            ("Jagannath Temple", "temple", "0", 150,
+             "Usually 5 AM - 11 PM",
+             "Open only to Hindus. The kitchen is among the largest anywhere, "
+             "cooking for thousands each day in earthen pots."),
+            ("Puri Beach", "beach", "0", 90,
+             "Open all day; best at sunrise",
+             "A wide shore beside the town, and the site of the annual sand "
+             "art festival."),
+            ("Konark Sun Temple", "historical", "40", 150,
+             "Usually 6 AM - 8 PM",
+             "A 13th century temple built as the sun god's chariot, its "
+             "24 stone wheels working as sundials. 35 km up the coast."),
+            ("Chilika Lake", "wildlife", "300", 240,
+             "Boats in daylight hours",
+             "Asia's largest brackish lagoon, with Irrawaddy dolphins and, "
+             "in winter, very large numbers of migratory birds."),
+        ],
+    },
+    {
+        "name": "Bodh Gaya",
+        "state": "Bihar",
+        "description": "Where the Buddha attained enlightenment under the "
+                       "Bodhi tree, and the holiest site in Buddhism.",
+        "cost": "1500",
+        "days": 2,
+        "places": [
+            ("Mahabodhi Temple", "temple", "0", 150,
+             "Usually 5 AM - 9 PM",
+             "A UNESCO World Heritage Site. The Bodhi tree beside it is grown "
+             "from a cutting of the original."),
+            ("Great Buddha Statue", "historical", "20", 45,
+             "Usually 7 AM - 12 PM and 2 PM - 6 PM",
+             "A 25-metre sandstone and granite figure finished in 1989, "
+             "sitting on a lotus."),
+            ("Thai Monastery", "temple", "0", 45,
+             "Usually 6 AM - 6 PM",
+             "One of many national monasteries in the town, each built in "
+             "its own country's style."),
+            ("Sujata Stupa", "historical", "0", 60,
+             "Daylight hours",
+             "Across the Falgu, marking where the Buddha is said to have "
+             "been offered milk rice after abandoning fasting."),
+        ],
+    },
+    {
+        "name": "Haridwar",
+        "state": "Uttarakhand",
+        "description": "Where the Ganges reaches the plain, and one of the "
+                       "four cities of the Kumbh Mela.",
+        "cost": "1500",
+        "days": 2,
+        "places": [
+            ("Har Ki Pauri", "temple", "0", 90,
+             "Open all day; Ganga Aarti about 6:30 PM",
+             "The ghat held to carry Vishnu's footprint. Lamps are set on the "
+             "water at the evening aarti."),
+            ("Mansa Devi Temple", "temple", "0", 120,
+             "Usually 8 AM - 6:30 PM",
+             "On Bilwa Parvat, reached by cable car or a steep walk; one of "
+             "the Siddh Peethas."),
+            ("Chandi Devi Temple", "temple", "0", 120,
+             "Usually 6 AM - 8 PM",
+             "On Neel Parvat across the river, a three-kilometre climb or a "
+             "ropeway from Gauri Shankar."),
+        ],
+    },
+    {
+        "name": "Kedarnath",
+        "state": "Uttarakhand",
+        "description": "The highest of the twelve Jyotirlingas, at 3,583 "
+                       "metres, open only for part of the year.",
+        "cost": "2600",
+        "days": 3,
+        "places": [
+            ("Kedarnath Temple", "temple", "0", 180,
+             "Open roughly late April to early November only",
+             "Stone-built and undated, it survived the 2013 floods when much "
+             "around it did not. Registration is compulsory."),
+            ("Kedarnath Trek", "adventure", "0", 480,
+             "Daylight hours in season",
+             "16 km on foot from Gaurikund, or by pony, palanquin or "
+             "helicopter. Altitude is the real difficulty, not distance."),
+            ("Bhairavnath Temple", "temple", "0", 60,
+             "In season, daylight hours",
+             "A short climb above the main shrine; the guardian said to watch "
+             "the valley while the temple is closed for winter."),
+        ],
+    },
+    {
+        "name": "Badrinath",
+        "state": "Uttarakhand",
+        "description": "A Char Dham site on the Alaknanda between the Nar and "
+                       "Narayana peaks, open in season only.",
+        "cost": "2600",
+        "days": 3,
+        "places": [
+            ("Badrinath Temple", "temple", "0", 150,
+             "Open roughly late April to November",
+             "A brightly painted facade below Neelkanth peak, holding a black "
+             "stone Vishnu found in the Alaknanda."),
+            ("Tapt Kund", "nature", "0", 45,
+             "In season, daylight hours",
+             "Hot sulphur springs below the temple, where pilgrims bathe "
+             "before darshan even in near-freezing air."),
+            ("Mana Village", "nature", "0", 120,
+             "In season, daylight hours",
+             "The last village before the Tibet border, three kilometres on, "
+             "with the Saraswati emerging from under a rock bridge."),
+        ],
+    },
+    {
+        "name": "Vaishno Devi",
+        "state": "Jammu and Kashmir",
+        "description": "A cave shrine in the Trikuta hills reached by a "
+                       "thirteen-kilometre walk from Katra.",
+        "cost": "1900",
+        "days": 2,
+        "places": [
+            ("Vaishno Devi Bhawan", "temple", "0", 180,
+             "Open 24 hours; a yatra slip is required",
+             "The cave holds three natural rock formations rather than "
+             "sculpted idols. Among the busiest shrines in India."),
+            ("Ardhkuwari", "temple", "0", 60,
+             "Open with the yatra route",
+             "Roughly halfway up, at the narrow cave where the goddess is "
+             "said to have sheltered for nine months."),
+            ("Bhairavnath Temple Katra", "temple", "0", 120,
+             "Daylight hours",
+             "Two and a half kilometres above the Bhawan; the yatra is held "
+             "incomplete without it."),
+        ],
+    },
 ]
 
 DISTANCES = [
@@ -792,6 +1350,95 @@ SAMPLE_RATINGS = {
     "Mumbai": "4.3", "Delhi": "4.2", "Bengaluru": "4.1", "Hyderabad": "4.3",
     "Jodhpur": "4.4", "Puducherry": "4.4", "Visakhapatnam": "4.2",
 }
+
+
+# Pilgrimage circuits. A separate row of chips from the trip themes because
+# they answer a narrower question, but the same table and the same relation -
+# Theme.kind is what keeps them apart.
+PILGRIMAGE_THEMES = [
+    ("jyotirlinga", "Jyotirlinga", 210),
+    ("char-dham", "Char Dham", 220),
+    ("shakti-peetha", "Shakti Peetha", 230),
+    ("family-pilgrimage", "Family Pilgrimage", 240),
+    ("weekend-pilgrimage", "Weekend Pilgrimage", 250),
+]
+
+# Circuit membership is a factual claim, so only the well-established ones are
+# recorded. Srisailam is deliberately in two: Mallikarjuna is counted among
+# both the twelve Jyotirlingas and the eighteen Maha Shakti Peethas, which few
+# sites are. "Family pilgrimage" means reachable and manageable with children -
+# which is why Kedarnath and Badrinath are not in it despite being Char Dham.
+DESTINATION_CIRCUITS = {
+    "Srisailam":       ["jyotirlinga", "shakti-peetha", "weekend-pilgrimage"],
+    "Varanasi":        ["jyotirlinga"],
+    "Trimbakeshwar":   ["jyotirlinga", "weekend-pilgrimage"],
+    "Somnath":         ["jyotirlinga", "family-pilgrimage"],
+    "Ujjain":          ["jyotirlinga", "family-pilgrimage"],
+    "Dwarka":          ["jyotirlinga", "char-dham", "family-pilgrimage"],
+    "Rameswaram":      ["jyotirlinga", "char-dham", "family-pilgrimage"],
+    "Puri":            ["char-dham", "family-pilgrimage"],
+    "Badrinath":       ["char-dham"],
+    "Kedarnath":       ["jyotirlinga"],
+    "Kanchipuram":     ["shakti-peetha", "family-pilgrimage", "weekend-pilgrimage"],
+    "Vaishno Devi":    ["shakti-peetha"],
+    "Vijayawada":      ["shakti-peetha", "weekend-pilgrimage", "family-pilgrimage"],
+    "Tirupati":        ["family-pilgrimage"],
+    "Srikalahasti":    ["weekend-pilgrimage"],
+    "Annavaram":       ["weekend-pilgrimage", "family-pilgrimage"],
+    "Yadadri":         ["weekend-pilgrimage", "family-pilgrimage"],
+    "Basara":          ["weekend-pilgrimage", "family-pilgrimage"],
+    "Bhadrachalam":    ["weekend-pilgrimage", "family-pilgrimage"],
+    "Srirangam":       ["family-pilgrimage"],
+    "Guruvayur":       ["family-pilgrimage", "weekend-pilgrimage"],
+    "Shirdi":          ["family-pilgrimage", "weekend-pilgrimage"],
+    "Haridwar":        ["family-pilgrimage"],
+    "Ayodhya":         ["family-pilgrimage"],
+    "Madurai":         ["family-pilgrimage"],
+    "Amritsar":        ["family-pilgrimage"],
+}
+
+# Trip themes and best season for the pilgrimage towns.
+TEMPLE_THEMES = {
+    "Tirupati":      (["temple", "family", "budget"], "September to February"),
+    "Srisailam":     (["temple", "nature", "wildlife", "weekend"], "October to March"),
+    "Vijayawada":    (["temple", "family", "budget", "weekend"], "October to March"),
+    "Srikalahasti":  (["temple", "weekend", "budget"], "September to March"),
+    "Annavaram":     (["temple", "family", "weekend", "budget"], "October to March"),
+    "Yadadri":       (["temple", "family", "weekend", "budget"], "October to March"),
+    "Bhadrachalam":  (["temple", "family", "budget"], "October to March"),
+    "Basara":        (["temple", "family", "weekend", "budget"], "October to March"),
+    "Rameswaram":    (["temple", "beach", "family"], "October to April"),
+    "Kanchipuram":   (["temple", "historical", "family", "weekend"], "October to March"),
+    "Srirangam":     (["temple", "historical", "family"], "October to March"),
+    "Guruvayur":     (["temple", "family", "wildlife"], "September to March"),
+    "Shirdi":        (["temple", "family", "weekend"], "July to March"),
+    "Trimbakeshwar": (["temple", "mountain", "weekend"], "August to February"),
+    "Somnath":       (["temple", "beach", "family"], "October to March"),
+    "Dwarka":        (["temple", "beach", "family"], "October to March"),
+    "Ayodhya":       (["temple", "family", "historical"], "October to March"),
+    "Ujjain":        (["temple", "historical", "family", "budget"], "October to March"),
+    "Puri":          (["temple", "beach", "family", "wildlife"], "October to February"),
+    "Bodh Gaya":     (["temple", "historical", "budget"], "October to March"),
+    "Haridwar":      (["temple", "family", "nature"], "September to April"),
+    "Kedarnath":     (["temple", "mountain", "adventure"], "May to June, September to October"),
+    "Badrinath":     (["temple", "mountain", "nature"], "May to June, September to October"),
+    "Vaishno Devi":  (["temple", "mountain", "adventure", "family"], "March to October"),
+}
+
+TEMPLE_RATINGS = {
+    "Tirupati": "4.7", "Srisailam": "4.5", "Vijayawada": "4.3",
+    "Srikalahasti": "4.4", "Annavaram": "4.4", "Yadadri": "4.5",
+    "Bhadrachalam": "4.4", "Basara": "4.3", "Rameswaram": "4.6",
+    "Kanchipuram": "4.5", "Srirangam": "4.7", "Guruvayur": "4.6",
+    "Shirdi": "4.6", "Trimbakeshwar": "4.5", "Somnath": "4.7",
+    "Dwarka": "4.6", "Ayodhya": "4.6", "Ujjain": "4.6", "Puri": "4.6",
+    "Bodh Gaya": "4.5", "Haridwar": "4.5", "Kedarnath": "4.8",
+    "Badrinath": "4.7", "Vaishno Devi": "4.7",
+}
+
+
+DESTINATION_THEMES.update(TEMPLE_THEMES)
+SAMPLE_RATINGS.update(TEMPLE_RATINGS)
 
 
 # Photographs for the destination cards and the place pickers.
@@ -944,6 +1591,88 @@ IMAGES = {
     "Banaras Silk Weavers Market":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Alkama_Ansari_-_A_Banarasi_Saree_Weaver.jpg/500px-Alkama_Ansari_-_A_Banarasi_Saree_Weaver.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "Beatles Ashram":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/A_cave_at_Beatles_Ashram_at_Rishikesh.jpg/500px-A_cave_at_Beatles_Ashram_at_Rishikesh.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "French Quarter":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Aurobindo_Ashram_Press_at_Goubert_Ave%2C_White_Town%2C_Puducherry_06.jpg/500px-Aurobindo_Ashram_Press_at_Goubert_Ave%2C_White_Town%2C_Puducherry_06.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "Tirupati":                          "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Tirumala_090615.jpg/500px-Tirumala_090615.jpg",
+    "Tirumala Venkateswara Temple":      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Tirumala_090615.jpg/500px-Tirumala_090615.jpg",
+    "Sri Padmavathi Temple":             "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Padmavathi_Ammavari_Temple.JPG/500px-Padmavathi_Ammavari_Temple.JPG",
+    "Srisailam":                         "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Srisailam.jpg/500px-Srisailam.jpg",
+    "Mallikarjuna Jyotirlinga Temple":   "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Srisailam-temple-entrance.jpg/500px-Srisailam-temple-entrance.jpg",
+    "Srisailam Dam":                     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/NSRS_Srisailam_Dam.jpg/500px-NSRS_Srisailam_Dam.jpg",
+    "Vijayawada":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Prakasham_Barriage%2C_Vijayawada.jpg/500px-Prakasham_Barriage%2C_Vijayawada.jpg",
+    "Kanaka Durga Temple":               "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Kanakadurga_Temple_gopuram.jpg/500px-Kanakadurga_Temple_gopuram.jpg",
+    "Undavalli Caves":                   "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Undavalli_Caves%2C_Vijayawada%2C_Guntur%2C_Andhra_Pradesh%2C_India_%282018%29_1.jpg/500px-Undavalli_Caves%2C_Vijayawada%2C_Guntur%2C_Andhra_Pradesh%2C_India_%282018%29_1.jpg",
+    "Prakasam Barrage":                  "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Prakasam_Barrage_from_Vijayawada_to_Guntur_2_%28November_2018%29.jpg/500px-Prakasam_Barrage_from_Vijayawada_to_Guntur_2_%28November_2018%29.jpg",
+    "Bhavani Island":                    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Man_Made_Island_near_Bhavani_Island.jpg/500px-Man_Made_Island_near_Bhavani_Island.jpg",
+    "Srikalahasti":                      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Srikalahasti_temple_and_Hill.jpg/500px-Srikalahasti_temple_and_Hill.jpg",
+    "Srikalahasteeswara Temple":         "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Sri_Kala_Hasti.jpg/500px-Sri_Kala_Hasti.jpg",
+    "Yadadri Lakshmi Narasimha Temple":  "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Yadadri_Temple_on_the_hilltop.jpg/500px-Yadadri_Temple_on_the_hilltop.jpg",
+    "Bhadrachalam":                      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Sri_sita_rama_temple_bhadrachalam_temple_view.jpg/500px-Sri_sita_rama_temple_bhadrachalam_temple_view.jpg",
+    "Sri Sita Ramachandraswamy Temple":  "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Sri_sita_rama_temple_bhadrachalam_temple_view.jpg/500px-Sri_sita_rama_temple_bhadrachalam_temple_view.jpg",
+    "Parnasala":                         "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/View_of_Parnasala_in_Khammam_District.JPG/500px-View_of_Parnasala_in_Khammam_District.JPG",
+    "Godavari Ghat":                     "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/NashikViewfromPandavLeni.jpg/500px-NashikViewfromPandavLeni.jpg",
+    "Basara":                            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Basar_Temple_view_02.jpg/500px-Basar_Temple_view_02.jpg",
+    "Gnana Saraswati Temple":            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Basar_Temple_view_02.jpg/500px-Basar_Temple_view_02.jpg",
+    "Rameswaram":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Rameswaram_Morning.jpg/500px-Rameswaram_Morning.jpg",
+    "Ramanathaswamy Temple":             "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Ramanathaswamy_temple7.JPG/500px-Ramanathaswamy_temple7.JPG",
+    "Pamban Bridge":                     "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Pamban_Bridge_Train_Passing.jpg/500px-Pamban_Bridge_Train_Passing.jpg",
+    "Dhanushkodi":                       "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Final_Dhanush_002.jpg/500px-Final_Dhanush_002.jpg",
+    "Agnitheertham":                     "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Rameswaram_Morning.jpg/500px-Rameswaram_Morning.jpg",
+    "Kanchipuram":                       "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Parameswara_Vinnagaram.JPG/500px-Parameswara_Vinnagaram.JPG",
+    "Kamakshi Amman Temple":             "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Kanchipuram.in_Kamakshi-Amman_Temple_-_panoramio_-_SINHA_%28cropped%29.jpg/500px-Kanchipuram.in_Kamakshi-Amman_Temple_-_panoramio_-_SINHA_%28cropped%29.jpg",
+    "Kailasanathar Temple":              "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/7th_century_Sri_Kailashnathar_Temple_Kanchipuram_Tamil_Nadu_India_01_%2811%29.jpg/500px-7th_century_Sri_Kailashnathar_Temple_Kanchipuram_Tamil_Nadu_India_01_%2811%29.jpg",
+    "Srirangam":                         "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Aerial_view_of_Sri_Rangam_temple_near_Tiruchirapalli_1.jpg/500px-Aerial_view_of_Sri_Rangam_temple_near_Tiruchirapalli_1.jpg",
+    "Ranganathaswamy Temple":            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Ranganathaswamy_temple_tiruchirappalli.jpg/500px-Ranganathaswamy_temple_tiruchirappalli.jpg",
+    "Jambukeswarar Temple":              "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Tiruvanaikaval5.jpg/500px-Tiruvanaikaval5.jpg",
+    "Guruvayur":                           "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/009392022_Guruvayur_temple%2C_Kerala_004.jpg/500px-009392022_Guruvayur_temple%2C_Kerala_004.jpg",
+    "Guruvayur Sri Krishna Temple":        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Guruvayoor_Temple_1.jpg/500px-Guruvayoor_Temple_1.jpg",
+    "Punnathur Kotta Elephant Sanctuary":  "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/PunathurKotta2.jpg/500px-PunathurKotta2.jpg",
+    "Mammiyoor Temple":                    "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Mammiyoor_sree_mahadeva_temple.JPG/500px-Mammiyoor_sree_mahadeva_temple.JPG",
+    "Shirdi":                              "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Sai_baba_samadhi_mandir_.jpg/500px-Sai_baba_samadhi_mandir_.jpg",
+    "Sai Baba Samadhi Mandir":             "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Sai_baba_samadhi_mandir_.jpg/500px-Sai_baba_samadhi_mandir_.jpg",
+    "Dwarkamai":                           "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Sai_baba_samadhi_mandir_.jpg/500px-Sai_baba_samadhi_mandir_.jpg",
+    "Trimbakeshwar":                       "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Trimbakeshwar_Temple-Nashik-Maharashtra-1.jpg/500px-Trimbakeshwar_Temple-Nashik-Maharashtra-1.jpg",
+    "Trimbakeshwar Temple":                "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Trimbakeshwar_Temple-Nashik-Maharashtra-1.jpg/500px-Trimbakeshwar_Temple-Nashik-Maharashtra-1.jpg",
+    "Kushavarta Kund":                     "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Trimbakeshwar_Temple-Nashik-Maharashtra-1.jpg/500px-Trimbakeshwar_Temple-Nashik-Maharashtra-1.jpg",
+    "Somnath":                             "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Somanath_mandir_%28cropped%29.jpg/500px-Somanath_mandir_%28cropped%29.jpg",
+    "Somnath Temple":                      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Somanath_mandir_%28cropped%29.jpg/500px-Somanath_mandir_%28cropped%29.jpg",
+    "Bhalka Tirth":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/BHALKA-06.jpg/500px-BHALKA-06.jpg",
+    "Dwarka":                              "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Dwarakadheesh_Temple%2C_2014.jpg/500px-Dwarakadheesh_Temple%2C_2014.jpg",
+    "Dwarkadhish Temple":                  "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Dwarakadheesh_Temple%2C_2014.jpg/500px-Dwarakadheesh_Temple%2C_2014.jpg",
+    "Bet Dwarka":                          "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Bet_Dwarka_Okha_Gujarat_Map.jpg/500px-Bet_Dwarka_Okha_Gujarat_Map.jpg",
+    "Nageshwar Jyotirlinga":               "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Nageshwar.JPG/500px-Nageshwar.JPG",
+    "Ayodhya":                             "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg/500px-Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg",
+    "Ram Janmabhoomi Temple":              "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg/500px-Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg",
+    "Hanuman Garhi":                       "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Hanuman_Garhi_Temple%2C_a_major_religious_site_in_Ayodhya_utter_pradesh.jpg/500px-Hanuman_Garhi_Temple%2C_a_major_religious_site_in_Ayodhya_utter_pradesh.jpg",
+    "Ram Ki Paidi":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Sarayu_River_night_view%2C_Ayodhya_001.jpg/500px-Sarayu_River_night_view%2C_Ayodhya_001.jpg",
+    "Ujjain":                              "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Mahakaleshwar_Temple%2C_Ujjain.jpg/500px-Mahakaleshwar_Temple%2C_Ujjain.jpg",
+    "Mahakaleshwar Jyotirlinga":           "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Mahakaleshwar_Temple%2C_Ujjain.jpg/500px-Mahakaleshwar_Temple%2C_Ujjain.jpg",
+    "Ram Ghat":                            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Mahakaleshwar_Temple%2C_Ujjain.jpg/500px-Mahakaleshwar_Temple%2C_Ujjain.jpg",
+    "Kal Bhairav Temple":                  "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Kal_Bhairav_temple_Ujjain.jpg/500px-Kal_Bhairav_temple_Ujjain.jpg",
+    "Vedh Shala Observatory":              "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Sun_Dial_Ved_Shala_Ujjain.jpg/500px-Sun_Dial_Ved_Shala_Ujjain.jpg",
+    "Jagannath Temple":                    "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Shri_Jagannath_temple.jpg/500px-Shri_Jagannath_temple.jpg",
+    "Puri Beach":                          "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Puri_Sea_Beach_viewed_from_the_light_house.jpg/500px-Puri_Sea_Beach_viewed_from_the_light_house.jpg",
+    "Konark Sun Temple":                   "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Konarka_Temple.jpg/500px-Konarka_Temple.jpg",
+    "Chilika Lake":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Birds_eyeview_of_Chilika_Lake.jpg/500px-Birds_eyeview_of_Chilika_Lake.jpg",
+    "Bodh Gaya":                           "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Mahabodhi_temple_at_Bodhgaya_in_Bihar_21.jpg/500px-Mahabodhi_temple_at_Bodhgaya_in_Bihar_21.jpg",
+    "Mahabodhi Temple":                    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Mahabodhitemple.jpg/500px-Mahabodhitemple.jpg",
+    "Sujata Stupa":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Sujata_Garh.JPG/500px-Sujata_Garh.JPG",
+    "Haridwar":                            "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Ganga_aarti_haridwar_01.jpg/500px-Ganga_aarti_haridwar_01.jpg",
+    "Har Ki Pauri":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Evening_view_of_Har-ki-Pauri%2C_Haridwar.jpg/500px-Evening_view_of_Har-ki-Pauri%2C_Haridwar.jpg",
+    "Mansa Devi Temple":                   "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Mansa_Devi_Temple%2C_Haridwar.JPG/500px-Mansa_Devi_Temple%2C_Haridwar.JPG",
+    "Chandi Devi Temple":                  "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Chandi_Devi_Mandir%2CHaridwar.JPG/500px-Chandi_Devi_Mandir%2CHaridwar.JPG",
+    "Kedarnath":                           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Kedarnath_View1.jpg/500px-Kedarnath_View1.jpg",
+    "Kedarnath Temple":                    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Kedarnath_Temple_in_Rainy_season.jpg/500px-Kedarnath_Temple_in_Rainy_season.jpg",
+    "Badrinath":                           "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Badrinath_Temple-_Uttarakhand.jpg/500px-Badrinath_Temple-_Uttarakhand.jpg",
+    "Badrinath Temple":                    "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Badrinath_Temple_%2C_Uttarakhand.jpg/500px-Badrinath_Temple_%2C_Uttarakhand.jpg",
+    "Tapt Kund":                           "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Badrinath_Temple-_Uttarakhand.jpg/500px-Badrinath_Temple-_Uttarakhand.jpg",
+    "Mana Village":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/India_lsat_village.jpg/500px-India_lsat_village.jpg",
+    "Vaishno Devi":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Snowfall_in_Vaishno_Devi.jpg/500px-Snowfall_in_Vaishno_Devi.jpg",
+    "Vaishno Devi Bhawan":                 "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Snowfall_in_Vaishno_Devi.jpg/500px-Snowfall_in_Vaishno_Devi.jpg",
+    "Ardhkuwari":                          "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Ardhkuwari_temple_at_night.jpg/500px-Ardhkuwari_temple_at_night.jpg",
+    "Puri":                                  "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Shri_Jagannatha_Temple.jpg/500px-Shri_Jagannatha_Temple.jpg",
+    # The hilltop temple is the town, so its photograph is the destination's.
+    "Yadadri":                               "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Yadadri_Temple_on_the_hilltop.jpg/500px-Yadadri_Temple_on_the_hilltop.jpg",
+    "Annavaram":                             "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Night_view_of_Raja_Gopuram_Annvaram.jpg/500px-Night_view_of_Raja_Gopuram_Annvaram.jpg",
+    "Sri Veera Venkata Satyanarayana Swamy Temple": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Night_view_of_Raja_Gopuram_Annvaram.jpg/500px-Night_view_of_Raja_Gopuram_Annvaram.jpg",
 }
 
 class Command(BaseCommand):
@@ -969,10 +1698,29 @@ class Command(BaseCommand):
         theme_by_slug = {}
         for slug, name, order in THEMES:
             theme, _ = Theme.objects.update_or_create(
-                slug=slug, defaults={"name": name, "display_order": order}
+                slug=slug,
+                defaults={
+                    "name": name,
+                    "display_order": order,
+                    "kind": Theme.KIND_TRIP,
+                },
             )
             theme_by_slug[slug] = theme
-        self.stdout.write(self.style.SUCCESS(f"Themes: {len(THEMES)}"))
+        for slug, name, order in PILGRIMAGE_THEMES:
+            theme, _ = Theme.objects.update_or_create(
+                slug=slug,
+                defaults={
+                    "name": name,
+                    "display_order": order,
+                    "kind": Theme.KIND_PILGRIMAGE,
+                },
+            )
+            theme_by_slug[slug] = theme
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Themes: {len(THEMES)} trip, {len(PILGRIMAGE_THEMES)} pilgrimage"
+            )
+        )
 
         # --- destinations and places ---------------------------------------
         place_total = 0
@@ -993,7 +1741,8 @@ class Command(BaseCommand):
                     ),
                 },
             )
-            slugs = DESTINATION_THEMES.get(item["name"], ((), ""))[0]
+            slugs = list(DESTINATION_THEMES.get(item["name"], ((), ""))[0])
+            slugs += DESTINATION_CIRCUITS.get(item["name"], [])
             # set() rather than add(): re-running the seeder should leave the
             # themes matching this file, not accumulate whatever was there.
             destination.themes.set(theme_by_slug[s] for s in slugs)

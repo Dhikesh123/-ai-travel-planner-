@@ -11,6 +11,9 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("destinations/", views.destination_list, name="destination_list"),
     path("destinations/<int:pk>/", views.destination_detail, name="destination_detail"),
+    # The two themed sections are the explorer with a theme already chosen.
+    path("family-travel/", views.family_travel, name="family_travel"),
+    path("spiritual-travel/", views.spiritual_travel, name="spiritual_travel"),
     # ---------------- Accounts --------------------
     path("register/", views.register, name="register"),
     path("login/", views.CustomerLoginView.as_view(), name="login"),

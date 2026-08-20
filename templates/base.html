@@ -33,6 +33,8 @@
 
     <div class="nav-links" id="navLinks">
       <a href="{% url 'destination_list' %}">Destinations</a>
+      <a href="{% url 'family_travel' %}">Family</a>
+      <a href="{% url 'spiritual_travel' %}">Temples</a>
       {% if user.is_authenticated %}
         <a href="{% url 'dashboard' %}">Dashboard</a>
         <a href="{% url 'planner' %}">Plan Trip</a>
@@ -83,6 +85,8 @@
     <div>
       <h4>Explore</h4>
       <a href="{% url 'destination_list' %}">Destinations</a>
+      <a href="{% url 'family_travel' %}">Family travel</a>
+      <a href="{% url 'spiritual_travel' %}">Temples &amp; spiritual</a>
       <a href="{% url 'planner' %}">Plan a trip</a>
       <a href="{% url 'calculator' %}">Cost calculator</a>
     </div>
@@ -120,8 +124,8 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     <span>Home</span>
   </a>
-  <a class="tabbar-item{% if active == 'destination_list' or active == 'destination_detail' %} is-active{% endif %}" href="{% url 'destination_list' %}"
-       {% if active == 'destination_list' or active == 'destination_detail' %}aria-current="page"{% endif %}>
+  <a class="tabbar-item{% if active == 'destination_list' or active == 'destination_detail' or active == 'family_travel' or active == 'spiritual_travel' %} is-active{% endif %}" href="{% url 'destination_list' %}"
+       {% if active == 'destination_list' or active == 'destination_detail' or active == 'family_travel' or active == 'spiritual_travel' %}aria-current="page"{% endif %}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm2.19 12.19L6 18l3.81-8.19L18 6z"/></svg>
     <span>Explore</span>
   </a>

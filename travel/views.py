@@ -117,11 +117,18 @@ DURATION_BANDS = {
 }
 
 
-def destination_list(request):
-    """Browse, search and filter destinations."""
+def destination_list(request, preset_theme=None, heading=None, intro=None):
+    """
+    Browse, search and filter destinations.
+
+    The Family and Temple sections are this same page with a theme already
+    chosen and its own heading, rather than two more views that would drift
+    apart from this one as the filters change.
+    """
     query = (request.GET.get("q") or "").strip()
     category = (request.GET.get("category") or "").strip()
-    theme = (request.GET.get("theme") or "").strip()
+    theme = (request.GET.get("theme") or preset_theme or "").strip()
+    circuit = (request.GET.get("circuit") or "").strip()
     budget = (request.GET.get("budget") or "").strip()
     duration = (request.GET.get("duration") or "").strip()
     region = (request.GET.get("region") or "").strip()
@@ -138,6 +145,11 @@ def destination_list(request):
         destinations = destinations.filter(places__category=category)
     if theme:
         destinations = destinations.filter(themes__slug=theme)
+    # Circuit is a second, narrower theme. Filtering both means a
+    # destination must carry each, which is the useful reading of
+    # "temples" plus "Jyotirlinga".
+    if circuit:
+        destinations = destinations.filter(themes__slug=circuit)
 
     if budget in BUDGET_BANDS:
         low, high = BUDGET_BANDS[budget]
@@ -165,6 +177,9 @@ def destination_list(request):
     # come back four times - and twice over if both filters are on.
     destinations = destinations.prefetch_related("themes").distinct()
 
+    heading = heading or "Destinations"
+    intro = intro or "Search by name, or filter by theme, budget and trip length."
+
     return render(
         request,
         "destinations.html",
@@ -173,14 +188,46 @@ def destination_list(request):
             "query": query,
             "category": category,
             "theme": theme,
+            "circuit": circuit,
             "budget": budget,
             "duration": duration,
             "region": region,
             "categories": TouristPlace.CATEGORY_CHOICES,
-            "themes": Theme.objects.all(),
+            "themes": Theme.objects.filter(kind=Theme.KIND_TRIP),
+            "circuits": Theme.objects.filter(kind=Theme.KIND_PILGRIMAGE),
+            "heading": heading,
+            "intro": intro,
             "result_count": destinations.count(),
-            "any_filter": any([query, category, theme, budget, duration, region]),
+            "any_filter": any(
+                [query, category, theme, circuit, budget, duration, region]
+            ),
         },
+    )
+
+
+def family_travel(request):
+    """Destinations that suit a trip with children."""
+    return destination_list(
+        request,
+        preset_theme="family",
+        heading="Family Travel",
+        intro=(
+            "Places that work with children along: shorter days, calmer "
+            "sights and somewhere to eat nearby."
+        ),
+    )
+
+
+def spiritual_travel(request):
+    """Temple towns and the pilgrimage circuits."""
+    return destination_list(
+        request,
+        preset_theme="temple",
+        heading="Temple & Spiritual Travel",
+        intro=(
+            "Temple towns across India, filterable by circuit - Jyotirlinga, "
+            "Char Dham, Shakti Peetha - or by what suits a family."
+        ),
     )
 
 

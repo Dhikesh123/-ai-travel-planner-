@@ -870,6 +870,14 @@ IMAGES = {
     "Puducherry":                          "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Pondicherry-Rock_beach_aerial_view.jpg/500px-Pondicherry-Rock_beach_aerial_view.jpg",
     "Triveni Ghat":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Triveni_Ghat_Krishna_Arjun_Rath.jpg/500px-Triveni_Ghat_Krishna_Arjun_Rath.jpg",
     "Lalbagh Botanical Garden":            "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Glasshouse_and_fountain_at_lalbagh.jpg/500px-Glasshouse_and_fountain_at_lalbagh.jpg",
+    "Hall Bazaar":                           "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Hall_Gate.jpg/500px-Hall_Gate.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "Ganga Rafting":                         "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Rafting_in_Rishikesh.jpg/500px-Rafting_in_Rishikesh.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "Clock Tower Market":                    "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Clock_Tower%2C_Sardar_Market%2C_Jodhpur.jpg/500px-Clock_Tower%2C_Sardar_Market%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "Vittala Temple":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Hampi_Garuda_stone_chariot.jpg/500px-Hampi_Garuda_stone_chariot.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "Paradise Beach":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Paradise_beach.jpg/500px-Paradise_beach.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "Banaras Silk Weavers Market":           "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Alkama_Ansari_-_A_Banarasi_Saree_Weaver.jpg/500px-Alkama_Ansari_-_A_Banarasi_Saree_Weaver.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "Beatles Ashram":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/A_cave_at_Beatles_Ashram_at_Rishikesh.jpg/500px-A_cave_at_Beatles_Ashram_at_Rishikesh.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "French Quarter":                        "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Aurobindo_Ashram_Press_at_Goubert_Ave%2C_White_Town%2C_Puducherry_06.jpg/500px-Aurobindo_Ashram_Press_at_Goubert_Ave%2C_White_Town%2C_Puducherry_06.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
 }
 
 class Command(BaseCommand):

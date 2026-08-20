@@ -825,3 +825,81 @@ textarea.w-text { min-height: 4.6rem; }
   .tabbar-item, .tabbar-item svg { transition: none; }
   .tabbar-item.is-active svg { transform: none; }
 }
+
+/* ================= Mobile correctness, performance, polish ============== */
+
+/* iOS Safari zooms the whole page in when a focused field is under 16px, and
+   the shared field rule sets .95rem (15.2px). Every form on the site was
+   therefore jumping on the first tap and leaving the layout scrolled sideways.
+   16px exactly is the threshold - this is not a taste change. */
+@media (max-width: 767px) {
+  input[type="text"], input[type="number"], input[type="email"],
+  input[type="password"], input[type="date"], input[type="url"],
+  input[type="file"], select, textarea {
+    font-size: 16px;
+  }
+
+  /* 44px is the smallest reliable touch target. .btn-sm was landing near 30px,
+     which is most of the buttons inside cards and the widget. */
+  .btn { min-height: 44px; padding: .6rem 1.05rem; }
+  .btn-sm { min-height: 44px; padding: .5rem .9rem; }
+  .btn-lg { min-height: 50px; }
+}
+
+/* Nothing may push the page sideways. clip rather than hidden: hidden on the
+   body turns it into a scroll container and breaks the sticky navbar. */
+body { overflow-x: clip; }
+img, svg, video, canvas { max-width: 100%; height: auto; }
+
+/* Long words - place names, URLs in AI answers - break instead of forcing the
+   column wider than the screen. */
+.card-body, .panel, .w-bubble, .suggest-body { overflow-wrap: break-word; }
+
+/* The destination grid is 23 cards now. Cards below the fold are skipped
+   during layout and paint until they are scrolled near, which is most of the
+   work on a long page. The intrinsic size keeps the scrollbar honest so the
+   thumb does not jump as they resolve. */
+.card-grid > .card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
+}
+
+/* --------------------------- Focus states ------------------------------- */
+/* Keyboard users had no visible focus anywhere except form fields. Two rules,
+   because a ring drawn outside is invisible on anything with overflow:hidden
+   - the cards - where it needs to sit inside the edge instead. */
+a:focus-visible,
+button:focus-visible,
+[role="tab"]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.card a:focus-visible, .suggest-link:focus-visible {
+  outline-offset: -3px;
+}
+
+/* --------------------------- Card polish -------------------------------- */
+/* The photograph lifts slightly under the pointer. The card already clips its
+   children, so the image grows into the frame rather than past it. */
+.card-image {
+  transition: transform .45s cubic-bezier(.2, .6, .2, 1);
+  will-change: transform;
+}
+.card:hover .card-image { transform: scale(1.06); }
+.card { transition: transform .18s ease, box-shadow .18s ease; }
+
+/* Hover lift is a pointer idiom. On a touch screen it fires on tap and sticks,
+   so the card is left raised after the finger leaves. */
+@media (hover: none) {
+  .card:hover { transform: none; }
+  .card:hover .card-image { transform: none; }
+  .btn:hover { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .card-image { transition: none; }
+  .card:hover { transform: none; }
+  .card:hover .card-image { transform: none; }
+  .btn:hover { transform: none; }
+}

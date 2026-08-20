@@ -5,6 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}AI Travel Planner{% endblock %}</title>
+  <!-- Every destination photograph comes from upload.wikimedia.org, so the DNS
+       lookup and TLS handshake are opened alongside the stylesheet rather than
+       waiting for the first card to be parsed. -->
+  <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
+  <link rel="dns-prefetch" href="https://upload.wikimedia.org">
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ ASSET_V }}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9992;</text></svg>">
 </head>

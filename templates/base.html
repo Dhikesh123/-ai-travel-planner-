@@ -93,6 +93,52 @@
     <span class="muted small">Internship project &middot; Django + Groq AI</span>
   </div>
 </footer>
+{% comment %}
+  Phone-only bottom navigation. The five destinations here are the ones worth
+  reaching in one tap; everything else stays in the top bar behind the burger.
+  It is hidden from 768px up, where the top bar is already fully visible.
+
+  url_name drives the active state rather than request.path, so /trips/4/ and
+  /trips/ both light the same tab.
+{% endcomment %}
+{% with active=request.resolver_match.url_name %}
+<nav class="tabbar" aria-label="Primary">
+  <a class="tabbar-item{% if active == 'home' %} is-active{% endif %}" href="{% url 'home' %}"
+     {% if active == 'home' %}aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>Home</span>
+  </a>
+  <a class="tabbar-item{% if active == 'destination_list' or active == 'destination_detail' %} is-active{% endif %}" href="{% url 'destination_list' %}"
+       {% if active == 'destination_list' or active == 'destination_detail' %}aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm2.19 12.19L6 18l3.81-8.19L18 6z"/></svg>
+    <span>Explore</span>
+  </a>
+  <a class="tabbar-item{% if active == 'planner' or active == 'trip_list' or active == 'trip_detail' %} is-active{% endif %}" href="{% url 'planner' %}"
+       {% if active == 'planner' or active == 'trip_list' or active == 'trip_detail' %}aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+    <span>Plan</span>
+  </a>
+  <a class="tabbar-item{% if active == 'chatbot' or active == 'voice_assistant' or active == 'image_recognition' %} is-active{% endif %}" href="{% url 'chatbot' %}"
+       {% if active == 'chatbot' or active == 'voice_assistant' or active == 'image_recognition' %}aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+    <span>AI</span>
+  </a>
+  {% if user.is_authenticated %}
+    <a class="tabbar-item{% if active == 'profile' or active == 'dashboard' %} is-active{% endif %}" href="{% url 'profile' %}"
+       {% if active == 'profile' or active == 'dashboard' %}aria-current="page"{% endif %}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 5v1h18v-1c0-2.5-4-5-9-5z"/></svg>
+      <span>Profile</span>
+    </a>
+  {% else %}
+    <a class="tabbar-item{% if active == 'login' or active == 'register' %} is-active{% endif %}" href="{% url 'login' %}"
+       {% if active == 'login' or active == 'register' %}aria-current="page"{% endif %}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 5v1h18v-1c0-2.5-4-5-9-5z"/></svg>
+      <span>Login</span>
+    </a>
+  {% endif %}
+</nav>
+{% endwith %}
+
 {% if user.is_authenticated %}
 <button class="chat-fab" id="chatFab" aria-label="Open travel assistant" aria-expanded="false">
   <svg class="fab-open" viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM7 9h10v2H7V9zm0 4h7v2H7v-2z"/></svg>

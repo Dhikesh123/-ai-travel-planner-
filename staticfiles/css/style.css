@@ -765,3 +765,63 @@ textarea.w-text { min-height: 4.6rem; }
   .suggest-link:hover .suggest-thumb { transform: none; }
   .suggest-link::after { display: none; }
 }
+
+/* ==================== Phone bottom navigation =========================== */
+/* Five destinations, thumb-height, fixed to the bottom edge on phones only.
+   Hidden from 768px up, where the top bar already shows every link. */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  background: rgba(255, 255, 255, .92);
+  border-top: 1px solid var(--line);
+  /* The blur is what keeps content legible as it scrolls under the bar. Where
+     it is unsupported the background above is already 92% opaque. */
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  /* Clears the iOS home indicator without adding a gap on Android. */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.tabbar-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .15rem; padding: .5rem .2rem .45rem;
+  /* 56px keeps every tap target past the 44px minimum. */
+  min-height: 56px;
+  color: var(--ink-soft); text-decoration: none;
+  font-size: .66rem; font-weight: 600; letter-spacing: .01em;
+  transition: color .18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.tabbar-item svg { width: 22px; height: 22px; fill: currentColor; transition: transform .18s ease; }
+.tabbar-item:hover { text-decoration: none; color: var(--ink); }
+
+/* The active tab carries colour, weight and a rule along the top edge, so it
+   does not rely on colour alone to say where you are. */
+.tabbar-item.is-active { color: var(--brand); }
+.tabbar-item.is-active svg { transform: translateY(-1px) scale(1.08); }
+.tabbar-item.is-active::before {
+  content: ""; position: absolute; top: 0; width: 28px; height: 3px;
+  border-radius: 0 0 3px 3px; background: var(--brand);
+}
+.tabbar-item { position: relative; }
+
+.tabbar-item:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: -3px; border-radius: 8px;
+}
+
+/* Nothing should end up trapped behind the bar: the page gets the bar's height
+   as bottom padding, and the assistant button lifts above it. */
+@media (max-width: 767px) {
+  body { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+  .chat-fab { bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+  .chat-widget { bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (min-width: 768px) {
+  .tabbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabbar-item, .tabbar-item svg { transition: none; }
+  .tabbar-item.is-active svg { transform: none; }
+}

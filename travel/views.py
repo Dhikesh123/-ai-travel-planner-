@@ -220,6 +220,7 @@ def trip_detail(request, pk):
 
     suggested_places = list(
         TouristPlace.objects.filter(destination=trip.destination)
+        .select_related("destination")
         .exclude(pk__in=chosen_ids)
         .order_by("entry_fee", "name")[:SUGGESTION_LIMIT]
     )

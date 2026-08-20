@@ -82,6 +82,35 @@
         <span>Days</span>
         <input type="number" name="trip_days" value="{{ trip_days }}" min="1" max="30" inputmode="numeric">
       </label>
+      <label class="bg-field bg-field-slider">
+        <span>
+          Or a ceiling per day
+          <output class="bg-out" id="budgetDayOut">
+            {% if budget_day %}Rs {{ budget_day }}{% else %}any{% endif %}
+          </output>
+        </span>
+        {% comment %}
+          A slider rather than three fixed bands. Bands have to be drawn where
+          the data happens to sit, and go stale the moment it moves; a ceiling
+          stays meaningful at any value. Above Rs {{ dearest_per_day|floatformat:0 }}
+          it stops excluding anything, and the page says so rather than looking
+          broken.
+        {% endcomment %}
+        <input type="range" name="budget_day" id="budgetDay"
+               min="0" max="{{ budget_day_max }}" step="{{ budget_day_step }}"
+               value="{{ budget_day|default:0 }}"
+               aria-describedby="budgetDayHint">
+        <span class="bg-hint" id="budgetDayHint">
+          {% if budget_day and budget_day >= dearest_per_day %}
+            Above every destination &mdash; nothing is filtered out.
+          {% elif budget_day %}
+            Showing places at or under Rs {{ budget_day }} per person per day.
+          {% else %}
+            Slide to cap the daily cost. 0 means no cap.
+          {% endif %}
+        </span>
+      </label>
+
       <button class="btn btn-primary bg-go" type="submit">Fit my budget</button>
     </div>
 
@@ -93,16 +122,6 @@
           {% for value, label in categories %}
             <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
-        </select>
-      </label>
-
-      <label class="ex-field">
-        <span>Budget per day</span>
-        <select name="budget">
-          <option value="">Any</option>
-          <option value="low"  {% if budget == 'low' %}selected{% endif %}>Under Rs 2,000</option>
-          <option value="mid"  {% if budget == 'mid' %}selected{% endif %}>Rs 2,000 - 2,800</option>
-          <option value="high" {% if budget == 'high' %}selected{% endif %}>Rs 2,800 and above</option>
         </select>
       </label>
 
@@ -208,6 +227,17 @@
   (function () {
     var form = document.getElementById("explorerForm");
     if (!form) return;
+
+    // The slider's value read back as you drag. It is not submitted until the
+    // button is pressed - auto-submitting on every step would fire a request
+    // per notch.
+    var slider = document.getElementById("budgetDay");
+    var out = document.getElementById("budgetDayOut");
+    if (slider && out) {
+      slider.addEventListener("input", function () {
+        out.textContent = slider.value === "0" ? "any" : "Rs " + slider.value;
+      });
+    }
     form.addEventListener("change", function (event) {
       if (event.target.matches("input[name='theme'], input[name='circuit'], select")) form.submit();
     });

@@ -203,14 +203,13 @@ def home(request):
     )
 
 
-# Budget bands for the explorer, in rupees per person per day. The boundaries
-# sit between the clusters in the sample data rather than on round numbers, so
-# each band actually returns something.
-BUDGET_BANDS = {
-    "low": (None, 2000),
-    "mid": (2000, 2800),
-    "high": (2800, None),
-}
+# The ceiling on the per-day slider. Nothing in the catalogue costs near this
+# much a day - the dearest is 3,500 - but a slider is not a fixed band: values
+# above the top of the data simply include everything, which is a truthful
+# answer rather than a dead option. The headroom is there so the control still
+# makes sense as more expensive destinations are added.
+BUDGET_PER_DAY_MAX = 10000
+BUDGET_PER_DAY_STEP = 250
 
 # Trip lengths, matched against recommended_days. The boundaries follow the
 # data rather than round numbers: the seeded destinations only recommend 2, 3
@@ -234,7 +233,8 @@ def destination_list(request, preset_theme=None, heading=None, intro=None):
     category = (request.GET.get("category") or "").strip()
     theme = (request.GET.get("theme") or preset_theme or "").strip()
     circuit = (request.GET.get("circuit") or "").strip()
-    budget = (request.GET.get("budget") or "").strip()
+    # A ceiling in rupees per person per day, not one of three bands.
+    budget_day = _positive_int(request.GET.get("budget_day"), 0)
     duration = (request.GET.get("duration") or "").strip()
     region = (request.GET.get("region") or "").strip()
 
@@ -272,12 +272,8 @@ def destination_list(request, preset_theme=None, heading=None, intro=None):
     if circuit:
         destinations = destinations.filter(themes__slug=circuit)
 
-    if budget in BUDGET_BANDS:
-        low, high = BUDGET_BANDS[budget]
-        if low is not None:
-            destinations = destinations.filter(estimated_cost_per_day__gte=low)
-        if high is not None:
-            destinations = destinations.filter(estimated_cost_per_day__lt=high)
+    if budget_day:
+        destinations = destinations.filter(estimated_cost_per_day__lte=budget_day)
 
     if duration in DURATION_BANDS:
         low, high = DURATION_BANDS[duration]
@@ -313,7 +309,17 @@ def destination_list(request, preset_theme=None, heading=None, intro=None):
             "category": category,
             "theme": theme,
             "circuit": circuit,
-            "budget": budget,
+            "budget_day": budget_day or "",
+            "budget_day_max": BUDGET_PER_DAY_MAX,
+            "budget_day_step": BUDGET_PER_DAY_STEP,
+            # The dearest destination, so the page can say when the slider has
+            # gone past the point where it filters anything at all.
+            "dearest_per_day": (
+                Destination.objects.order_by("-estimated_cost_per_day")
+                .values_list("estimated_cost_per_day", flat=True)
+                .first()
+                or 0
+            ),
             "duration": duration,
             "region": region,
             "max_total": max_total or "",
@@ -336,7 +342,16 @@ def destination_list(request, preset_theme=None, heading=None, intro=None):
             "intro": intro,
             "result_count": destinations.count(),
             "any_filter": any(
-                [query, category, theme, circuit, budget, duration, region, max_total]
+                [
+                    query,
+                    category,
+                    theme,
+                    circuit,
+                    budget_day,
+                    duration,
+                    region,
+                    max_total,
+                ]
             ),
         },
     )

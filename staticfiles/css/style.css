@@ -1564,3 +1564,57 @@ h1 { letter-spacing: -.03em; }
 /* The figure the budget filter actually compared against. Gold, because it is
    the answer to the question the bar above asked. */
 .tag-total { background: var(--gold-soft); color: #7a5f18; font-weight: 700; }
+
+/* ------------------------ Per-day budget slider -------------------------- */
+.bg-field-slider { gap: .3rem; }
+.bg-out {
+  display: inline-block;
+  margin-left: .35rem;
+  padding: .05rem .4rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: #0b3f8f;
+  font-weight: 700;
+  font-size: .68rem;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+.bg-hint { font-size: .68rem; color: var(--ink-soft); font-weight: 500; }
+
+/* The track is styled per engine, so both are declared rather than relying on
+   one and letting the other fall back to the platform default. */
+.bg-field-slider input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 22px;
+  padding: 0; margin: 0; border: none; background: transparent;
+  cursor: pointer;
+}
+.bg-field-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand) 0%, #cfe0f7 100%);
+}
+.bg-field-slider input[type="range"]::-moz-range-track {
+  height: 6px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand) 0%, #cfe0f7 100%);
+}
+.bg-field-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; margin-top: -6px;
+  border-radius: 50%; background: #fff;
+  border: 2px solid var(--brand);
+  box-shadow: var(--e2);
+}
+.bg-field-slider input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%; background: #fff;
+  border: 2px solid var(--brand);
+  box-shadow: var(--e2);
+}
+.bg-field-slider input[type="range"]:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 999px;
+}
+
+@media (min-width: 640px) {
+  .budget-bar { grid-template-columns: 1.3fr .7fr .7fr 1.4fr auto; }
+}

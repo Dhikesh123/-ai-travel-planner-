@@ -1402,3 +1402,117 @@ h1 { letter-spacing: -.03em; }
 @media (prefers-reduced-motion: reduce) {
   .cost-fill { animation: none; }
 }
+
+/* ===================== Day-by-day itinerary ============================= */
+
+.day-card {
+  background: var(--card);
+  border: 1px solid rgba(18, 38, 58, .08);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.day-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: .5rem;
+  padding-bottom: .7rem;
+  border-bottom: 1px solid var(--line);
+}
+.day-head h3 { margin: 0; font-size: 1.1rem; font-weight: 750; }
+.day-date { font-size: .76rem; color: var(--ink-soft); font-weight: 600; }
+.day-stats { display: flex; flex-wrap: wrap; gap: .4rem; }
+.day-stats span {
+  font-size: .7rem; font-weight: 600;
+  padding: .14rem .5rem; border-radius: 999px;
+  background: #eef2f7; color: var(--ink-soft);
+}
+
+.slot { margin-top: .9rem; }
+/* The part-of-day label sits on a rule, so the eye can find "Afternoon"
+   without it needing to be large or loud. */
+.slot-name {
+  display: flex; align-items: center; gap: .6rem;
+  margin: 0 0 .5rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--brand);
+}
+.slot-name::after {
+  content: ""; flex: 1; height: 1px; background: var(--line);
+}
+
+.slot-items { list-style: none; margin: 0; padding: 0; }
+
+.stop { display: grid; grid-template-columns: auto 1fr; gap: .8rem; padding: .2rem 0; }
+
+/* The time column is fixed-width and tabular so the starts line up down the
+   day instead of drifting with the digits. */
+.stop-time {
+  display: flex; flex-direction: column; align-items: flex-end;
+  min-width: 74px;
+  font-size: .74rem; font-weight: 700; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  padding-top: .1rem;
+}
+.stop-time time:last-child { color: var(--ink-soft); font-weight: 600; }
+.stop-dash { width: 1px; height: 10px; background: var(--line); margin: .15rem 0; }
+
+.stop-body {
+  border-left: 2px solid var(--brand-soft);
+  padding: 0 0 .7rem .85rem;
+  position: relative;
+}
+/* The dot on the spine marking each stop. */
+.stop-body::before {
+  content: ""; position: absolute; left: -5px; top: .35rem;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--brand); box-shadow: 0 0 0 3px #fff;
+}
+.stop-name { margin: 0; font-size: .95rem; font-weight: 700; }
+.stop-where { margin: .1rem 0 0; font-size: .74rem; color: var(--ink-soft); font-weight: 600; }
+.stop-desc { margin: .35rem 0 0; font-size: .82rem; line-height: 1.5; color: var(--ink); }
+.stop-open { margin: .3rem 0 0; font-size: .74rem; color: var(--warn); font-weight: 600; }
+
+.stop-facts { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .45rem; }
+.stop-fact {
+  font-size: .68rem; font-weight: 600;
+  padding: .12rem .5rem; border-radius: 999px;
+  background: #eef2f7; color: var(--ink-soft);
+}
+.stop-fact-free { background: #e6f6ef; color: var(--ok); }
+
+/* The gap between stops, drawn as a dashed continuation of the spine. */
+.hop {
+  display: grid; grid-template-columns: auto 1fr; gap: .8rem;
+  font-size: .7rem; color: var(--ink-soft);
+}
+.hop::before { content: ""; min-width: 74px; }
+.hop span {
+  border-left: 2px dashed var(--line);
+  padding: .3rem 0 .3rem .85rem;
+  display: block;
+}
+
+.day-foot {
+  margin-top: .8rem; padding-top: .6rem;
+  border-top: 1px solid var(--line);
+  font-size: .74rem; color: var(--ink-soft);
+}
+
+.itinerary-note {
+  font-size: .76rem; color: var(--ink-soft);
+  background: #fbfcfe; border: 1px dashed var(--line);
+  border-radius: var(--r-md); padding: .7rem .85rem;
+}
+
+@media (max-width: 480px) {
+  .stop { grid-template-columns: 1fr; gap: .25rem; }
+  /* Stacked, the time reads as a heading above the stop rather than a column
+     beside it, so it goes back to the left edge. */
+  .stop-time { flex-direction: row; align-items: baseline; gap: .4rem; min-width: 0; }
+  .stop-dash { width: 10px; height: 1px; margin: 0; }
+  .hop::before { display: none; }
+  .hop { grid-template-columns: 1fr; }
+}
+.day-packed { display: block; margin-top: .3rem; color: var(--warn); font-weight: 600; }

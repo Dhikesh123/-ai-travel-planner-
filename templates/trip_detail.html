@@ -43,25 +43,94 @@
 
       <div class="panel">
         <h2>Day-by-day itinerary</h2>
-        {% if itinerary_days %}
-          {% for day_number, places in itinerary_days %}
-            <div class="day-block">
-              <h3>Day {{ day_number }}</h3>
-              <ul>
-                {% for place in places %}
-                  <li>
-                    <strong>{{ place.name }}</strong>
-                    <span class="muted small">
-                      {{ place.get_category_display }} &middot; about {{ place.visit_duration_minutes }} min
-                      {% if place.entry_fee > 0 %}&middot; entry ~ Rs {{ place.entry_fee|floatformat:0 }} (est.){% endif %}
-                    </span>
-                  </li>
-                {% endfor %}
-              </ul>
-            </div>
-          {% endfor %}
-        {% endif %}
+        {% if day_plan %}
+          {% comment %}
+            The clock times are laid out from a fixed start with a fixed gap
+            between places - both stated under the list - rather than routed.
+            The database holds distances between cities, never between two
+            places inside one, so a "22 minutes to the next stop" here would
+            be a number with nothing behind it.
+          {% endcomment %}
+          {% for day in day_plan %}
+            <article class="day-card">
+              <header class="day-head">
+                <div>
+                  <h3>Day {{ day.day_number }}</h3>
+                  {% if day.date %}<span class="day-date">{{ day.date|date:"D, j M Y" }}</span>{% endif %}
+                </div>
+                <div class="day-stats">
+                  <span>{{ day.place_count }} stop{{ day.place_count|pluralize }}</span>
+                  <span>{{ day.minutes }} min visiting</span>
+                  {% if day.cost > 0 %}<span>~ Rs {{ day.cost|floatformat:0 }} entry</span>{% endif %}
+                </div>
+              </header>
 
+              {% for slot in day.slots %}
+                <section class="slot">
+                  <h4 class="slot-name">{{ slot.name }}</h4>
+                  <ol class="slot-items">
+                    {% for item in slot.items %}
+                      <li class="stop">
+                        <div class="stop-time">
+                          <time>{{ item.starts|time:"g:i A" }}</time>
+                          <span class="stop-dash" aria-hidden="true"></span>
+                          <time>{{ item.ends|time:"g:i A" }}</time>
+                        </div>
+
+                        <div class="stop-body">
+                          <h5 class="stop-name">{{ item.place.name }}</h5>
+                          <p class="stop-where">
+                            {{ item.place.destination.name }} &middot; {{ item.place.get_category_display }}
+                          </p>
+                          {% if item.place.description %}
+                            <p class="stop-desc">{{ item.place.description|truncatewords:26 }}</p>
+                          {% endif %}
+                          {% if item.place.opening_info %}
+                            <p class="stop-open">{{ item.place.opening_info }}</p>
+                          {% endif %}
+                          <div class="stop-facts">
+                            <span class="stop-fact">{{ item.minutes }} min</span>
+                            {% if item.place.entry_fee > 0 %}
+                              <span class="stop-fact">~ Rs {{ item.place.entry_fee|floatformat:0 }} entry (est.)</span>
+                            {% else %}
+                              <span class="stop-fact stop-fact-free">Free entry</span>
+                            {% endif %}
+                            {% if trip.transportation %}
+                              <span class="stop-fact">{{ trip.transportation.name }} to the city</span>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </li>
+
+                      {% if item.hop_next %}
+                        <li class="hop" aria-hidden="true">
+                          <span>{{ item.hop_next }} min allowed to the next stop</span>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                  </ol>
+                </section>
+              {% endfor %}
+
+              <footer class="day-foot">
+                Day planned from {{ day_starts_at|time:"g:i A" }}, finishing about
+                {{ day.ends_at|time:"g:i A" }}.
+                {% if day.is_packed %}
+                  <span class="day-packed">
+                    That is a long day &mdash; consider moving a stop to another day.
+                  </span>
+                {% endif %}
+              </footer>
+            </article>
+          {% endfor %}
+
+          <p class="itinerary-note">
+            Times are laid out from a {{ day_starts_at|time:"g:i A" }} start, each
+            stop taking its own listed visit length with a flat
+            {{ local_hop_minutes }} minutes allowed between one and the next.
+            They are a suggested shape for the day, not routed journey times.
+          </p>
+        {% endif %}
         {% if trip.itinerary_text %}
           <details class="mt">
             <summary>Full plan including travel days</summary>

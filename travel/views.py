@@ -3,6 +3,8 @@ Views = the Python functions that build each web page.
 
 A view receives a request, does some work, and returns a rendered HTML page.
 """
+from datetime import date, datetime, time, timedelta
+from decimal import Decimal
 from itertools import chain, zip_longest
 
 from django.contrib import messages
@@ -42,6 +44,102 @@ FAMILY_CATEGORIES = {"temple", "nature", "beach", "museum", "food"}
 # screenful at the top of the sidebar; badging more of them makes the word stop
 # meaning anything.
 RECOMMENDED_COUNT = 4
+
+
+# When a sightseeing day is assumed to start. Nine is early enough for a full
+# day and late enough to have had breakfast.
+DAY_STARTS_AT = time(9, 0)
+
+# Allowed between one place and the next. It is a flat allowance, NOT a routed
+# journey time: the database holds distances between cities, never between two
+# places inside one. The template says so rather than letting it read as a
+# calculated figure.
+LOCAL_HOP_MINUTES = 30
+
+# Where the morning ends and the evening begins, for grouping the day.
+MORNING_ENDS_AT = time(12, 0)
+AFTERNOON_ENDS_AT = time(17, 0)
+
+# Past this, the day has more in it than a day holds. Rather than silently
+# laying out a schedule that runs to midnight, the page says so - the
+# schedule is honest arithmetic on the durations, and the arithmetic is the
+# useful warning.
+LONG_DAY_ENDS_AFTER = time(20, 0)
+
+
+def _slot_for(moment):
+    """Morning, Afternoon or Evening for a time of day."""
+    if moment < MORNING_ENDS_AT:
+        return "Morning"
+    if moment < AFTERNOON_ENDS_AT:
+        return "Afternoon"
+    return "Evening"
+
+
+def _build_day_plan(itinerary_days, trip):
+    """
+    Turn "these places on day 2" into an hour-by-hour day.
+
+    Clock times are laid out from DAY_STARTS_AT, each place taking its own
+    visit_duration_minutes with LOCAL_HOP_MINUTES between one and the next.
+    Everything here is derived from data already on the place - nothing about
+    the schedule is invented beyond the two constants above, both of which the
+    page states openly.
+    """
+    plan = []
+    for day_number, places in itinerary_days:
+        cursor = datetime.combine(date.today(), DAY_STARTS_AT)
+        slots, day_cost, day_minutes = {}, Decimal("0"), 0
+
+        for index, place in enumerate(places):
+            minutes = place.visit_duration_minutes or 60
+            starts = cursor
+            ends = starts + timedelta(minutes=minutes)
+
+            slot = _slot_for(starts.time())
+            slots.setdefault(slot, []).append(
+                {
+                    "place": place,
+                    "starts": starts,
+                    "ends": ends,
+                    "minutes": minutes,
+                    # Only shown between places, so the last of the day does
+                    # not claim a journey to nowhere.
+                    "hop_next": LOCAL_HOP_MINUTES if index < len(places) - 1 else 0,
+                }
+            )
+
+            day_cost += place.entry_fee or Decimal("0")
+            day_minutes += minutes
+            cursor = ends + timedelta(minutes=LOCAL_HOP_MINUTES)
+
+        # The trip's own dates, when it has them, so "Day 2" carries a date.
+        day_date = None
+        if trip.travel_date:
+            day_date = trip.travel_date + timedelta(days=day_number - 1)
+
+        plan.append(
+            {
+                "day_number": day_number,
+                "date": day_date,
+                # Fixed order: a day always reads morning to evening, even if
+                # only the afternoon has anything in it.
+                "slots": [
+                    {"name": name, "items": slots[name]}
+                    for name in ("Morning", "Afternoon", "Evening")
+                    if name in slots
+                ],
+                "place_count": len(places),
+                "cost": day_cost,
+                "minutes": day_minutes,
+                "ends_at": cursor - timedelta(minutes=LOCAL_HOP_MINUTES),
+                "is_packed": (
+                    (cursor - timedelta(minutes=LOCAL_HOP_MINUTES)).time()
+                    > LONG_DAY_ENDS_AFTER
+                ),
+            }
+        )
+    return plan
 
 
 def _positive_int(raw, fallback):
@@ -432,6 +530,9 @@ def trip_detail(request, pk):
             "trip": trip,
             "trip_places": trip_places,
             "itinerary_days": sorted(itinerary.items()),
+            "day_plan": _build_day_plan(sorted(itinerary.items()), trip),
+            "day_starts_at": DAY_STARTS_AT,
+            "local_hop_minutes": LOCAL_HOP_MINUTES,
             "suggested_places": suggested_places,
             "ai_ready": ai_service.is_configured(),
         },

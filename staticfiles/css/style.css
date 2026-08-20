@@ -727,6 +727,37 @@ textarea.w-text { min-height: 4.6rem; }
 
 .suggest-add { width: 100%; margin-top: .8rem; }
 
+/* Touch screens have no hover, so anything that only appears on hover never
+   appears at all. The arrow is the affordance that says the card is a link,
+   so it is shown outright and the sweep - which cannot fire - is dropped. */
+@media (hover: none) {
+  .suggest-go { opacity: 1; transform: none; }
+  .suggest-link::after { display: none; }
+}
+
+/* Narrow phones. The name row is a flex line shared with the Recommended
+   badge, and a long name ("Chhatrapati Shivaji Maharaj Museum") squeezed
+   against the badge wraps down to two or three characters a line. Letting the
+   row wrap puts the badge underneath instead, which costs one line and keeps
+   the name readable. */
+@media (max-width: 560px) {
+  .suggest-name { flex-wrap: wrap; gap: .3rem .4rem; }
+  .suggest-badge { margin-left: 0; }
+  .suggest-link { gap: .55rem; padding: .5rem; }
+  .suggest-thumb { flex: 0 0 46px; width: 46px; height: 46px; }
+  .suggest-initial { font-size: 1.05rem; }
+  .suggest-meta, .suggest-tag { font-size: .7rem; }
+  .suggest-go { font-size: .95rem; }
+}
+
+/* Very small screens: the thumbnail is the first thing worth losing, and the
+   panel heading stops competing with the count for the same line. */
+@media (max-width: 380px) {
+  .suggest-thumb { display: none; }
+  .suggest-head { gap: .4rem; }
+  .suggest-tags { gap: .25rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .suggest-card { animation: none; }
   .suggest-link, .suggest-thumb, .suggest-go { transition: none; }

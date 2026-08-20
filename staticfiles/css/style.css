@@ -1182,3 +1182,142 @@ h1 { letter-spacing: -.03em; }
 @media (prefers-reduced-motion: reduce) {
   .w-bubble { animation: none; }
 }
+
+/* ====================== Destination explorer ============================ */
+
+.explorer {
+  background: var(--card);
+  border: 1px solid rgba(18, 38, 58, .08);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e2);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: grid;
+  gap: .9rem;
+}
+
+.explorer-row { display: grid; grid-template-columns: 1fr auto; gap: .6rem; }
+.explorer-row input { margin-top: 0; }
+
+/* ------------------------------ Chips ----------------------------------- */
+/* Radios styled as buttons. The input stays in the accessibility tree and
+   keeps arrow-key selection and screen-reader announcement; it is only moved
+   out of sight, never display:none, which would take it off the tab order. */
+.chips {
+  display: flex;
+  gap: .45rem;
+  overflow-x: auto;
+  padding-bottom: .2rem;
+  /* On a phone the row scrolls sideways and snaps, rather than wrapping into
+     three stacked lines that push the results off screen. */
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.chips::-webkit-scrollbar { height: 4px; }
+.chips::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+
+.chip { margin: 0; scroll-snap-align: start; }
+.chip input {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip-path: inset(50%);
+  overflow: hidden; white-space: nowrap;
+}
+.chip span {
+  display: block;
+  white-space: nowrap;
+  padding: .45rem .85rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.chip:hover span { border-color: var(--brand); color: var(--brand); }
+.chip.is-on span {
+  background: linear-gradient(135deg, #1f6feb, #0b3f8f);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--e2);
+}
+/* The ring follows the hidden radio's focus onto the visible label. */
+.chip input:focus-visible + span {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ----------------------------- Selects ---------------------------------- */
+.explorer-selects { display: grid; gap: .6rem; }
+
+.ex-field { margin: 0; display: flex; flex-direction: column; gap: .25rem; }
+.ex-field > span {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.ex-field select {
+  margin-top: 0;
+  border-radius: var(--r-sm);
+  background: #f7f9fc;
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+.ex-field select:focus { background: #fff; }
+
+.explorer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  border-top: 1px solid var(--line);
+  padding-top: .7rem;
+}
+
+@media (min-width: 760px) {
+  .explorer { padding: 1.2rem 1.3rem; }
+  .explorer-selects { grid-template-columns: repeat(4, 1fr); gap: .8rem; }
+}
+
+/* --------------------------- Card additions ------------------------------ */
+.best-time {
+  margin: .35rem 0 0;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--warn);
+}
+.tag-rating { background: var(--gold-soft); color: #7a5f18; font-weight: 700; }
+
+.card-themes { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
+.theme-tag {
+  font-size: .68rem;
+  font-weight: 600;
+  padding: .12rem .5rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: #0b3f8f;
+}
+
+/* --------------------------- Empty state -------------------------------- */
+/* Spans the whole grid, so an empty result is a centred panel rather than a
+   lone sentence sitting in the first column. */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2.5rem 1rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-lg);
+  background: #fbfcfe;
+}
+.empty-title { font-weight: 700; font-size: 1.05rem; margin: 0 0 .3rem; }
+.empty-state .btn { margin-top: .9rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chip span { transition: none; }
+}

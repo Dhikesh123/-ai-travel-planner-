@@ -10,7 +10,13 @@ from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 
-from travel.models import Destination, RouteDistance, TouristPlace, Transportation
+from travel.models import (
+    Destination,
+    RouteDistance,
+    Theme,
+    TouristPlace,
+    Transportation,
+)
 
 TRANSPORT = [
     # code, name, Rs/km, km/h, seats per vehicle, ticket per person?
@@ -728,6 +734,66 @@ DISTANCES = [
 ]
 
 
+# Themes answer "who is this trip for", which is a different question from
+# TouristPlace.category ("what is this building"). display_order puts the broad
+# ones first so the explorer's chips do not open alphabetically on Adventure.
+THEMES = [
+    ("family", "Family", 10),
+    ("temple", "Temples & Spiritual", 20),
+    ("beach", "Beaches", 30),
+    ("mountain", "Mountains", 40),
+    ("nature", "Nature", 50),
+    ("adventure", "Adventure", 60),
+    ("wildlife", "Wildlife", 70),
+    ("historical", "Historical", 80),
+    ("honeymoon", "Honeymoon", 90),
+    ("weekend", "Weekend Trips", 100),
+    ("budget", "Budget Trips", 110),
+]
+
+# destination -> (themes, best time to go)
+#
+# Best times are the broad season a visitor plans around, not a forecast.
+# Hill stations invert the usual pattern - Manali and Shimla are the summer
+# escape - which is exactly why this cannot be derived from latitude.
+DESTINATION_THEMES = {
+    "Mumbai":        (["family", "beach", "historical", "weekend"], "October to February"),
+    "Goa":           (["beach", "family", "honeymoon", "weekend"], "November to February"),
+    "Hyderabad":     (["family", "historical", "temple", "weekend", "budget"], "October to March"),
+    "Jaipur":        (["family", "historical", "honeymoon"], "October to March"),
+    "Munnar":        (["nature", "honeymoon", "mountain", "wildlife"], "September to May"),
+    "Visakhapatnam": (["beach", "family", "temple", "budget"], "October to March"),
+    "Delhi":         (["family", "historical", "temple"], "October to March"),
+    "Agra":          (["historical", "family", "weekend"], "October to March"),
+    "Varanasi":      (["temple", "historical", "budget"], "October to March"),
+    "Amritsar":      (["temple", "family", "historical", "weekend"], "October to March"),
+    "Rishikesh":     (["adventure", "temple", "nature", "budget"], "September to April"),
+    "Shimla":        (["mountain", "family", "honeymoon", "nature"], "March to June, December for snow"),
+    "Manali":        (["mountain", "adventure", "honeymoon", "nature"], "March to June, December for snow"),
+    "Udaipur":       (["honeymoon", "historical", "family"], "September to March"),
+    "Jodhpur":       (["historical", "family", "budget"], "October to March"),
+    "Bengaluru":     (["family", "nature", "weekend"], "October to February"),
+    "Chennai":       (["beach", "temple", "historical", "family"], "November to February"),
+    "Mysuru":        (["family", "historical", "temple", "weekend", "budget"], "October to March"),
+    "Madurai":       (["temple", "historical", "budget"], "October to March"),
+    "Kochi":         (["family", "historical", "beach", "honeymoon"], "October to March"),
+    "Alleppey":      (["honeymoon", "nature", "family"], "November to February"),
+    "Hampi":         (["historical", "adventure", "budget"], "October to February"),
+    "Puducherry":    (["beach", "honeymoon", "weekend", "family"], "October to March"),
+}
+
+# Illustrative only - see the field's help_text. Spread rather than uniform, so
+# the sort has something to do, but never presented as a visitor review score.
+SAMPLE_RATINGS = {
+    "Goa": "4.6", "Jaipur": "4.5", "Udaipur": "4.7", "Munnar": "4.5",
+    "Manali": "4.4", "Alleppey": "4.6", "Hampi": "4.5", "Agra": "4.6",
+    "Amritsar": "4.7", "Varanasi": "4.4", "Mysuru": "4.5", "Kochi": "4.4",
+    "Shimla": "4.2", "Rishikesh": "4.4", "Madurai": "4.3", "Chennai": "4.1",
+    "Mumbai": "4.3", "Delhi": "4.2", "Bengaluru": "4.1", "Hyderabad": "4.3",
+    "Jodhpur": "4.4", "Puducherry": "4.4", "Visakhapatnam": "4.2",
+}
+
+
 # Photographs for the destination cards and the place pickers.
 #
 # These are Wikimedia Commons files, served straight from upload.wikimedia.org
@@ -899,6 +965,15 @@ class Command(BaseCommand):
             )
         self.stdout.write(self.style.SUCCESS(f"Transportation options: {len(TRANSPORT)}"))
 
+        # --- themes ---------------------------------------------------------
+        theme_by_slug = {}
+        for slug, name, order in THEMES:
+            theme, _ = Theme.objects.update_or_create(
+                slug=slug, defaults={"name": name, "display_order": order}
+            )
+            theme_by_slug[slug] = theme
+        self.stdout.write(self.style.SUCCESS(f"Themes: {len(THEMES)}"))
+
         # --- destinations and places ---------------------------------------
         place_total = 0
         for item in DESTINATIONS:
@@ -912,8 +987,16 @@ class Command(BaseCommand):
                     "recommended_days": item["days"],
                     "is_popular": True,
                     "image_url": IMAGES.get(item["name"], ""),
+                    "best_time": DESTINATION_THEMES.get(item["name"], ((), ""))[1],
+                    "sample_rating": Decimal(
+                        SAMPLE_RATINGS.get(item["name"], "4.0")
+                    ),
                 },
             )
+            slugs = DESTINATION_THEMES.get(item["name"], ((), ""))[0]
+            # set() rather than add(): re-running the seeder should leave the
+            # themes matching this file, not accumulate whatever was there.
+            destination.themes.set(theme_by_slug[s] for s in slugs)
             for name, category, fee, minutes, opening, description in item["places"]:
                 TouristPlace.objects.update_or_create(
                     destination=destination,

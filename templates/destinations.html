@@ -10,16 +10,85 @@
     </div>
   </div>
 
-  <form method="get" class="filter-bar">
-    <input type="text" name="q" value="{{ query }}" placeholder="Search destinations...">
-    <select name="category">
-      <option value="">All categories</option>
-      {% for value, label in categories %}
-        <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+  {% comment %}
+    One form, so the filters compose instead of replacing each other. The theme
+    chips are radio inputs styled as buttons: a chip has to be reachable and
+    announced, and a radio already is both, where a div with a click handler
+    would need the keyboard and screen-reader behaviour rebuilt by hand.
+
+    Picking a chip submits the form through the small script at the bottom.
+    Without JavaScript the Search button still applies everything, so the page
+    never depends on the script to work.
+  {% endcomment %}
+  <form method="get" class="explorer" id="explorerForm">
+    <div class="explorer-row">
+      <input type="text" name="q" value="{{ query }}" placeholder="Search destinations, states...">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+
+    <div class="chips" role="group" aria-label="Trip theme">
+      <label class="chip{% if not theme %} is-on{% endif %}">
+        <input type="radio" name="theme" value="" {% if not theme %}checked{% endif %}>
+        <span>All themes</span>
+      </label>
+      {% for t in themes %}
+        <label class="chip{% if theme == t.slug %} is-on{% endif %}">
+          <input type="radio" name="theme" value="{{ t.slug }}" {% if theme == t.slug %}checked{% endif %}>
+          <span>{{ t.name }}</span>
+        </label>
       {% endfor %}
-    </select>
-    <button class="btn btn-primary" type="submit">Search</button>
-    {% if query or category %}<a class="btn btn-ghost" href="{% url 'destination_list' %}">Clear</a>{% endif %}
+    </div>
+
+    <div class="explorer-selects">
+      <label class="ex-field">
+        <span>Kind of place</span>
+        <select name="category">
+          <option value="">Any</option>
+          {% for value, label in categories %}
+            <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label class="ex-field">
+        <span>Budget per day</span>
+        <select name="budget">
+          <option value="">Any</option>
+          <option value="low"  {% if budget == 'low' %}selected{% endif %}>Under Rs 2,000</option>
+          <option value="mid"  {% if budget == 'mid' %}selected{% endif %}>Rs 2,000 - 2,800</option>
+          <option value="high" {% if budget == 'high' %}selected{% endif %}>Rs 2,800 and above</option>
+        </select>
+      </label>
+
+      <label class="ex-field">
+        <span>Trip length</span>
+        <select name="duration">
+          <option value="">Any</option>
+          <option value="short"  {% if duration == 'short' %}selected{% endif %}>Weekend (2 days)</option>
+          <option value="medium" {% if duration == 'medium' %}selected{% endif %}>Short break (3 days)</option>
+          <option value="long"   {% if duration == 'long' %}selected{% endif %}>Longer (4+ days)</option>
+        </select>
+      </label>
+
+      <label class="ex-field">
+        <span>Region</span>
+        <select name="region">
+          <option value="">Anywhere</option>
+          <option value="domestic"      {% if region == 'domestic' %}selected{% endif %}>Domestic</option>
+          <option value="international" {% if region == 'international' %}selected{% endif %}>International</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="explorer-foot">
+      <span class="muted small">
+        {{ result_count }} destination{{ result_count|pluralize }}
+        {% if any_filter %}match your filters{% else %}available{% endif %}
+      </span>
+      {% if any_filter %}
+        <a class="btn btn-ghost btn-sm" href="{% url 'destination_list' %}">Clear all</a>
+      {% endif %}
+    </div>
   </form>
 
   <div class="card-grid">
@@ -32,11 +101,23 @@
           <h3>{{ destination.name }}</h3>
           <p class="muted small">{{ destination.state }}, {{ destination.country }}</p>
           <p class="small">{{ destination.description|truncatewords:20 }}</p>
+          {% if destination.best_time %}
+            <p class="best-time"><span aria-hidden="true">&#9788;</span> Best time: {{ destination.best_time }}</p>
+          {% endif %}
           <div class="card-meta">
             <span class="tag">~ Rs {{ destination.estimated_cost_per_day|floatformat:0 }}/day (est.)</span>
             <span class="tag">{{ destination.recommended_days }} days</span>
             <span class="tag">{{ destination.place_count }} place{{ destination.place_count|pluralize }}</span>
+            {# Labelled "sample" on purpose - it is not a visitor review score. #}
+            <span class="tag tag-rating" title="Illustrative demo score, not visitor reviews">
+              &#9733; {{ destination.sample_rating }} sample
+            </span>
           </div>
+          {% if destination.themes.all %}
+            <div class="card-themes">
+              {% for t in destination.themes.all %}<span class="theme-tag">{{ t.name }}</span>{% endfor %}
+            </div>
+          {% endif %}
           <div class="card-actions">
             <a class="btn btn-outline btn-sm" href="{% url 'destination_detail' destination.pk %}">View places</a>
             {% if user.is_authenticated %}
@@ -46,8 +127,34 @@
         </div>
       </article>
     {% empty %}
-      <p class="muted">No destinations matched your search.</p>
+      <div class="empty-state">
+        <p class="empty-title">Nothing matches those filters yet</p>
+        <p class="muted small">
+          {% if region == 'international' %}
+            Every destination loaded so far is in India, so the international
+            filter has nothing to show.
+          {% else %}
+            Try widening the budget or the trip length, or clear a filter.
+          {% endif %}
+        </p>
+        <a class="btn btn-outline btn-sm" href="{% url 'destination_list' %}">Clear all filters</a>
+      </div>
     {% endfor %}
   </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Picking a theme chip or changing a select applies it straight away. The
+  // Search button still submits everything, so with the script blocked the
+  // page keeps working exactly as it did.
+  (function () {
+    var form = document.getElementById("explorerForm");
+    if (!form) return;
+    form.addEventListener("change", function (event) {
+      if (event.target.matches("input[name='theme'], select")) form.submit();
+    });
+  })();
+</script>
 {% endblock %}

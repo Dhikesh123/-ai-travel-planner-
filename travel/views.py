@@ -19,6 +19,7 @@ from .forms import ImageUploadForm, ProfileForm, RegisterForm, TripForm
 from .models import (
     ChatMessage,
     Destination,
+    Theme,
     TouristPlace,
     Transportation,
     Trip,
@@ -97,12 +98,36 @@ def home(request):
     )
 
 
+# Budget bands for the explorer, in rupees per person per day. The boundaries
+# sit between the clusters in the sample data rather than on round numbers, so
+# each band actually returns something.
+BUDGET_BANDS = {
+    "low": (None, 2000),
+    "mid": (2000, 2800),
+    "high": (2800, None),
+}
+
+# Trip lengths, matched against recommended_days. The boundaries follow the
+# data rather than round numbers: the seeded destinations only recommend 2, 3
+# or 4 days, so a "5+" band would be an option that can never match.
+DURATION_BANDS = {
+    "short": (None, 2),
+    "medium": (3, 3),
+    "long": (4, None),
+}
+
+
 def destination_list(request):
-    """Browse and search destinations."""
+    """Browse, search and filter destinations."""
     query = (request.GET.get("q") or "").strip()
     category = (request.GET.get("category") or "").strip()
+    theme = (request.GET.get("theme") or "").strip()
+    budget = (request.GET.get("budget") or "").strip()
+    duration = (request.GET.get("duration") or "").strip()
+    region = (request.GET.get("region") or "").strip()
 
     destinations = Destination.objects.annotate(place_count=Count("places"))
+
     if query:
         destinations = destinations.filter(
             Q(name__icontains=query)
@@ -110,7 +135,35 @@ def destination_list(request):
             | Q(description__icontains=query)
         )
     if category:
-        destinations = destinations.filter(places__category=category).distinct()
+        destinations = destinations.filter(places__category=category)
+    if theme:
+        destinations = destinations.filter(themes__slug=theme)
+
+    if budget in BUDGET_BANDS:
+        low, high = BUDGET_BANDS[budget]
+        if low is not None:
+            destinations = destinations.filter(estimated_cost_per_day__gte=low)
+        if high is not None:
+            destinations = destinations.filter(estimated_cost_per_day__lt=high)
+
+    if duration in DURATION_BANDS:
+        low, high = DURATION_BANDS[duration]
+        if low is not None:
+            destinations = destinations.filter(recommended_days__gte=low)
+        if high is not None:
+            destinations = destinations.filter(recommended_days__lte=high)
+
+    # Everything seeded is in India, so "international" correctly returns
+    # nothing rather than pretending otherwise.
+    if region == "domestic":
+        destinations = destinations.filter(country__iexact="India")
+    elif region == "international":
+        destinations = destinations.exclude(country__iexact="India")
+
+    # One distinct() at the end. Both the category and theme filters join to a
+    # multi-valued relation, so a destination with four beaches would otherwise
+    # come back four times - and twice over if both filters are on.
+    destinations = destinations.prefetch_related("themes").distinct()
 
     return render(
         request,
@@ -119,7 +172,14 @@ def destination_list(request):
             "destinations": destinations,
             "query": query,
             "category": category,
+            "theme": theme,
+            "budget": budget,
+            "duration": duration,
+            "region": region,
             "categories": TouristPlace.CATEGORY_CHOICES,
+            "themes": Theme.objects.all(),
+            "result_count": destinations.count(),
+            "any_filter": any([query, category, theme, budget, duration, region]),
         },
     )
 

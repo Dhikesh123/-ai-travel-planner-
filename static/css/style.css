@@ -362,7 +362,7 @@ textarea { resize: vertical; }
   max-width: 85%; padding: .5rem .7rem; border-radius: 12px;
   font-size: .87rem; white-space: pre-wrap; word-wrap: break-word;
 }
-.w-bubble-user { align-self: flex-end; background: var(--brand); color: #fff; }
+.w-bubble-user { align-self: flex-end; background: #12a150; color: #fff; }
 .w-bubble-assistant {
   align-self: flex-start; background: #fff; border: 1px solid var(--line);
 }
@@ -396,10 +396,10 @@ textarea { resize: vertical; }
 
 .chat-fab {
   width: 60px; height: 60px;
-  background: linear-gradient(145deg, #fd0d29, #8f0a19);
-  box-shadow: 0 10px 26px rgba(143, 10, 25, .38), 0 2px 6px rgba(0, 0, 0, .12);
+  background: linear-gradient(145deg, #14b866, #0a6b36);
+  box-shadow: 0 10px 26px rgba(10, 107, 54, .38), 0 2px 6px rgba(0, 0, 0, .12);
 }
-.chat-fab:hover { background: linear-gradient(145deg, #ff2a43, #a80d20); transform: scale(1.06); }
+.chat-fab:hover { background: linear-gradient(145deg, #22d178, #0d874a); transform: scale(1.06); }
 
 .chat-widget {
   right: 22px; bottom: 96px;
@@ -417,7 +417,7 @@ textarea { resize: vertical; }
 
 /* Header ---------------------------------------------------------------- */
 .widget-head {
-  background: linear-gradient(135deg, #0b3f8f 0%, #1667d6 55%, #2b7bf5 100%);
+  background: linear-gradient(135deg, #0a6b36 0%, #12a150 55%, #22c46e 100%);
   padding: .95rem 1.05rem; align-items: flex-start;
 }
 .widget-head h4 {
@@ -446,7 +446,7 @@ textarea { resize: vertical; }
 }
 .widget-tab:hover { color: var(--ink); background: rgba(255, 255, 255, .7); }
 .widget-tab.is-active {
-  color: #0b3f8f; background: #fff; font-weight: 650;
+  color: #0a6b36; background: #fff; font-weight: 650;
   box-shadow: 0 1px 3px rgba(18, 38, 58, .12);
 }
 
@@ -471,9 +471,9 @@ textarea { resize: vertical; }
   font-size: .86rem; line-height: 1.45;
 }
 .w-bubble-user {
-  background: linear-gradient(135deg, #1667d6, #0b3f8f);
+  background: linear-gradient(135deg, #12a150, #0a6b36);
   border-bottom-right-radius: 5px;
-  box-shadow: 0 2px 8px rgba(11, 63, 143, .22);
+  box-shadow: 0 2px 8px rgba(10, 107, 54, .22);
 }
 .w-bubble-assistant {
   background: #fff; border: 1px solid rgba(18, 38, 58, .09);
@@ -490,8 +490,8 @@ textarea { resize: vertical; }
   max-height: 96px; line-height: 1.4;
 }
 .widget-form textarea:focus {
-  outline: none; border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(22, 103, 214, .16);
+  outline: none; border-color: #12a150;
+  box-shadow: 0 0 0 3px rgba(18, 161, 80, .16);
 }
 .widget-form button { border-radius: 11px; font-weight: 600; }
 
@@ -507,8 +507,8 @@ textarea { resize: vertical; }
   font-family: inherit; color: var(--ink);
 }
 .w-text:focus {
-  outline: none; border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(22, 103, 214, .16);
+  outline: none; border-color: #12a150;
+  box-shadow: 0 0 0 3px rgba(18, 161, 80, .16);
 }
 textarea.w-text { resize: none; }
 .w-row { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
@@ -536,7 +536,7 @@ textarea.w-text { resize: none; }
   font: inherit; font-size: .82rem; text-align: center;
   transition: border-color .16s, background .16s;
 }
-.w-drop:hover, .w-drop.drag { border-color: var(--brand); background: var(--brand-soft); }
+.w-drop:hover, .w-drop.drag { border-color: #12a150; background: #e8f7ef; }
 .w-drop small { opacity: .75; }
 .w-drop img { max-width: 100%; max-height: 130px; border-radius: 9px; display: block; margin: 0 auto; }
 
@@ -568,7 +568,7 @@ textarea.w-text { resize: none; }
   display: flex; flex-direction: column; gap: .5rem;
 }
 .home-chat-messages .w-bubble { max-width: 90%; }
-.home-chat-messages a { color: var(--brand); text-decoration: underline; }
+.home-chat-messages a { color: #12a150; text-decoration: underline; }
 .home-chat-form {
   display: flex; gap: .5rem; padding: .7rem; border-top: 1px solid var(--line);
 }
@@ -1123,7 +1123,7 @@ h1 { letter-spacing: -.03em; }
 /* A deep gradient header with a faint gold hairline under it, which is the
    same accent the section headings use. */
 .widget-head {
-  background: linear-gradient(135deg, #0b3f8f 0%, #0a1a2f 100%);
+  background: linear-gradient(135deg, #0d7a45 0%, #062018 100%);
   border-bottom: 1px solid rgba(200, 162, 74, .35);
   padding: .9rem 1rem;
 }
@@ -1148,7 +1148,7 @@ h1 { letter-spacing: -.03em; }
 }
 
 .w-bubble-user {
-  background: linear-gradient(135deg, #1f6feb, #0b3f8f);
+  background: linear-gradient(135deg, #17b364, #0a6b36);
   color: #fff;
   border-bottom-right-radius: 5px;
 }
@@ -1159,7 +1159,7 @@ h1 { letter-spacing: -.03em; }
 }
 
 .w-typing { padding: .7rem .9rem; }
-.w-typing span { background: var(--brand); opacity: .55; }
+.w-typing span { background: #12a150; opacity: .55; }
 
 /* The home page chat box gets the same treatment as the floating one, so the
    two do not look like different products. */
@@ -1172,7 +1172,7 @@ h1 { letter-spacing: -.03em; }
 .home-chat-messages { background: #fbfcfe; }
 
 .chat-shell { border-radius: var(--r-lg); box-shadow: var(--e2); }
-.chat-typing span { background: var(--brand); opacity: .55; }
+.chat-typing span { background: #12a150; opacity: .55; }
 
 /* The assistant button reads as one solid object rather than a flat circle. */
 .chat-fab {

@@ -29,68 +29,140 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ---------------------------------------------------------------------
-  // Show only the tourist places that belong to the chosen destination
+  // The places worth offering for THIS journey
+  //
+  // Not everything in the catalogue, and not even everything at the far end:
+  // what is near where you start, what the road passes, and what is around
+  // where you are going. The server works that out from the two addresses,
+  // so this asks again whenever either of them changes - typing a different
+  // starting town changes the answer just as much as choosing another
+  // destination does.
   // ---------------------------------------------------------------------
-  function showPlacesForDestination() {
-    const chosen = destination.value;
+  let latestRequest = 0;   // only the newest answer is allowed to paint
 
-    if (window.CALCULATOR_MODE) {
-      loadPlacesFromApi(chosen);
-      return;
-    }
-
-    let visible = 0;
-    placesGrid.querySelectorAll(".place-option").forEach((option) => {
-      const matches = option.dataset.destination === chosen;
-      option.hidden = !matches;
-      if (!matches) {
-        const box = option.querySelector("input");
-        if (box) box.checked = false;
-      } else {
-        visible += 1;
-      }
-    });
-
-    if (placesHint) {
-      placesHint.textContent = visible
-        ? `Tick the places you want to visit (${visible} available).`
-        : "No tourist places listed for this destination yet.";
-    }
+  function setHint(message) {
+    if (placesHint) placesHint.textContent = message;
   }
 
-  // The standalone calculator has no places in the HTML, so fetch them.
-  async function loadPlacesFromApi(destinationId) {
-    if (!destinationId) return;
-    placesGrid.innerHTML = "";
-    if (placesHint) placesHint.textContent = "Loading places...";
+  /** Which boxes are ticked right now, so rebuilding the list keeps them. */
+  function tickedIds() {
+    return new Set(
+      Array.from(placesGrid.querySelectorAll('input[name="places"]:checked'))
+        .map((box) => box.value)
+    );
+  }
 
-    const data = await fetch(`/api/destinations/${destinationId}/`).then((r) => r.json());
-    if (!data.ok) {
-      if (placesHint) placesHint.textContent = "Could not load places.";
+  function placeLabel(place, ticked) {
+    const fee = Number(place.entry_fee) > 0
+      ? "entry ~ " + formatRupees(place.entry_fee) + " (est.)"
+      : "free";
+    const label = document.createElement("label");
+    label.className = "place-option";
+    label.innerHTML = `
+      <input type="checkbox" name="places" value="${place.id}"
+             data-fee="${place.entry_fee}"${ticked.has(String(place.id)) ? " checked" : ""}>
+      <span class="place-body">
+        <strong>${escapeHtml(place.name)}</strong>
+        <span class="muted small">${escapeHtml(place.category_label)} &middot; ${fee}</span>
+        ${place.opening_info
+          ? `<span class="muted small">${escapeHtml(place.opening_info)}</span>`
+          : ""}
+      </span>`;
+    return label;
+  }
+
+  /** Build the same grouped markup the server renders on first paint. */
+  function renderGroups(groups, ticked) {
+    placesGrid.innerHTML = "";
+    let count = 0;
+
+    groups.forEach((group) => {
+      const section = document.createElement("div");
+      section.className = "place-group";
+
+      const heading = document.createElement("h3");
+      heading.className = "place-group-heading";
+      heading.textContent = group.heading;
+      section.appendChild(heading);
+
+      const note = document.createElement("p");
+      note.className = "place-group-note muted small";
+      note.textContent = group.note;
+      section.appendChild(note);
+
+      group.destinations.forEach((city) => {
+        if (!city.places.length) return;
+
+        const name = document.createElement("p");
+        name.className = "place-city";
+        name.innerHTML = `${escapeHtml(city.name)}${
+          city.state ? `<span class="muted"> &middot; ${escapeHtml(city.state)}</span>` : ""
+        }`;
+        section.appendChild(name);
+
+        const options = document.createElement("div");
+        options.className = "place-city-options";
+        city.places.forEach((place) => {
+          options.appendChild(placeLabel(place, ticked));
+          count += 1;
+        });
+        section.appendChild(options);
+      });
+
+      placesGrid.appendChild(section);
+    });
+    return count;
+  }
+
+  async function loadJourneyPlaces() {
+    if (!placesGrid) return;
+
+    if (!destination.value) {
+      placesGrid.innerHTML = "";
+      setHint("Choose where you are going, and the places along the way appear here.");
       return;
     }
 
-    const places = data.destination.places || [];
-    places.forEach((place) => {
-      const label = document.createElement("label");
-      label.className = "place-option";
-      label.innerHTML = `
-        <input type="checkbox" name="places" value="${place.id}">
-        <span class="place-body">
-          <strong>${escapeHtml(place.name)}</strong>
-          <span class="muted small">${escapeHtml(place.category_label)} &middot;
-            ${Number(place.entry_fee) > 0
-              ? "entry ~ " + formatRupees(place.entry_fee) + " (est.)"
-              : "free"}</span>
-        </span>`;
-      label.querySelector("input").addEventListener("change", calculate);
-      placesGrid.appendChild(label);
+    const ticked = tickedIds();
+    const mine = ++latestRequest;
+    setHint("Finding the places along your journey...");
+
+    const query = new URLSearchParams({
+      destination: destination.value,
+      source: source ? source.value.trim() : "",
     });
 
-    if (placesHint) {
-      placesHint.textContent = places.length
-        ? `Tick the places you want to visit (${places.length} available).`
-        : "No tourist places listed for this destination yet.";
+    let data;
+    try {
+      data = await fetch(`/api/journey-places/?${query}`).then((r) => r.json());
+    } catch (error) {
+      setHint("Could not load the places for this journey.");
+      return;
+    }
+
+    // Someone kept typing while this was in flight: that answer is stale.
+    if (mine !== latestRequest) return;
+
+    if (!data.ok) {
+      setHint(data.error || "Could not load the places for this journey.");
+      return;
+    }
+
+    const count = renderGroups(data.groups, ticked);
+    const typed = source && source.value.trim();
+
+    if (!count) {
+      setHint("No tourist places are listed for this journey yet.");
+    } else if (typed && !data.source_located) {
+      // Being honest about it beats silently showing a shorter list.
+      setHint(
+        `${count} places to choose from. We could not find "${typed}" on the map, ` +
+        "so these are the ones around your destination only."
+      );
+    } else if (typed) {
+      setHint(`${count} places along the way from ${typed}. Tick the ones you want to visit.`);
+    } else {
+      setHint(`${count} places to choose from. Type where you are starting from to see what is on the way.`);
     }
     calculate();
   }
@@ -204,14 +276,26 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------------------------------------------------------------------
   const recalculate = debounce(calculate, 400);
 
-  [source, travelers, days, activity].forEach((field) => {
+  // Changing where you start changes what is on the way, so the place list
+  // has to be asked for again. Debounced harder than the cost is: this one
+  // reaches a geocoder the first time a town is typed, and there is no sense
+  // asking after every letter of "Bhimavaram".
+  const reloadJourney = debounce(loadJourneyPlaces, 800);
+
+  [travelers, days, activity].forEach((field) => {
     if (field) field.addEventListener("input", recalculate);
   });
+  if (source) {
+    source.addEventListener("input", function () {
+      recalculate();
+      reloadJourney();
+    });
+  }
   [transportation, hotel, food].forEach((field) => {
     if (field) field.addEventListener("change", calculate);
   });
   destination.addEventListener("change", function () {
-    showPlacesForDestination();
+    loadJourneyPlaces();
     calculate();
   });
   if (placesGrid) {
@@ -220,6 +304,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  showPlacesForDestination();
+  // The server has already painted the right groups for whatever the form
+  // arrived holding, so only fetch when it could not: no destination chosen
+  // yet, or a page (the standalone calculator) that renders none at all.
+  if (!placesGrid || !placesGrid.querySelector(".place-option")) {
+    loadJourneyPlaces();
+  } else {
+    setHint(
+      `${placesGrid.querySelectorAll(".place-option").length} places along your journey. ` +
+      "Tick the ones you want to visit."
+    );
+  }
   calculate();
 });

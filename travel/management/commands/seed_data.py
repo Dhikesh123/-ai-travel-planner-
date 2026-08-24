@@ -1441,6 +1441,62 @@ DESTINATION_THEMES.update(TEMPLE_THEMES)
 SAMPLE_RATINGS.update(TEMPLE_RATINGS)
 
 
+# Where each destination is, so the planner can work out what a journey
+# passes. Straight from OpenStreetMap, rounded to five decimal places -
+# about a metre, which is far finer than anything here needs.
+#
+# They live here rather than being looked up at run time because a fresh
+# install should not need the internet to know where Goa is.
+COORDINATES = {
+    "Agra":                                (27.17526, 78.00982),
+    "Alleppey":                            (9.19893, 76.4856),
+    "Amritsar":                            (31.63567, 74.87875),
+    "Annavaram":                           (17.28331, 82.40803),
+    "Ayodhya":                             (26.79907, 82.20523),
+    "Badrinath":                           (30.74233, 79.49303),
+    "Basara":                              (17.40539, 78.47764),
+    "Bengaluru":                           (12.97679, 77.59008),
+    "Bhadrachalam":                        (17.6688, 80.89401),
+    "Bodh Gaya":                           (24.68174, 84.96823),
+    "Chennai":                             (13.08369, 80.27019),
+    "Delhi":                               (28.66645, 77.21698),
+    "Dwarka":                              (22.24247, 68.96714),
+    "Goa":                                 (15.49899, 73.82821),
+    "Guruvayur":                           (10.59724, 76.04591),
+    "Hampi":                               (15.3358, 76.46102),
+    "Haridwar":                            (29.93845, 78.1453),
+    "Hyderabad":                           (17.36059, 78.47406),
+    "Jaipur":                              (26.91546, 75.81898),
+    "Jodhpur":                             (26.29677, 73.03514),
+    "Kanchipuram":                         (12.96472, 79.98397),
+    "Kedarnath":                           (30.73389, 79.06691),
+    "Kochi":                               (9.9679, 76.24444),
+    "Madurai":                             (9.92612, 78.1141),
+    "Manali":                              (32.24546, 77.18729),
+    "Mumbai":                              (19.055, 72.8692),
+    "Munnar":                              (10.087, 77.06009),
+    "Mysuru":                              (12.30415, 76.65295),
+    "Puducherry":                          (11.93406, 79.83064),
+    "Puri":                                (19.80761, 85.82525),
+    "Rameswaram":                          (9.28447, 79.31256),
+    "Rishikesh":                           (30.10865, 78.29162),
+    "Shimla":                              (31.10404, 77.17079),
+    "Shirdi":                              (19.76681, 74.47544),
+    "Somnath":                             (20.89572, 70.40805),
+    "Srikalahasti":                        (13.7518, 79.70023),
+    "Srirangam":                           (10.85733, 78.69308),
+    "Srisailam":                           (16.07378, 78.87271),
+    "Tirupati":                            (13.63164, 79.42317),
+    "Trimbakeshwar":                       (19.93212, 73.53075),
+    "Udaipur":                             (24.57872, 73.68626),
+    "Ujjain":                              (23.18851, 75.77166),
+    "Vaishno Devi":                        (33.0274, 74.94537),
+    "Varanasi":                            (25.33565, 83.00763),
+    "Vijayawada":                          (16.51153, 80.61605),
+    "Visakhapatnam":                       (17.69355, 83.29213),
+    "Yadadri":                             (17.58406, 78.94673),
+}
+
 # Photographs for the destination cards and the place pickers.
 #
 # These are Wikimedia Commons files that now live inside the project, in
@@ -1769,6 +1825,8 @@ class Command(BaseCommand):
                     "recommended_days": item["days"],
                     "is_popular": True,
                     "image_url": IMAGES.get(item["name"], ""),
+                    "latitude": COORDINATES.get(item["name"], (None, None))[0],
+                    "longitude": COORDINATES.get(item["name"], (None, None))[1],
                     "best_time": DESTINATION_THEMES.get(item["name"], ((), ""))[1],
                     "sample_rating": Decimal(
                         SAMPLE_RATINGS.get(item["name"], "4.0")

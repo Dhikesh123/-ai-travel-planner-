@@ -86,6 +86,8 @@ urlpatterns = [
         api_views.api_destination_detail,
         name="api_destination_detail",
     ),
+    # The planner asks this every time the From or To address changes.
+    path("api/journey-places/", api_views.api_journey_places, name="api_journey_places"),
     path("api/transportation/", api_views.api_transportation, name="api_transportation"),
     path("api/trips/", api_views.api_trips, name="api_trips"),
     path("api/trips/<int:pk>/", api_views.api_trip_detail, name="api_trip_detail"),

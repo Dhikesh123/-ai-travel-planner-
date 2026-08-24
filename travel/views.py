@@ -34,7 +34,7 @@ from .models import (
     Trip,
     UploadedImage,
 )
-from .services import ai_service
+from .services import ai_service, geo_service
 from .utils import recalculate_trip
 
 # How many "you could also visit" places the trip page offers alongside the
@@ -475,6 +475,35 @@ def profile_view(request):
 # ---------------------------------------------------------------------------
 # Travel planner
 # ---------------------------------------------------------------------------
+def _place_groups_for(form):
+    """
+    The places worth offering, grouped by where they fall on the journey.
+
+    Read from whatever the form is holding - the values the customer brought
+    from the home page, or the ones already saved on a trip being edited - so
+    the first paint of the page is already the right list rather than all 193
+    places waiting for JavaScript to hide most of them.
+
+    JavaScript takes over from here: /api/journey-places/ returns the same
+    groups whenever either address changes.
+    """
+    data = form.initial or {}
+    source = (form.data.get("source") if form.data else None) or data.get("source") or ""
+
+    destination = data.get("destination") or (form.data.get("destination") if form.data else None)
+    if hasattr(destination, "pk"):
+        destination_id = destination.pk
+    elif str(destination or "").isdigit():
+        destination_id = int(destination)
+    else:
+        return []
+
+    chosen = Destination.objects.filter(pk=destination_id).first()
+    if chosen is None:
+        return []
+    return geo_service.journey_groups(str(source), chosen)
+
+
 @login_required
 def planner(request):
     """Create a new trip."""
@@ -515,7 +544,7 @@ def planner(request):
         "planner.html",
         {
             "form": form,
-            "destinations": Destination.objects.prefetch_related("places"),
+            "place_groups": _place_groups_for(form),
             "transports": Transportation.objects.filter(is_active=True),
         },
     )
@@ -624,7 +653,7 @@ def trip_edit(request, pk):
             "form": form,
             "trip": trip,
             "selected_ids": selected_ids,
-            "destinations": Destination.objects.prefetch_related("places"),
+            "place_groups": _place_groups_for(form),
             "transports": Transportation.objects.filter(is_active=True),
             "editing": True,
         },

@@ -76,24 +76,46 @@
       </label>
 
       <h2>Choose the places you want to visit</h2>
-      <p class="muted small" id="placesHint">Pick a destination first to see its tourist places.</p>
+      <p class="muted small" id="placesHint">
+        Fill in <strong>From</strong> and <strong>To</strong> above, and the
+        places along that journey appear here.
+      </p>
 
+      {% comment %}
+        Grouped by where each place falls on the journey - near the start, on
+        the road, at the far end - rather than one flat list of everything in
+        the catalogue. The groups are built by geo_service.journey_groups, and
+        planner.js replaces this whole block by calling /api/journey-places/
+        whenever either address changes.
+
+        The same markup is produced on the server and in the browser, so the
+        page is right before JavaScript runs and stays right after.
+      {% endcomment %}
       <div class="places-grid" id="placesGrid">
-        {% for destination in destinations %}
-          {% for place in destination.places.all %}
-            <label class="place-option" data-destination="{{ destination.pk }}" hidden>
-              <input type="checkbox" name="places" value="{{ place.pk }}"
-                     data-fee="{{ place.entry_fee }}"
-                     {% if place.pk in selected_ids %}checked{% endif %}>
-              <span class="place-body">
-                <strong>{{ place.name }}</strong>
-                <span class="muted small">{{ place.get_category_display }}
-                  {% if place.entry_fee > 0 %}&middot; entry ~ Rs {{ place.entry_fee|floatformat:0 }} (est.){% else %}&middot; free{% endif %}
-                </span>
-                {% if place.opening_info %}<span class="muted small">{{ place.opening_info }}</span>{% endif %}
-              </span>
-            </label>
-          {% endfor %}
+        {% for heading, note, destinations in place_groups %}
+          <div class="place-group">
+            <h3 class="place-group-heading">{{ heading }}</h3>
+            <p class="place-group-note muted small">{{ note }}</p>
+            {% for destination in destinations %}
+              <p class="place-city">{{ destination.name }}{% if destination.state %}<span class="muted"> &middot; {{ destination.state }}</span>{% endif %}</p>
+              <div class="place-city-options">
+                {% for place in destination.places.all %}
+                  <label class="place-option">
+                    <input type="checkbox" name="places" value="{{ place.pk }}"
+                           data-fee="{{ place.entry_fee }}"
+                           {% if place.pk in selected_ids %}checked{% endif %}>
+                    <span class="place-body">
+                      <strong>{{ place.name }}</strong>
+                      <span class="muted small">{{ place.get_category_display }}
+                        {% if place.entry_fee > 0 %}&middot; entry ~ Rs {{ place.entry_fee|floatformat:0 }} (est.){% else %}&middot; free{% endif %}
+                      </span>
+                      {% if place.opening_info %}<span class="muted small">{{ place.opening_info }}</span>{% endif %}
+                    </span>
+                  </label>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
         {% endfor %}
       </div>
 

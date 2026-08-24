@@ -10,12 +10,13 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from .forms import TripForm
 from .models import (
+    CityLocation,
     Destination,
     Profile,
     RouteDistance,
@@ -27,6 +28,7 @@ from .models import (
 from . import languages
 from .services import travel_service
 from .services.speech_service import detect_language
+from .services import geo_service
 from .utils import recalculate_trip
 
 
@@ -699,3 +701,220 @@ class LanguageListTests(TestCase):
         telugu = next(item for item in languages.as_dicts() if item["code"] == "te")
         self.assertEqual(telugu["speechCode"], "te-IN")
         self.assertTrue(telugu["scriptStart"] < telugu["scriptEnd"])
+
+class JourneyGeographyTests(TestCase):
+    """
+    What the planner offers depends on where the two ends of the trip are.
+
+    Every test here works from coordinates written into the database, and
+    seeds the location cache for the starting town, so nothing reaches
+    OpenStreetMap. A test suite that needs the internet is a test suite that
+    fails on a train.
+    """
+
+    def setUp(self):
+        # A roughly south-to-north line up the east of India, which is the
+        # shape of the journey this was built for.
+        self.bhimavaram = (16.48181, 81.53294)
+        CityLocation.objects.create(
+            name="bhimavaram", latitude=self.bhimavaram[0], longitude=self.bhimavaram[1]
+        )
+
+        def place(name, state, lat, lon):
+            destination = Destination.objects.create(
+                name=name, state=state, latitude=lat, longitude=lon
+            )
+            TouristPlace.objects.create(
+                destination=destination, name=name + " temple", category="temple"
+            )
+            return destination
+
+        self.ayodhya = place("Ayodhya", "Uttar Pradesh", 26.79907, 82.20523)
+        self.vijayawada = place("Vijayawada", "Andhra Pradesh", 16.51153, 80.61605)
+        self.varanasi = place("Varanasi", "Uttar Pradesh", 25.33565, 83.00763)
+        self.goa = place("Goa", "Goa", 15.35000, 74.00000)
+
+    # -- the maths ------------------------------------------------------
+    def test_distance_between_two_points(self):
+        """Bhimavaram to Ayodhya is a shade over 1,100 km as the crow flies."""
+        km = geo_service.distance_km(
+            self.bhimavaram, (self.ayodhya.latitude, self.ayodhya.longitude)
+        )
+        self.assertAlmostEqual(km, 1149, delta=25)
+
+    def test_distance_to_itself_is_zero(self):
+        self.assertAlmostEqual(
+            geo_service.distance_km(self.bhimavaram, self.bhimavaram), 0, places=5
+        )
+
+    def test_distance_needs_both_ends(self):
+        self.assertIsNone(geo_service.distance_km(self.bhimavaram, None))
+        self.assertIsNone(geo_service.distance_km(None, None))
+
+    def test_a_town_on_the_line_is_on_the_way(self):
+        end = (self.ayodhya.latitude, self.ayodhya.longitude)
+        here = (self.varanasi.latitude, self.varanasi.longitude)
+        self.assertTrue(geo_service.is_on_the_way(self.bhimavaram, here, end))
+
+    def test_a_town_in_the_wrong_direction_is_not(self):
+        """Goa is west; Ayodhya is north. Nobody drives one to reach the other."""
+        end = (self.ayodhya.latitude, self.ayodhya.longitude)
+        here = (self.goa.latitude, self.goa.longitude)
+        self.assertFalse(geo_service.is_on_the_way(self.bhimavaram, here, end))
+
+    # -- the grouping ---------------------------------------------------
+    def test_the_journey_is_split_into_three_groups(self):
+        groups = geo_service.journey_groups("Bhimavaram", self.ayodhya)
+        headings = [heading for heading, _, _ in groups]
+        self.assertEqual(
+            headings,
+            ["Near your starting point", "On the way", "In and around Ayodhya"],
+        )
+
+    def test_a_town_beside_the_start_is_grouped_with_it(self):
+        groups = dict((heading, rows) for heading, _, rows in
+                      geo_service.journey_groups("Bhimavaram", self.ayodhya))
+        self.assertIn(self.vijayawada, groups["Near your starting point"])
+
+    def test_a_town_along_the_road_is_grouped_as_such(self):
+        groups = dict((heading, rows) for heading, _, rows in
+                      geo_service.journey_groups("Bhimavaram", self.ayodhya))
+        self.assertIn(self.varanasi, groups["On the way"])
+
+    def test_the_destination_leads_its_own_group(self):
+        groups = geo_service.journey_groups("Bhimavaram", self.ayodhya)
+        _, _, last = groups[-1]
+        self.assertEqual(last[0], self.ayodhya)
+
+    def test_somewhere_in_the_wrong_direction_is_offered_at_all(self):
+        """Goa belongs to no group on this journey."""
+        offered = [
+            destination
+            for _, _, rows in geo_service.journey_groups("Bhimavaram", self.ayodhya)
+            for destination in rows
+        ]
+        self.assertNotIn(self.goa, offered)
+
+    def test_an_unplaceable_start_still_gives_the_destination(self):
+        """
+        A town OpenStreetMap could not find is remembered as a failure, and
+        the planner falls back to the far end rather than showing nothing.
+        """
+        CityLocation.objects.create(name="nowhere-at-all", latitude=None, longitude=None)
+        groups = geo_service.journey_groups("Nowhere-At-All", self.ayodhya)
+        self.assertEqual([heading for heading, _, _ in groups],
+                         ["In and around Ayodhya"])
+
+    def test_no_destination_means_no_groups(self):
+        self.assertEqual(geo_service.journey_groups("Bhimavaram", None), [])
+
+    # -- the cache ------------------------------------------------------
+    def test_a_known_destination_is_located_without_asking_anyone(self):
+        # Compared as floats: the column is a DecimalField, so what comes back
+        # from the database is a Decimal even though a float went in.
+        latitude, longitude = geo_service.locate("varanasi")
+        self.assertAlmostEqual(float(latitude), 25.33565, places=5)
+        self.assertAlmostEqual(float(longitude), 83.00763, places=5)
+
+    def test_a_remembered_failure_is_not_looked_up_again(self):
+        CityLocation.objects.create(name="qqqq", latitude=None, longitude=None)
+        self.assertIsNone(geo_service.locate("QQQQ"))
+
+    def test_an_empty_name_is_not_looked_up(self):
+        self.assertIsNone(geo_service.locate(""))
+        self.assertIsNone(geo_service.locate(None))
+
+
+class JourneyPlacesApiTests(TestCase):
+    """The endpoint the planner calls whenever either address changes."""
+
+    def setUp(self):
+        self.client = Client()
+        CityLocation.objects.create(name="bhimavaram", latitude=16.48181, longitude=81.53294)
+        self.ayodhya = Destination.objects.create(
+            name="Ayodhya", state="Uttar Pradesh", latitude=26.79907, longitude=82.20523
+        )
+        TouristPlace.objects.create(
+            destination=self.ayodhya, name="Ram Mandir", category="temple"
+        )
+        self.vijayawada = Destination.objects.create(
+            name="Vijayawada", state="Andhra Pradesh", latitude=16.51153, longitude=80.61605
+        )
+        TouristPlace.objects.create(
+            destination=self.vijayawada, name="Kanaka Durga Temple", category="temple"
+        )
+
+    def test_it_returns_the_groups_for_a_journey(self):
+        response = self.client.get(
+            "/api/journey-places/",
+            {"source": "Bhimavaram", "destination": self.ayodhya.pk},
+        )
+        body = response.json()
+        self.assertTrue(body["ok"])
+        self.assertTrue(body["source_located"])
+        headings = [group["heading"] for group in body["groups"]]
+        self.assertIn("Near your starting point", headings)
+        self.assertIn("In and around Ayodhya", headings)
+
+    def test_it_says_when_the_starting_town_could_not_be_placed(self):
+        CityLocation.objects.create(name="zzzz", latitude=None, longitude=None)
+        body = self.client.get(
+            "/api/journey-places/", {"source": "Zzzz", "destination": self.ayodhya.pk}
+        ).json()
+        self.assertFalse(body["source_located"])
+        self.assertEqual([g["heading"] for g in body["groups"]], ["In and around Ayodhya"])
+
+    def test_it_needs_a_destination(self):
+        body = self.client.get("/api/journey-places/", {"source": "Bhimavaram"}).json()
+        self.assertFalse(body["ok"])
+
+    def test_it_refuses_a_destination_that_does_not_exist(self):
+        response = self.client.get(
+            "/api/journey-places/", {"source": "Bhimavaram", "destination": 99999}
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class PlannerPageTests(TestCase):
+    """What the page itself paints before any JavaScript runs."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="ravi", password="TestPass!234")
+        self.client.force_login(self.user)
+        CityLocation.objects.create(name="bhimavaram", latitude=16.48181, longitude=81.53294)
+
+        self.ayodhya = Destination.objects.create(
+            name="Ayodhya", state="Uttar Pradesh", latitude=26.79907, longitude=82.20523
+        )
+        TouristPlace.objects.create(destination=self.ayodhya, name="Ram Mandir", category="temple")
+
+        self.vijayawada = Destination.objects.create(
+            name="Vijayawada", state="Andhra Pradesh", latitude=16.51153, longitude=80.61605
+        )
+        TouristPlace.objects.create(
+            destination=self.vijayawada, name="Kanaka Durga Temple", category="temple"
+        )
+        # somewhere with no business being on this journey
+        self.goa = Destination.objects.create(
+            name="Goa", state="Goa", latitude=15.35, longitude=74.0
+        )
+        TouristPlace.objects.create(destination=self.goa, name="Baga Beach", category="beach")
+
+        Transportation.objects.create(
+            code="car", name="Car", cost_per_km=Decimal("12.00"),
+            average_speed_kmph=55, seats_per_unit=4, charged_per_person=False,
+        )
+
+    def test_the_page_offers_only_places_along_the_journey(self):
+        html = self.client.get(
+            "/planner/", {"source": "Bhimavaram", "destination": self.ayodhya.pk}
+        ).content.decode()
+        self.assertIn("Ram Mandir", html)          # the destination
+        self.assertIn("Kanaka Durga Temple", html)  # beside the start
+        self.assertNotIn("Baga Beach", html)        # the wrong way entirely
+
+    def test_without_a_destination_it_offers_nothing_yet(self):
+        html = self.client.get("/planner/").content.decode()
+        self.assertNotIn("Ram Mandir", html)
+        self.assertNotIn("Baga Beach", html)

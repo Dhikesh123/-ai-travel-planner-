@@ -42,7 +42,7 @@ from .serializers import (
     UploadedImageSerializer,
     UserSerializer,
 )
-from .services import ai_service, speech_service, travel_service
+from .services import ai_service, geo_service, speech_service, travel_service
 from .utils import recalculate_trip, trip_summary_text
 
 logger = logging.getLogger(__name__)
@@ -251,6 +251,69 @@ def api_destination_detail(request, pk):
     except Destination.DoesNotExist:
         return error("That destination does not exist.", status.HTTP_404_NOT_FOUND)
     return Response({"ok": True, "destination": DestinationDetailSerializer(destination).data})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def api_journey_places(request):
+    """
+    GET /api/journey-places/?source=Bhimavaram&destination=<id>
+
+    The tourist places worth offering someone travelling between those two
+    points: what is near where they start, what the road passes, and what is
+    at the far end. The planner calls this whenever either address changes,
+    so the list follows the journey instead of showing all 193 places in the
+    catalogue every time.
+
+    A starting city that cannot be placed on the map is not an error. The
+    answer comes back with source_located false and only the destination
+    group filled in, which is exactly what the page can show without it.
+    """
+    destination_id = (request.GET.get("destination") or "").strip()
+    if not destination_id.isdigit():
+        return error("Choose a destination first.")
+
+    try:
+        destination = Destination.objects.get(pk=int(destination_id))
+    except Destination.DoesNotExist:
+        return error("That destination does not exist.", status.HTTP_404_NOT_FOUND)
+
+    source = (request.GET.get("source") or "").strip()
+    groups = geo_service.journey_groups(source, destination)
+
+    return Response(
+        {
+            "ok": True,
+            # so the page can say "we could not find that town" rather than
+            # silently dropping half the list
+            "source_located": bool(source) and geo_service.locate(source) is not None,
+            "groups": [
+                {
+                    "heading": heading,
+                    "note": note,
+                    "destinations": [
+                        {
+                            "id": item.pk,
+                            "name": item.name,
+                            "state": item.state,
+                            "places": [
+                                {
+                                    "id": place.pk,
+                                    "name": place.name,
+                                    "category_label": place.get_category_display(),
+                                    "entry_fee": str(place.entry_fee),
+                                    "opening_info": place.opening_info,
+                                }
+                                for place in item.places.all()
+                            ],
+                        }
+                        for item in rows
+                    ],
+                }
+                for heading, note, rows in groups
+            ],
+        }
+    )
 
 
 @api_view(["GET"])

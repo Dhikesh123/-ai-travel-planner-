@@ -159,6 +159,18 @@ class Destination(models.Model):
         related_name="destinations",
         help_text="Who the trip suits: family, honeymoon, weekend and so on.",
     )
+    # Where the place actually is. Without these the site could name a city
+    # but had no idea where it sat, so it could not answer the one question a
+    # traveller asks first: what is on the way. Null is allowed because a
+    # destination added by hand in the admin is still usable without them -
+    # it simply never appears as a stop on someone else's route.
+    latitude = models.DecimalField(
+        max_digits=8, decimal_places=5, null=True, blank=True
+    )
+    longitude = models.DecimalField(
+        max_digits=8, decimal_places=5, null=True, blank=True
+    )
+
     best_time = models.CharField(
         max_length=90,
         blank=True,
@@ -240,6 +252,51 @@ class TouristPlace(models.Model):
         if self.image:
             return self.image.url
         return self.image_url or ""
+
+
+# ---------------------------------------------------------------------------
+# 3b. CityLocation (where a typed starting city is)
+# ---------------------------------------------------------------------------
+class CityLocation(models.Model):
+    """
+    Coordinates for a city somebody typed into "From".
+
+    A starting city is free text: Bhimavaram is a real place with real
+    tourists, and it is not one of the 47 destinations this site sells. To
+    work out what a journey passes, the site has to know where the start is,
+    so it asks OpenStreetMap once and keeps the answer here. The next
+    traveller from the same town costs no network call at all.
+
+    A row with no coordinates is a remembered failure: a name OpenStreetMap
+    could not place. Keeping it stops the site asking again on every
+    keystroke for a town that will never resolve.
+    """
+
+    # Lower-cased, so "Bhimavaram", "bhimavaram" and " BHIMAVARAM " are one row
+    name = models.CharField(max_length=120, unique=True)
+    display_name = models.CharField(
+        max_length=250, blank=True, help_text="What OpenStreetMap called it."
+    )
+    latitude = models.DecimalField(
+        max_digits=8, decimal_places=5, null=True, blank=True
+    )
+    longitude = models.DecimalField(
+        max_digits=8, decimal_places=5, null=True, blank=True
+    )
+    looked_up_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "City location"
+
+    def __str__(self):
+        if self.latitude is None:
+            return f"{self.name} (not found)"
+        return f"{self.name} ({self.latitude}, {self.longitude})"
+
+    @property
+    def found(self):
+        return self.latitude is not None and self.longitude is not None
 
 
 # ---------------------------------------------------------------------------

@@ -76,6 +76,11 @@ code { background: #eef2f7; padding: .1rem .35rem; border-radius: 5px; font-size
 }
 
 /* ---------------------------- Buttons ----------------------------------- */
+/* Buttons the scripts reveal later - "read this aloud" appears once there is
+   something to read - are marked hidden in the HTML, and would show anyway
+   without this: display below beats the browser's [hidden]. */
+.btn[hidden] { display: none; }
+
 .btn {
   display: inline-block; border: 1px solid transparent; border-radius: 10px;
   padding: .55rem 1.05rem; font-size: .95rem; font-weight: 600; cursor: pointer;
@@ -228,10 +233,40 @@ textarea { resize: vertical; }
 .detail-layout { display: grid; gap: 1.2rem; grid-template-columns: 1fr; align-items: start; }
 @media (min-width: 1000px) { .detail-layout { grid-template-columns: 1.6fr 1fr; } }
 
-.places-grid { display: grid; gap: .6rem; grid-template-columns: 1fr; margin-bottom: 1rem; }
-@media (min-width: 700px) { .places-grid { grid-template-columns: 1fr 1fr; } }
+/* The place picker is a stack of groups - near your start, on the way, around
+   your destination - and the checkboxes pair up inside each city. */
+.places-grid { display: block; margin-bottom: 1rem; }
+
+.place-group { margin-bottom: 1.4rem; }
+.place-group-heading {
+  font-size: .95rem;
+  font-weight: 750;
+  color: var(--brand);
+  margin: 0 0 .1rem;
+}
+.place-group-note { margin: 0 0 .7rem; }
+
+.place-city {
+  font-size: .88rem;
+  font-weight: 700;
+  margin: .8rem 0 .4rem;
+  padding-bottom: .25rem;
+  border-bottom: 1px solid var(--line);
+}
+.place-city:first-of-type { margin-top: 0; }
+
+.place-city-options { display: grid; gap: .6rem; grid-template-columns: 1fr; }
+@media (min-width: 700px) { .place-city-options { grid-template-columns: 1fr 1fr; } }
+
 .place-option { display: flex; gap: .6rem; align-items: flex-start; border: 1px solid var(--line);
   border-radius: 10px; padding: .65rem; margin: 0; font-weight: 400; cursor: pointer; background: #fff; }
+/* A safety net, and a warning. .place-option sets display, and any author
+   rule beats the browser's own [hidden] { display: none } - so marking one
+   of these hidden from a script does nothing at all without this line. That
+   is exactly how every one of the 193 places in the catalogue used to stay
+   on screen whichever destination was chosen. Same fix as .chat-widget
+   [hidden] further down. */
+.place-option[hidden] { display: none; }
 .place-option:hover { border-color: var(--brand); }
 .place-option input { width: auto; margin: .25rem 0 0; flex-shrink: 0; }
 .place-body { display: flex; flex-direction: column; gap: .1rem; }

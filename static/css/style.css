@@ -10,10 +10,10 @@
   --line: #e2e8f0;
   --bg: #f6f8fb;
   --card: #ffffff;
-  --brand: #12a150;
-  --brand-dark: #0a6b36;
-  --brand-soft: #e8f7ef;
-  --accent: #f2994a;
+  --brand: #fd0d29;
+  --brand-dark: #b30a1d;
+  --brand-soft: #ffe8ea;
+  --accent: #e01029;
   --ok: #1a7f5a;
   --warn: #9a6700;
   --warn-bg: #fff8e1;
@@ -103,7 +103,7 @@ code { background: #eef2f7; padding: .1rem .35rem; border-radius: 5px; font-size
 .alert-error { background: var(--danger-bg); border-color: #f5c2c0; color: var(--danger); }
 
 /* ---------------------------- Hero -------------------------------------- */
-.hero { background: linear-gradient(160deg, #0d3b66 0%, #0d6efd 100%); color: #fff; padding: 2.5rem 0 3rem; }
+.hero { background: #c00d21; color: #fff; padding: 2.5rem 0 3rem; }
 .hero-inner { display: grid; gap: 1.5rem; }
 .hero h1 { font-size: 2rem; }
 .hero p { color: rgba(255,255,255,.9); }
@@ -185,7 +185,7 @@ textarea { resize: vertical; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
   overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; transition: .18s; }
 .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-.card-image { height: 140px; background: linear-gradient(135deg, #0d3b66, #0d6efd);
+.card-image { height: 140px; background: #c00d21;
   background-size: cover; background-position: center; display: flex; align-items: center;
   justify-content: center; color: #fff; font-size: 1.6rem; font-weight: 700; }
 .card-image.small-image { height: 110px; font-size: .95rem; }
@@ -204,7 +204,7 @@ textarea { resize: vertical; }
   padding: 1rem; text-align: center; box-shadow: var(--shadow); }
 .stat-value { display: block; font-size: 1.5rem; font-weight: 700; color: var(--brand); }
 .stat-label { display: block; font-size: .82rem; color: var(--ink-soft); }
-.stat-highlight { background: linear-gradient(135deg, #0d3b66, #0d6efd); }
+.stat-highlight { background: #c00d21; }
 .stat-highlight .stat-value, .stat-highlight .stat-label { color: #fff; }
 
 .quick-grid { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -362,7 +362,7 @@ textarea { resize: vertical; }
   max-width: 85%; padding: .5rem .7rem; border-radius: 12px;
   font-size: .87rem; white-space: pre-wrap; word-wrap: break-word;
 }
-.w-bubble-user { align-self: flex-end; background: #12a150; color: #fff; }
+.w-bubble-user { align-self: flex-end; background: var(--brand); color: #fff; }
 .w-bubble-assistant {
   align-self: flex-start; background: #fff; border: 1px solid var(--line);
 }
@@ -392,14 +392,14 @@ textarea { resize: vertical; }
 
 /* ============ Floating assistant - tabs, image and voice ================= */
 /* A calmer, more premium panel: deeper header, quieter chrome, one accent
-   colour doing the work instead of blue on every surface. */
+   colour doing the work on every surface. *
 
 .chat-fab {
   width: 60px; height: 60px;
-  background: linear-gradient(145deg, #14b866, #0a6b36);
-  box-shadow: 0 10px 26px rgba(10, 107, 54, .38), 0 2px 6px rgba(0, 0, 0, .12);
+  background: #fd0d29;
+  box-shadow: 0 10px 26px rgba(253, 13, 41, .38), 0 2px 6px rgba(0, 0, 0, .12);
 }
-.chat-fab:hover { background: linear-gradient(145deg, #22d178, #0d874a); transform: scale(1.06); }
+.chat-fab:hover { background: #b30a1d; transform: scale(1.06); }
 
 .chat-widget {
   right: 22px; bottom: 96px;
@@ -417,7 +417,7 @@ textarea { resize: vertical; }
 
 /* Header ---------------------------------------------------------------- */
 .widget-head {
-  background: linear-gradient(135deg, #0a6b36 0%, #12a150 55%, #22c46e 100%);
+  background: #c00d21;
   padding: .95rem 1.05rem; align-items: flex-start;
 }
 .widget-head h4 {
@@ -459,7 +459,7 @@ textarea { resize: vertical; }
 .widget-messages, .widget-scroll {
   flex: 1; min-height: 0; overflow-y: auto; padding: .9rem;
   display: flex; flex-direction: column; gap: .55rem;
-  background: linear-gradient(#fbfcfe, #f7f9fc);
+  background: #fbfcfe;
 }
 .widget-messages::-webkit-scrollbar, .widget-scroll::-webkit-scrollbar { width: 8px; }
 .widget-messages::-webkit-scrollbar-thumb, .widget-scroll::-webkit-scrollbar-thumb {
@@ -471,9 +471,9 @@ textarea { resize: vertical; }
   font-size: .86rem; line-height: 1.45;
 }
 .w-bubble-user {
-  background: linear-gradient(135deg, #12a150, #0a6b36);
+  background: #c00d21;
   border-bottom-right-radius: 5px;
-  box-shadow: 0 2px 8px rgba(10, 107, 54, .22);
+  box-shadow: 0 2px 8px rgba(192, 13, 33, .22);
 }
 .w-bubble-assistant {
   background: #fff; border: 1px solid rgba(18, 38, 58, .09);
@@ -490,8 +490,8 @@ textarea { resize: vertical; }
   max-height: 96px; line-height: 1.4;
 }
 .widget-form textarea:focus {
-  outline: none; border-color: #12a150;
-  box-shadow: 0 0 0 3px rgba(18, 161, 80, .16);
+  outline: none; border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(253, 13, 41, .16);
 }
 .widget-form button { border-radius: 11px; font-weight: 600; }
 
@@ -507,8 +507,8 @@ textarea { resize: vertical; }
   font-family: inherit; color: var(--ink);
 }
 .w-text:focus {
-  outline: none; border-color: #12a150;
-  box-shadow: 0 0 0 3px rgba(18, 161, 80, .16);
+  outline: none; border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(253, 13, 41, .16);
 }
 textarea.w-text { resize: none; }
 .w-row { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
@@ -536,7 +536,7 @@ textarea.w-text { resize: none; }
   font: inherit; font-size: .82rem; text-align: center;
   transition: border-color .16s, background .16s;
 }
-.w-drop:hover, .w-drop.drag { border-color: #12a150; background: #e8f7ef; }
+.w-drop:hover, .w-drop.drag { border-color: var(--brand); background: var(--brand-soft); }
 .w-drop small { opacity: .75; }
 .w-drop img { max-width: 100%; max-height: 130px; border-radius: 9px; display: block; margin: 0 auto; }
 
@@ -568,7 +568,7 @@ textarea.w-text { resize: none; }
   display: flex; flex-direction: column; gap: .5rem;
 }
 .home-chat-messages .w-bubble { max-width: 90%; }
-.home-chat-messages a { color: #12a150; text-decoration: underline; }
+.home-chat-messages a { color: var(--brand); text-decoration: underline; }
 .home-chat-form {
   display: flex; gap: .5rem; padding: .7rem; border-top: 1px solid var(--line);
 }
@@ -642,10 +642,10 @@ textarea.w-text { min-height: 4.6rem; }
 .suggest-head h2 { margin: 0; }
 .suggest-count {
   min-width: 26px; height: 26px; padding: 0 .45rem; border-radius: 999px;
-  background: linear-gradient(135deg, #1667d6, #0b3f8f); color: #fff;
+  background: #c00d21; color: #fff;
   font-size: .78rem; font-weight: 650; display: inline-flex;
   align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px rgba(11, 63, 143, .3);
+  box-shadow: 0 2px 8px rgba(192, 13, 33, .3);
 }
 
 .suggest-list { list-style: none; margin: .8rem 0 0; padding: 0; display: grid; gap: .55rem; }
@@ -671,7 +671,7 @@ textarea.w-text { min-height: 4.6rem; }
 }
 .suggest-link:hover {
   transform: translateY(-2px);
-  border-color: rgba(22, 103, 214, .4);
+  border-color: rgba(253, 13, 41, .4);
   box-shadow: 0 10px 24px rgba(12, 30, 55, .13);
 }
 /* A light sweeps across the card on hover. */
@@ -684,19 +684,19 @@ textarea.w-text { min-height: 4.6rem; }
 
 .suggest-thumb {
   flex: 0 0 54px; width: 54px; height: 54px; border-radius: 10px;
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe) center/cover no-repeat;
+  background: #ffe8ea center/cover no-repeat;
   display: flex; align-items: center; justify-content: center;
   transition: transform .3s ease;
 }
 .suggest-link:hover .suggest-thumb { transform: scale(1.06); }
-.suggest-initial { font-size: 1.2rem; font-weight: 700; color: #0b3f8f; opacity: .65; }
+.suggest-initial { font-size: 1.2rem; font-weight: 700; color: #b30a1d; opacity: .65; }
 
 .suggest-body { display: flex; flex-direction: column; gap: .16rem; min-width: 0; }
 .suggest-name {
   font-weight: 620; font-size: .95rem; color: var(--ink); line-height: 1.25;
   display: flex; align-items: baseline; gap: .4rem;
 }
-.suggest-link:hover .suggest-name { color: #0b3f8f; }
+.suggest-link:hover .suggest-name { color: #b30a1d; }
 .suggest-meta { font-size: .74rem; color: var(--ink-soft); }
 .suggest-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .12rem; }
 .suggest-tag {
@@ -704,10 +704,10 @@ textarea.w-text { min-height: 4.6rem; }
   background: #eef2f7; color: var(--ink-soft);
 }
 .suggest-tag-free { background: #e6f6ef; color: var(--ok); }
-.suggest-tag-near { background: var(--brand-soft); color: #0b3f8f; }
+.suggest-tag-near { background: var(--brand-soft); color: #b30a1d; }
 
 /* Recommended rides on the name row, pushed to the right edge. Amber rather
-   than the brand blue, so it reads as a mark on the place and not as another
+   than the brand red, so it reads as a mark on the place and not as another
    link. */
 .suggest-badge {
   margin-left: auto; flex: none;
@@ -913,10 +913,10 @@ button:focus-visible,
      one, so a blocked or slow font never leaves the page unstyled. */
   --font-ui: "Plus Jakarta Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* Gold against the blue. One accent, used sparingly - on the pill, on
+  /* One red accent, used sparingly - on the pill, on
      hover underlines - is what separates premium from busy. */
-  --gold: #c8a24a;
-  --gold-soft: #f6efdd;
+  --brand-deep: #c00d21;
+  --brand-tint: #ffe8ea;
 
   --ink-deep: #0a1a2f;
 
@@ -951,9 +951,9 @@ h1 { letter-spacing: -.03em; }
   color: #fff;
   background:
     /* Two scrims: a vertical one so the headline always has contrast, and a
-       colour wash that ties the photograph back to the brand blue. */
-    linear-gradient(180deg, rgba(6, 20, 38, .78) 0%, rgba(6, 20, 38, .55) 45%, rgba(6, 20, 38, .82) 100%),
-    linear-gradient(115deg, rgba(11, 63, 143, .55), rgba(10, 26, 47, .25)),
+       flat colour wash that ties the photograph back to the brand red. *
+    linear-gradient(180deg, rgba(38, 6, 10, .78) 0%, rgba(38, 6, 10, .55) 45%, rgba(38, 6, 10, .82) 100%),
+    linear-gradient(rgba(168, 13, 30, .45), rgba(168, 13, 30, .45)),
     var(--brand-dark) url("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Kumarakom_backwaters_panorama.jpg/1280px-Kumarakom_backwaters_panorama.jpg")
       center / cover no-repeat;
 }
@@ -962,8 +962,8 @@ h1 { letter-spacing: -.03em; }
   .hero {
     padding: 5rem 0 7rem;
     background-image:
-      linear-gradient(180deg, rgba(6, 20, 38, .74) 0%, rgba(6, 20, 38, .48) 45%, rgba(6, 20, 38, .80) 100%),
-      linear-gradient(115deg, rgba(11, 63, 143, .5), rgba(10, 26, 47, .2)),
+      linear-gradient(180deg, rgba(38, 6, 10, .74) 0%, rgba(38, 6, 10, .48) 45%, rgba(38, 6, 10, .80) 100%),
+      linear-gradient(rgba(168, 13, 30, .4), rgba(168, 13, 30, .4)),
       url("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Kumarakom_backwaters_panorama.jpg/1920px-Kumarakom_backwaters_panorama.jpg");
   }
 }
@@ -994,7 +994,7 @@ h1 { letter-spacing: -.03em; }
   font-weight: 600;
   letter-spacing: .02em;
   padding: .34rem .9rem;
-  box-shadow: inset 0 0 0 1px rgba(200, 162, 74, .25);
+  box-shadow: inset 0 0 0 1px rgba(253, 13, 41, .25);
 }
 
 .hero-actions { gap: .7rem; margin: 0; }
@@ -1096,7 +1096,7 @@ h1 { letter-spacing: -.03em; }
   margin-bottom: .3rem;
 }
 
-/* A short gold rule under each section heading - the one decorative flourish,
+/* A short red rule under each section heading - the one decorative flourish,
    repeated, which is what makes it read as a system rather than an accident. */
 .section > h2::after {
   content: "";
@@ -1104,7 +1104,7 @@ h1 { letter-spacing: -.03em; }
   width: 34px; height: 3px;
   margin-top: .55rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--gold), rgba(200, 162, 74, .25));
+  background: var(--brand);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1120,11 +1120,11 @@ h1 { letter-spacing: -.03em; }
   border: 1px solid rgba(18, 38, 58, .08);
 }
 
-/* A deep gradient header with a faint gold hairline under it, which is the
+/* A deep flat header with a faint hairline under it, which is the
    same accent the section headings use. */
 .widget-head {
-  background: linear-gradient(135deg, #0d7a45 0%, #062018 100%);
-  border-bottom: 1px solid rgba(200, 162, 74, .35);
+  background: #a80d1e;
+  border-bottom: 1px solid rgba(255, 255, 255, .22);
   padding: .9rem 1rem;
 }
 .widget-head h4 { font-weight: 700; letter-spacing: -.01em; }
@@ -1148,7 +1148,7 @@ h1 { letter-spacing: -.03em; }
 }
 
 .w-bubble-user {
-  background: linear-gradient(135deg, #17b364, #0a6b36);
+  background: #c00d21;
   color: #fff;
   border-bottom-right-radius: 5px;
 }
@@ -1159,7 +1159,7 @@ h1 { letter-spacing: -.03em; }
 }
 
 .w-typing { padding: .7rem .9rem; }
-.w-typing span { background: #12a150; opacity: .55; }
+.w-typing span { background: var(--brand); opacity: .55; }
 
 /* The home page chat box gets the same treatment as the floating one, so the
    two do not look like different products. */
@@ -1172,7 +1172,7 @@ h1 { letter-spacing: -.03em; }
 .home-chat-messages { background: #fbfcfe; }
 
 .chat-shell { border-radius: var(--r-lg); box-shadow: var(--e2); }
-.chat-typing span { background: #12a150; opacity: .55; }
+.chat-typing span { background: var(--brand); opacity: .55; }
 
 /* The assistant button reads as one solid object rather than a flat circle. */
 .chat-fab {
@@ -1240,7 +1240,7 @@ h1 { letter-spacing: -.03em; }
 }
 .chip:hover span { border-color: var(--brand); color: var(--brand); }
 .chip.is-on span {
-  background: linear-gradient(135deg, #1f6feb, #0b3f8f);
+  background: #c00d21;
   border-color: transparent;
   color: #fff;
   box-shadow: var(--e2);
@@ -1292,7 +1292,7 @@ h1 { letter-spacing: -.03em; }
   font-weight: 600;
   color: var(--warn);
 }
-.tag-rating { background: var(--gold-soft); color: #7a5f18; font-weight: 700; }
+.tag-rating { background: var(--brand-tint); color: #7a0714; font-weight: 700; }
 
 .card-themes { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
 .theme-tag {
@@ -1301,7 +1301,7 @@ h1 { letter-spacing: -.03em; }
   padding: .12rem .5rem;
   border-radius: 999px;
   background: var(--brand-soft);
-  color: #0b3f8f;
+  color: #b30a1d;
 }
 
 /* --------------------------- Empty state -------------------------------- */
@@ -1323,16 +1323,16 @@ h1 { letter-spacing: -.03em; }
 }
 
 /* Circuit chips are a subdivision of the temple theme, not a second row of
-   equals, so they sit indented behind a gold rule that matches the section
+   equals, so they sit indented behind a red rule that matches the section
    headings. */
 .chips-sub {
   padding-left: .8rem;
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid var(--brand-deep);
   margin-left: .1rem;
 }
 .chips-sub .chip span { font-size: .78rem; }
 .chips-sub .chip.is-on span {
-  background: linear-gradient(135deg, #c8a24a, #9a7726);
+  background: #c00d21;
 }
 
 /* ======================= Cost dashboard ================================= */
@@ -1347,7 +1347,7 @@ h1 { letter-spacing: -.03em; }
   display: flex; flex-direction: column; gap: .1rem;
   padding: .7rem .8rem;
   border-radius: var(--r-md);
-  background: linear-gradient(160deg, #f7f9fc, #eef3fa);
+  background: #f7f9fc;
   border: 1px solid rgba(18, 38, 58, .07);
 }
 .cost-tile-label {
@@ -1384,14 +1384,14 @@ h1 { letter-spacing: -.03em; }
 }
 @keyframes costGrow { from { transform: scaleX(0); transform-origin: left; } }
 
-/* Six hues off one blue-to-gold ramp rather than six unrelated colours, so
+/* Six flat steps down one red ramp rather than six unrelated colours, so
    the bars read as one chart. */
-.cost-fill-travel   { background: linear-gradient(90deg, #0b3f8f, #1f6feb); }
-.cost-fill-hotel    { background: linear-gradient(90deg, #1f6feb, #4a9bff); }
-.cost-fill-food     { background: linear-gradient(90deg, #2b9c7d, #46c7a0); }
-.cost-fill-local    { background: linear-gradient(90deg, #5c7cfa, #8aa4ff); }
-.cost-fill-activity { background: linear-gradient(90deg, #d08a2c, #e8b45c); }
-.cost-fill-buffer   { background: linear-gradient(90deg, #8c93a1, #b6bcc7); }
+.cost-fill-travel   { background: #7a0714; }
+.cost-fill-hotel    { background: #a80d1e; }
+.cost-fill-food     { background: #c00d21; }
+.cost-fill-local    { background: #e01029; }
+.cost-fill-activity { background: #fd0d29; }
+.cost-fill-buffer   { background: #ff8a99; }
 
 .cost-share { font-size: .7rem; color: var(--ink-soft); }
 
@@ -1525,7 +1525,7 @@ h1 { letter-spacing: -.03em; }
   gap: .6rem;
   padding: .8rem;
   border-radius: var(--r-md);
-  background: linear-gradient(160deg, #f7f9fc, #eef3fa);
+  background: #f7f9fc;
   border: 1px solid rgba(18, 38, 58, .07);
 }
 
@@ -1561,9 +1561,9 @@ h1 { letter-spacing: -.03em; }
   }
 }
 
-/* The figure the budget filter actually compared against. Gold, because it is
+/* The figure the budget filter actually compared against. Deep red, because it is
    the answer to the question the bar above asked. */
-.tag-total { background: var(--gold-soft); color: #7a5f18; font-weight: 700; }
+.tag-total { background: var(--brand-tint); color: #7a0714; font-weight: 700; }
 
 /* ------------------------ Per-day budget slider -------------------------- */
 .bg-field-slider { gap: .3rem; }
@@ -1573,7 +1573,7 @@ h1 { letter-spacing: -.03em; }
   padding: .05rem .4rem;
   border-radius: 999px;
   background: var(--brand-soft);
-  color: #0b3f8f;
+  color: #b30a1d;
   font-weight: 700;
   font-size: .68rem;
   letter-spacing: 0;
@@ -1592,11 +1592,11 @@ h1 { letter-spacing: -.03em; }
 }
 .bg-field-slider input[type="range"]::-webkit-slider-runnable-track {
   height: 6px; border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand) 0%, #cfe0f7 100%);
+  background: var(--brand);
 }
 .bg-field-slider input[type="range"]::-moz-range-track {
   height: 6px; border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand) 0%, #cfe0f7 100%);
+  background: var(--brand);
 }
 .bg-field-slider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;

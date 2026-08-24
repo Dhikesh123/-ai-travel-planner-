@@ -79,7 +79,7 @@
       <h4>AI Travel Planner</h4>
       <p class="muted">
         Plan trips, estimate costs, talk to an AI assistant in English or
-        Telugu, and identify places from photos.
+        eleven Indian languages, and identify places from photos.
       </p>
     </div>
     <div>
@@ -165,7 +165,7 @@
   <div class="widget-head">
     <div>
       <h4>Travel Assistant</h4>
-      <p>Estimates only &middot; English or Telugu</p>
+      <p>Estimates only &middot; {{ SUPPORTED_LANGUAGES|length }} languages</p>
     </div>
     <button class="widget-close" id="widgetClose" aria-label="Close">&times;</button>
   </div>
@@ -215,13 +215,15 @@
     <div class="widget-scroll">
       <div class="w-row">
         <select id="wSourceLang" class="w-text">
-          <option value="en">English</option>
-          <option value="te">Telugu</option>
+          {% for language in SUPPORTED_LANGUAGES %}
+            <option value="{{ language.code }}">{{ language.label }}</option>
+          {% endfor %}
         </select>
         <span class="w-arrow">&rarr;</span>
         <select id="wTargetLang" class="w-text">
-          <option value="te">Telugu</option>
-          <option value="en">English</option>
+          {% for language in SUPPORTED_LANGUAGES %}
+            <option value="{{ language.code }}"{% if language.code == "te" %} selected{% endif %}>{{ language.label }}</option>
+          {% endfor %}
         </select>
       </div>
       <button type="button" class="btn btn-outline w-mic" id="wMic">&#127908; Start listening</button>
@@ -243,6 +245,9 @@
 </div>
 {% endif %}
 
+{# The language list, for speech.js and chatbot.js. json_script escapes it
+   safely, so a native name can contain any character without breaking out. #}
+{{ LANGUAGE_DATA|json_script:"language-data" }}
 <script>
   // Make the CSRF token available to every fetch() call in our JS files.
   window.CSRF_TOKEN = "{{ csrf_token }}";

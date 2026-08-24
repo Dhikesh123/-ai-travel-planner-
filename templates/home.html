@@ -6,7 +6,7 @@
 
 <section class="hero">
   <div class="container hero-inner">
-    <span class="pill">AI powered &middot; English &amp; Telugu</span>
+    <span class="pill">AI powered &middot; {{ SUPPORTED_LANGUAGES|length }} Indian languages</span>
     <h1>Plan Your Perfect Journey With AI</h1>
     <p class="hero-sub">
       Discover amazing destinations, create personalised itineraries and plan
@@ -170,8 +170,8 @@
     <div class="feature"><h3>Cost calculator</h3><p>Travel + hotel + food + local transport + activities + buffer.</p></div>
     <div class="feature"><h3>Day-by-day itinerary</h3><p>Your chosen places spread sensibly across the days.</p></div>
     <div class="feature"><h3>AI assistant</h3><p>Ask anything about your trip, powered by the Groq AI API.</p></div>
-    <div class="feature"><h3>Voice input</h3><p>Speak instead of typing, in English or Telugu.</p></div>
-    <div class="feature"><h3>Telugu &harr; English</h3><p>Translate text and speech both ways.</p></div>
+    <div class="feature"><h3>Voice input</h3><p>Speak instead of typing, in any language the site knows.</p></div>
+    <div class="feature"><h3>{{ SUPPORTED_LANGUAGES|length }} languages</h3><p>Translate text and speech between any two of them.</p></div>
     <div class="feature"><h3>Text to speech</h3><p>Have any answer read aloud.</p></div>
     <div class="feature"><h3>Image recognition</h3><p>Upload a photo and ask what place it is.</p></div>
   </div>

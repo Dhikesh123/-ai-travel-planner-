@@ -23,6 +23,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from . import languages
 from .forms import ImageUploadForm, RegisterForm
 from .models import (
     ChatMessage,
@@ -574,13 +575,13 @@ def api_chat_history(request):
 
 
 # ===========================================================================
-# Translation (Telugu <-> English)
+# Translation (between any two supported languages)
 # ===========================================================================
 @api_view(["POST"])
 def api_translate(request):
     """
     POST /api/translate/
-    Body: text, source (te/en), target (te/en)
+    Body: text, source (any supported code, or "auto"), target
     """
     text = (request.data.get("text") or "").strip()
     if not text:
@@ -593,8 +594,12 @@ def api_translate(request):
 
     if source == "auto":
         source = speech_service.detect_language(text)
-    if source not in ("te", "en") or target not in ("te", "en"):
-        return error("Only Telugu and English are supported right now.")
+    if not languages.is_supported(source) or not languages.is_supported(target):
+        return error(
+            "That language is not supported. Choose one of: "
+            + ", ".join(language.name for language in languages.LANGUAGES)
+            + "."
+        )
 
     if source == target:
         return Response({"ok": True, "translation": text, "source": source, "target": target})
@@ -703,9 +708,16 @@ def api_transcribe(request):
     if audio.size > MAX_AUDIO_MB * 1024 * 1024:
         return error(f"That recording is too long. Please keep it under {MAX_AUDIO_MB} MB.")
 
+    # An empty language means "let Whisper work it out", which is a fair
+    # answer when the customer has not said what they are about to speak.
     language = request.data.get("language") or None
-    if language not in (None, "", "en", "te"):
-        return error("Only Telugu and English are supported right now.")
+    if language and not languages.is_supported(languages.clean_code(language, default="")):
+        return error(
+            "That language is not supported. Choose one of: "
+            + ", ".join(item.name for item in languages.LANGUAGES)
+            + "."
+        )
+    language = languages.clean_code(language, default="") or None
 
     if not ai_service.is_configured():
         return error(ai_service.NO_KEY_MESSAGE, status.HTTP_503_SERVICE_UNAVAILABLE)

@@ -24,6 +24,7 @@ from .models import (
     Trip,
     TripCost,
 )
+from . import languages
 from .services import travel_service
 from .services.speech_service import detect_language
 from .utils import recalculate_trip
@@ -630,3 +631,71 @@ class LanguageDetectionTests(TestCase):
 
     def test_empty_text_defaults_to_english(self):
         self.assertEqual(detect_language(""), "en")
+
+    def test_every_indian_language_is_recognised_by_its_alphabet(self):
+        """One real sentence per language, each in its own script."""
+        samples = {
+            "hi": "मुझे गोवा जाना है",
+            "ta": "மதுரை எவ்வளவு தூரம்",
+            "kn": "ಮೈಸೂರು ಎಷ್ಟು ದೂರ",
+            "ml": "മൂന്നാർ എത്ര ദൂരം",
+            "bn": "পুরী কত দূরে",
+            "gu": "દ્વારકા કેટલું દૂર છે",
+            "pa": "ਅੰਮ੍ਰਿਤਸਰ ਕਿੰਨੀ ਦੂਰ ਹੈ",
+            "ur": "اجمیر کتنی دور ہے",
+            "or": "ପୁରୀ କେତେ ଦୂର",
+        }
+        for code, sentence in samples.items():
+            with self.subTest(language=code):
+                self.assertEqual(detect_language(sentence), code)
+
+    def test_marathi_is_reported_as_hindi(self):
+        """
+        Hindi and Marathi share the Devanagari alphabet, so no rule over the
+        characters can separate them. This test records that deliberate
+        choice rather than leaving it to be discovered as a bug.
+        """
+        self.assertEqual(detect_language("मला गोव्याला जायचे आहे"), "hi")
+
+    def test_a_place_name_in_english_does_not_change_the_answer(self):
+        """Mixed text is judged by which alphabet has the most letters."""
+        self.assertEqual(detect_language("Goa కి ఎలా వెళ్ళాలి"), "te")
+
+
+class LanguageListTests(TestCase):
+    """The one list every part of the site reads its languages from."""
+
+    def test_english_is_the_default_and_comes_first(self):
+        self.assertEqual(languages.DEFAULT_CODE, "en")
+        self.assertEqual(languages.LANGUAGES[0].code, "en")
+
+    def test_codes_are_unique(self):
+        codes = [language.code for language in languages.LANGUAGES]
+        self.assertEqual(len(codes), len(set(codes)))
+
+    def test_every_language_has_a_speech_code_and_a_label(self):
+        for language in languages.LANGUAGES:
+            with self.subTest(language=language.code):
+                self.assertTrue(language.speech_code)
+                self.assertTrue(language.label)
+
+    def test_clean_code_accepts_what_a_browser_sends(self):
+        self.assertEqual(languages.clean_code("te-IN"), "te")
+        self.assertEqual(languages.clean_code("HI"), "hi")
+        self.assertEqual(languages.clean_code("en_US"), "en")
+
+    def test_clean_code_refuses_anything_unknown(self):
+        """A stray code must never reach the AI service or the database."""
+        self.assertEqual(languages.clean_code("klingon"), "en")
+        self.assertEqual(languages.clean_code(""), "en")
+        self.assertEqual(languages.clean_code(None), "en")
+
+    def test_profile_choices_come_from_the_list(self):
+        self.assertEqual(len(Profile.LANGUAGE_CHOICES), len(languages.LANGUAGES))
+        self.assertIn(("hi", "Hindi (हिन्दी)"), Profile.LANGUAGE_CHOICES)
+
+    def test_the_browser_copy_carries_the_script_ranges(self):
+        """speech.js builds its detection from these, so they must be there."""
+        telugu = next(item for item in languages.as_dicts() if item["code"] == "te")
+        self.assertEqual(telugu["speechCode"], "te-IN")
+        self.assertTrue(telugu["scriptStart"] < telugu["scriptEnd"])

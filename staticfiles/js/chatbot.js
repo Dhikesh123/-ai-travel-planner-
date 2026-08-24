@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const bubble = document.createElement("div");
     bubble.className = "bubble bubble-" + role;
 
-    const language = /[ఀ-౿]/.test(text) ? "te" : "en";
+    const language = Speech.detect(text);
     const picture = imageDataUrl ? `<img src="${imageDataUrl}" alt="Uploaded photo">` : "";
 
     bubble.innerHTML = `

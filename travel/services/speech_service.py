@@ -7,41 +7,46 @@ API (see static/js/speech.js) - that is free, instant, and needs no server.
 If the browser cannot do it (Safari, older phones, Firefox), the app falls
 back to this file, which sends the recording to Whisper on the server.
 
-This file also holds the language settings, so there is one place to change
-them, and the Telugu detection used across the project.
+Which languages exist is not decided here: that lives in travel/languages.py,
+and this file reads it. Add a language there and the microphone, the
+transcriber and the translator all pick it up.
 """
+from .. import languages
 from .ai_service import AIError, transcribe, translate
 
-# Codes the Web Speech API understands
+# Codes the Web Speech API understands, built from the one list.
 SPEECH_LANGUAGES = {
-    "en": {"recognition": "en-IN", "synthesis": "en-IN", "label": "English"},
-    "te": {"recognition": "te-IN", "synthesis": "te-IN", "label": "Telugu"},
+    language.code: {
+        "recognition": language.speech_code,
+        "synthesis": language.speech_code,
+        "label": language.label,
+    }
+    for language in languages.LANGUAGES
 }
 
 
 def detect_language(text):
     """
-    Very simple language check: if the text contains Telugu letters, it is
-    Telugu. Telugu characters live in the Unicode block 0C00-0C7F.
+    Work out which language a piece of text is written in, by its alphabet.
+
+    See languages.detect for what this can and cannot tell apart - the short
+    version is that Hindi and Marathi share an alphabet, so Devanagari text
+    is reported as Hindi.
     """
-    for char in text or "":
-        if "ఀ" <= char <= "౿":
-            return "te"
-    return "en"
+    return languages.detect(text)
 
 
-def to_english(text):
-    """Translate to English only if the text is not already English."""
-    if detect_language(text) == "en":
+def to_language(text, target_code):
+    """
+    Translate text into the target language, unless it is already in it.
+
+    Returns (text, was_translated) so a caller can tell the customer whether
+    anything actually happened.
+    """
+    source_code = detect_language(text)
+    if source_code == languages.clean_code(target_code):
         return text, False
-    return translate(text, source_lang="te", target_lang="en"), True
-
-
-def to_telugu(text):
-    """Translate English text into Telugu."""
-    if detect_language(text) == "te":
-        return text, False
-    return translate(text, source_lang="en", target_lang="te"), True
+    return translate(text, source_lang=source_code, target_lang=target_code), True
 
 
 def transcribe_audio(audio_bytes, language="en", filename="recording.webm"):
@@ -49,6 +54,6 @@ def transcribe_audio(audio_bytes, language="en", filename="recording.webm"):
     Turn a recording into text using Whisper on the server.
 
     Used by /api/transcribe/ when the browser has no speech recognition of
-    its own. Pass language "en" or "te", or None to let Whisper guess.
+    its own. Pass any supported language code, or None to let Whisper guess.
     """
     return transcribe(audio_bytes, filename=filename, language=language)

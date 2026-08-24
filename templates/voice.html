@@ -7,7 +7,7 @@
   <div class="page-head">
     <div>
       <h1>Voice assistant</h1>
-      <p class="muted">Speak in Telugu or English, translate both ways, and listen to the result.</p>
+      <p class="muted">Speak in any of {{ SUPPORTED_LANGUAGES|length }} languages, translate between any two of them, and listen to the result.</p>
     </div>
   </div>
 
@@ -23,14 +23,16 @@
       <div class="form-grid">
         <label>Input language
           <select id="sourceLang">
-            <option value="te">Telugu</option>
-            <option value="en">English</option>
+            {% for language in SUPPORTED_LANGUAGES %}
+              <option value="{{ language.code }}"{% if language.code == "te" %} selected{% endif %}>{{ language.label }}</option>
+            {% endfor %}
           </select>
         </label>
         <label>Output language
           <select id="targetLang">
-            <option value="en">English</option>
-            <option value="te">Telugu</option>
+            {% for language in SUPPORTED_LANGUAGES %}
+              <option value="{{ language.code }}">{{ language.label }}</option>
+            {% endfor %}
           </select>
         </label>
       </div>
@@ -86,8 +88,9 @@
       <li>The translation comes back and your browser can read it aloud (Speech Synthesis API).</li>
     </ol>
     <p class="muted small">
-      Telugu voices depend on your device. If nothing is spoken for Telugu, your
-      system does not have a Telugu voice installed; the text still appears.
+      Reading aloud depends on the voices installed on your own device. If
+      nothing is spoken for a language, your system has no voice for it; the
+      translated text still appears.
     </p>
   </div>
 </section>

@@ -7,7 +7,7 @@ through Django settings, and is never sent to the browser.
 
 Groq gives us four things, each with a model that suits the job:
 
-  * chat and translation -> openai/gpt-oss-120b      (handles Telugu well)
+  * chat and translation -> openai/gpt-oss-120b      (writes Indian languages)
   * image recognition    -> qwen/qwen3.6-27b         (the vision model)
   * speech to text       -> whisper-large-v3         (audio to text)
 
@@ -29,6 +29,8 @@ import re
 
 from django.conf import settings
 
+from .. import languages as _languages
+
 logger = logging.getLogger(__name__)
 
 # The system prompt tells the AI who it is and how to behave.
@@ -42,7 +44,7 @@ What you do:
   number of travellers.
 - Explain what the estimated costs are made of.
 - Suggest what to pack and how to prepare for a trip.
-- Translate between Telugu and English when asked.
+- Translate between any two of the languages the site supports when asked.
 - Answer follow-up questions about a trip.
 
 How you must behave:
@@ -56,8 +58,10 @@ How you must behave:
 - Use Indian rupees and write them like Rs 8,500.
 - Keep answers focused and easy to read. Use short paragraphs or small lists.
   A simple question gets a short answer, not a long report.
-- Reply in the same language the customer used. If they write in Telugu,
-  reply in Telugu.
+- Reply in the same language the customer used, and in the same alphabet.
+  If they write in Telugu, reply in Telugu; if they write in Hindi, reply in
+  Hindi. If they write an Indian language in Latin letters ("ela unnaru"),
+  reply the same way rather than switching alphabets on them.
 """
 
 IMAGE_SYSTEM_PROMPT = """You look at photographs of places and landmarks for a
@@ -387,15 +391,17 @@ def chat_stream(user_message, history=None, trip_context=""):
 
 
 # ---------------------------------------------------------------------------
-# 2. Translation (Telugu <-> English)
+# 2. Translation (between any two supported languages)
 # ---------------------------------------------------------------------------
-LANGUAGE_NAMES = {"en": "English", "te": "Telugu"}
+# The names come from travel/languages.py so a language added there can be
+# translated without touching this file.
+LANGUAGE_NAMES = _languages.NAMES
 
 
 def translate(text, source_lang="te", target_lang="en"):
-    """Translate text between Telugu and English."""
-    source_name = LANGUAGE_NAMES.get(source_lang, source_lang)
-    target_name = LANGUAGE_NAMES.get(target_lang, target_lang)
+    """Translate text from one supported language into another."""
+    source_name = _languages.name_for(source_lang)
+    target_name = _languages.name_for(target_lang)
 
     system = (
         f"You are a translator between {source_name} and {target_name}. "
@@ -508,7 +514,8 @@ def transcribe(audio_bytes, filename="audio.webm", language=None):
     Turn a recorded audio file into text using Whisper.
 
     This is the backup for browsers that cannot do speech recognition
-    themselves. language is "en" or "te", or None to auto-detect.
+    themselves. language is any supported code ("en", "te", "hi", ...), or
+    None to let Whisper work it out.
     """
     import groq
 

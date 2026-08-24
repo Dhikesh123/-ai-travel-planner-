@@ -190,6 +190,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 # Supplies ASSET_V, the cache-buster on the CSS/JS URLs.
                 "travel.context_processors.asset_version",
+                # Supplies SUPPORTED_LANGUAGES for the language dropdowns.
+                "travel.context_processors.languages",
             ],
         },
     },

@@ -7,7 +7,7 @@
   <div class="page-head">
     <div>
       <h1>AI Travel Assistant</h1>
-      <p class="muted">Type, speak, or upload a photo. English and Telugu both work.</p>
+      <p class="muted">Type, speak, or upload a photo. Ask in any of {{ SUPPORTED_LANGUAGES|length }} languages and the answer comes back in the same one.</p>
     </div>
     <button class="btn btn-ghost" id="clearChat">Clear history</button>
   </div>
@@ -35,7 +35,7 @@
             &bull; "Plan a 3-day trip from Pune to Mumbai for 2 people."<br>
             &bull; "What are the cheapest places to visit in Goa?"<br>
             &bull; "What should I carry for a hill station trip?"<br>
-            &bull; "Translate this Telugu sentence into English: ..."
+            &bull; "Translate this Telugu sentence into Hindi: ..."
           </div>
         </div>
       {% endfor %}
@@ -48,8 +48,9 @@
     <form class="chat-input" id="chatForm">
       <div class="chat-controls">
         <select id="inputLanguage" title="Microphone language">
-          <option value="en-IN">Speak English</option>
-          <option value="te-IN">Speak Telugu</option>
+          {% for language in SUPPORTED_LANGUAGES %}
+            <option value="{{ language.speech_code }}">Speak {{ language.label }}</option>
+          {% endfor %}
         </select>
         <button type="button" class="btn btn-ghost btn-sm" id="micBtn" title="Speak">&#127908; Speak</button>
         <label class="btn btn-ghost btn-sm" for="chatImage" title="Attach a photo">&#128247; Photo</label>

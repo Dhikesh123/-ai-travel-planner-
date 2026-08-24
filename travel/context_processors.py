@@ -5,6 +5,8 @@ from pathlib import Path
 
 from django.conf import settings
 
+from . import languages as language_list
+
 
 def _newest_static_mtime():
     """The modification time of the most recently changed CSS/JS file."""
@@ -36,3 +38,19 @@ def asset_version(request):
     if settings.DEBUG:
         return {"ASSET_V": str(int(_newest_static_mtime()))}
     return {"ASSET_V": "1"}
+
+
+def languages(request):
+    """
+    The languages the site speaks, for the dropdowns and for the browser.
+
+    SUPPORTED_LANGUAGES is looped over in the templates. LANGUAGE_DATA is the
+    same list as plain dictionaries, which base.html writes into the page as
+    JSON so speech.js and chatbot.js work from it too - before this, each
+    JavaScript file carried its own idea of which alphabets existed.
+    """
+    return {
+        "SUPPORTED_LANGUAGES": language_list.LANGUAGES,
+        "LANGUAGE_DATA": language_list.as_dicts(),
+        "DEFAULT_LANGUAGE": language_list.DEFAULT_CODE,
+    }

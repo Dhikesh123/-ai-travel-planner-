@@ -38,12 +38,22 @@ document.addEventListener("DOMContentLoaded", function () {
       "This browser will record your voice and send it to the server to be written out.";
   }
 
-  // Keep the two language boxes from matching each other
+  // Keep the two language boxes from matching each other. With only two
+  // languages this was a flip; with a dozen it has to pick something, and
+  // English is the one every customer of this site has in common.
+  function differentLanguage(from) {
+    return from === "en" ? "te" : "en";
+  }
+
   sourceLang.addEventListener("change", function () {
-    targetLang.value = sourceLang.value === "te" ? "en" : "te";
+    if (targetLang.value === sourceLang.value) {
+      targetLang.value = differentLanguage(sourceLang.value);
+    }
   });
   targetLang.addEventListener("change", function () {
-    sourceLang.value = targetLang.value === "te" ? "en" : "te";
+    if (sourceLang.value === targetLang.value) {
+      sourceLang.value = differentLanguage(targetLang.value);
+    }
   });
 
   // ---------------------------------------------------------------------
@@ -127,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
   sourceLang.addEventListener("change", function () {
     if (!listening || !capture) return;
     restartInNewLanguage = true;
-    micStatus.textContent = "Switching to " + (sourceLang.value === "te" ? "Telugu" : "English") + "...";
+    micStatus.textContent = "Switching to " + Speech.nameFor(sourceLang.value) + "...";
     capture.stop();
   });
 
@@ -183,10 +193,11 @@ document.addEventListener("DOMContentLoaded", function () {
       showError(errorBox, "There is nothing to read aloud yet.");
       return;
     }
-    if (lang === "te" && !Speech.hasTeluguVoice()) {
+    if (!Speech.hasVoiceFor(lang)) {
       showError(
         errorBox,
-        "Your device does not have a Telugu voice installed, so the text cannot be spoken. The text is still shown above."
+        "Your device does not have a " + Speech.nameFor(lang) +
+          " voice installed, so the text cannot be spoken. The text is still shown above."
       );
       return;
     }

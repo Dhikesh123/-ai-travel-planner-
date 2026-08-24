@@ -24,6 +24,8 @@ Relationships (read the arrows as "has many"):
 from decimal import Decimal
 
 from django.conf import settings
+
+from . import languages
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -35,10 +37,10 @@ from django.utils import timezone
 class Profile(models.Model):
     """Extra information about a customer, on top of Django's built-in User."""
 
-    LANGUAGE_CHOICES = [
-        ("en", "English"),
-        ("te", "Telugu"),
-    ]
+    # The one list of languages lives in travel/languages.py, so the profile
+    # form, the chatbot's dropdown and the AI prompts can never disagree
+    # about what the site speaks.
+    LANGUAGE_CHOICES = languages.CHOICES
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"

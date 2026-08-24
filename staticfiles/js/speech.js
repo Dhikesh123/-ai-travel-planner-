@@ -9,7 +9,8 @@
      2. If the browser cannot do that (Safari, Firefox), or if it cannot
         handle the chosen language, we record the microphone with
         MediaRecorder and send the audio to our server, which passes it to
-        Whisper. Slower, but it works everywhere and understands Telugu.
+        Whisper. Slower, but it works everywhere, and it is the only way most
+        browsers can hear an Indian language other than English or Hindi.
 
    Speaking text out loud uses the browser's speechSynthesis in both cases.
    ========================================================================== */
@@ -52,20 +53,87 @@ const Speech = (function () {
   const FALLBACK_ERRORS = ["language-not-supported", "service-not-allowed", "network"];
 
   // Languages this browser's recogniser has already refused. Once we know it
-  // cannot do Telugu we go straight to recording, instead of making the user
-  // wait through the same failure on every click.
+  // cannot do a language we go straight to recording, instead of making the
+  // user wait through the same failure on every click.
   const unsupportedLanguages = [];
+
+  // ---------------------------------------------------------------------
+  // The languages the site speaks
+  //
+  // Django writes them into the page from travel/languages.py (see the
+  // json_script tag in base.html), so this file never carries its own idea
+  // of which alphabets exist. The fallback matters for the few pages that
+  // render without the tag - the site still works, in English.
+  // ---------------------------------------------------------------------
+  const LANGUAGES = (function () {
+    const tag = document.getElementById("language-data");
+    if (!tag) return [{ code: "en", name: "English", label: "English", speechCode: "en-IN", scriptStart: "", scriptEnd: "" }];
+    try {
+      return JSON.parse(tag.textContent);
+    } catch (error) {
+      return [{ code: "en", name: "English", label: "English", speechCode: "en-IN", scriptStart: "", scriptEnd: "" }];
+    }
+  })();
+
+  const byCode = {};
+  LANGUAGES.forEach(function (language) {
+    byCode[language.code] = language;
+  });
+
+  /** Every language the site speaks, for building a dropdown. */
+  function languages() {
+    return LANGUAGES.slice();
+  }
 
   /** Turn "te" into "te-IN" for the browser recogniser. */
   function fullCode(lang) {
     if (!lang) return "en-IN";
-    if (lang.length > 2) return lang;
-    return lang === "te" ? "te-IN" : "en-IN";
+    const language = byCode[shortCode(lang)];
+    return language ? language.speechCode : lang.length > 2 ? lang : "en-IN";
   }
 
   /** Turn "te-IN" into "te" for our server. */
   function shortCode(lang) {
     return (lang || "en").slice(0, 2);
+  }
+
+  /** The English name for a code, for a status message. */
+  function nameFor(lang) {
+    const language = byCode[shortCode(lang)];
+    return language ? language.name : "English";
+  }
+
+  /**
+   * Guess which language some text is written in, by its alphabet.
+   *
+   * Only used to choose a voice for "read aloud", so a wrong guess sounds
+   * odd rather than breaking anything. This mirrors languages.detect() on
+   * the server, including that Devanagari counts as Hindi - Hindi and
+   * Marathi share every letter, so nothing can tell them apart here.
+   */
+  function detect(text) {
+    if (!text) return "en";
+    const counts = {};
+    for (let index = 0; index < text.length; index += 1) {
+      const character = text[index];
+      for (let position = 0; position < LANGUAGES.length; position += 1) {
+        const language = LANGUAGES[position];
+        if (!language.scriptStart) continue;
+        if (character >= language.scriptStart && character <= language.scriptEnd) {
+          counts[language.code] = (counts[language.code] || 0) + 1;
+          break;
+        }
+      }
+    }
+    let best = "en";
+    let most = 0;
+    Object.keys(counts).forEach(function (code) {
+      if (counts[code] > most) {
+        most = counts[code];
+        best = code;
+      }
+    });
+    return best;
   }
 
   /** Can the browser turn speech into text by itself? */
@@ -539,15 +607,21 @@ const Speech = (function () {
   }
 
   /**
-   * Is a Telugu voice installed on this device? When the browser has not
-   * loaded its voice list yet we answer "yes" and let it try, because saying
-   * "no" would block a device that can actually speak Telugu.
+   * Is a voice for this language installed on this device? When the browser
+   * has not loaded its voice list yet we answer "yes" and let it try,
+   * because saying "no" would block a device that can actually speak it.
+   *
+   * English is on practically every device; the Indian languages are not,
+   * which is why the pages ask before promising to read something aloud.
    */
-  function hasTeluguVoice() {
+  function hasVoiceFor(lang) {
     if (!canSpeak()) return false;
     const voices = refreshVoices();
     if (!voices.length) return true;
-    return voices.some((v) => v.lang && v.lang.replace("_", "-").toLowerCase().startsWith("te"));
+    const wanted = shortCode(lang);
+    return voices.some(
+      (v) => v.lang && v.lang.replace("_", "-").toLowerCase().startsWith(wanted)
+    );
   }
 
   function stopSpeaking() {
@@ -572,6 +646,11 @@ const Speech = (function () {
     startCapture,
     speak,
     stopSpeaking,
-    hasTeluguVoice,
+    hasVoiceFor,
+    languages,
+    detect,
+    nameFor,
+    fullCode,
+    shortCode,
   };
 })();

@@ -12,62 +12,128 @@
       Discover amazing destinations, create personalised itineraries and plan
       your complete trip in minutes.
     </p>
-    <div class="hero-actions">
-      <a class="btn btn-primary btn-lg" href="{% url 'planner' %}">Plan My Trip</a>
-      <a class="btn btn-glass btn-lg" href="{% url 'destination_list' %}">Explore Destinations</a>
-    </div>
   </div>
 </section>
 
 {% comment %}
-  The trip search sits across the seam between the hero and the page below it,
-  which is why it is a section of its own rather than a child of the hero -
-  a negative margin on a child would be clipped by the hero's own overflow.
+  The booking panel is laid out the way an Indian travel portal lays one out:
+  a strip of service tabs along the top edge, one row of choices under it, the
+  journey fields divided by hairlines, and the action button hanging off the
+  bottom edge of the card.
 
-  It is a GET to the planner, and the planner reads these back as the form's
-  initial values, so nothing typed here is asked for twice. Anonymous
-  visitors are sent through login first and arrive with the values intact.
+  It rides up over the seam between the hero and the page, which is why it is
+  a section of its own rather than a child of the hero - a negative margin on
+  a child would be clipped by the hero's own overflow.
+
+  Everything in it is a real control. The form is a GET to the planner, and
+  the planner reads every one of these back as its initial values, so nothing
+  chosen here is asked for twice. Anonymous visitors are sent through login
+  first and arrive with their choices intact.
 {% endcomment %}
-<section class="container searchbar-wrap">
-  <form class="searchbar" method="get" action="{% url 'planner' %}">
-    <div class="searchbar-fields">
-      <div class="sb-field">
-        <label for="sbFrom">From</label>
-        <input id="sbFrom" type="text" name="source" placeholder="e.g. Pune" autocomplete="address-level2">
+<section class="container booking-wrap">
+  <div class="booking">
+
+    <nav class="booking-tabs" aria-label="Where would you like to go on the site?">
+      <a class="booking-tab is-active" href="{% url 'planner' %}">
+        <span class="bt-icon" aria-hidden="true">&#129517;</span><span>Plan a trip</span>
+      </a>
+      <a class="booking-tab" href="{% url 'destination_list' %}">
+        <span class="bt-icon" aria-hidden="true">&#127965;</span><span>Destinations</span>
+      </a>
+      <a class="booking-tab" href="{% url 'destination_list' %}?theme=temple">
+        <span class="bt-icon" aria-hidden="true">&#128332;</span><span>Pilgrimage</span>
+      </a>
+      <a class="booking-tab" href="{% url 'calculator' %}">
+        <span class="bt-icon" aria-hidden="true">&#129518;</span><span>Cost calculator</span>
+      </a>
+      <a class="booking-tab" href="{% url 'chatbot' %}">
+        <span class="bt-icon" aria-hidden="true">&#128172;</span><span>AI assistant</span>
+      </a>
+      <a class="booking-tab" href="{% url 'image_recognition' %}">
+        <span class="bt-icon" aria-hidden="true">&#128247;</span><span>Identify a photo</span>
+      </a>
+      <a class="booking-tab" href="{% url 'voice_assistant' %}">
+        <span class="bt-icon" aria-hidden="true">&#127908;</span><span>Voice &amp; translate</span>
+      </a>
+    </nav>
+
+    <form class="booking-form" method="get" action="{% url 'planner' %}">
+
+      {% comment %}
+        Where a booking site puts "One way / Round trip", this site puts the
+        thing it actually plans around: how you travel. Each chip is a real
+        transport option from the database, and the planner starts on the one
+        picked here.
+      {% endcomment %}
+      <div class="booking-modes" role="radiogroup" aria-label="How will you travel?">
+        {% for transport in transports %}
+          <label class="mode-chip">
+            <input type="radio" name="transportation" value="{{ transport.pk }}"
+                   {% if transport.code == "car" %}checked{% endif %}>
+            <span>{{ transport.name }}</span>
+          </label>
+        {% endfor %}
       </div>
 
-      <div class="sb-field">
-        <label for="sbTo">To</label>
-        <select id="sbTo" name="destination">
-          <option value="">Choose a destination</option>
-          {% for d in all_destinations %}
-            <option value="{{ d.pk }}">{{ d.name }}{% if d.state %}, {{ d.state }}{% endif %}</option>
-          {% endfor %}
-        </select>
+      <div class="booking-fields">
+        <div class="bk-field">
+          <label for="sbFrom">From</label>
+          <input id="sbFrom" type="text" name="source" placeholder="Your city"
+                 autocomplete="address-level2">
+        </div>
+
+        <div class="bk-field">
+          <label for="sbTo">To</label>
+          <select id="sbTo" name="destination">
+            <option value="">Choose a destination</option>
+            {% for d in all_destinations %}
+              <option value="{{ d.pk }}">{{ d.name }}{% if d.state %}, {{ d.state }}{% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="bk-field">
+          <label for="sbDate">Travel date</label>
+          <input id="sbDate" type="date" name="travel_date">
+        </div>
+
+        <div class="bk-field bk-field-sm">
+          <label for="sbTravellers">Travellers</label>
+          <input id="sbTravellers" type="number" name="travelers" value="2"
+                 min="1" max="20" inputmode="numeric">
+        </div>
+
+        <div class="bk-field bk-field-sm">
+          <label for="sbDays">Days</label>
+          <input id="sbDays" type="number" name="days" value="3"
+                 min="1" max="30" inputmode="numeric">
+        </div>
       </div>
 
-      <div class="sb-field">
-        <label for="sbDate">Travel date</label>
-        <input id="sbDate" type="date" name="travel_date">
-      </div>
+      <button class="booking-submit" type="submit">Search</button>
+    </form>
+  </div>
 
-      <div class="sb-field sb-field-sm">
-        <label for="sbTravellers">Travellers</label>
-        <input id="sbTravellers" type="number" name="travelers" value="2" min="1" max="20" inputmode="numeric">
-      </div>
-
-      <div class="sb-field sb-field-sm">
-        <label for="sbDays">Days</label>
-        <input id="sbDays" type="number" name="days" value="3" min="1" max="30" inputmode="numeric">
-      </div>
-    </div>
-
-    <button class="btn btn-primary sb-submit" type="submit">Create My Trip</button>
-  </form>
   <p class="sb-note">
     Sample route <strong>Pune &rarr; Mumbai</strong>, 2 travellers, 3 days by car.
     Every price shown on this site is a demonstration estimate.
   </p>
+</section>
+
+{% comment %}
+  The row of round category links a travel portal puts under its search box.
+  Each one is a real filter on the destinations page, not a picture.
+{% endcomment %}
+<section class="container theme-strip-wrap">
+  <h2 class="theme-strip-heading">Browse by what you like</h2>
+  <div class="theme-strip">
+    {% for theme in themes %}
+      <a class="theme-chip" href="{% url 'destination_list' %}?theme={{ theme.slug }}">
+        <span class="theme-chip-icon" aria-hidden="true">{{ theme.icon }}</span>
+        <span>{{ theme.name }}</span>
+      </a>
+    {% endfor %}
+  </div>
 </section>
 
 <section class="container section">

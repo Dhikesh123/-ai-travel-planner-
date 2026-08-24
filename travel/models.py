@@ -78,6 +78,24 @@ class Theme(models.Model):
     # trip for" question - but it belongs in its own row of chips. Kind keeps
     # both in one table and one relation instead of a second model and a
     # second many-to-many that would have to be joined separately.
+    # A small picture for each theme, for the round chips on the home page.
+    # A dictionary here rather than a column on the table because these are
+    # decoration, not data: a theme added without one simply gets the compass,
+    # and nobody has to run a migration to change a picture.
+    ICONS = {
+        "family": "👪",
+        "temple": "🛕",
+        "beach": "🏖",
+        "mountain": "🏔",
+        "nature": "🌿",
+        "adventure": "🧗",
+        "wildlife": "🐅",
+        "historical": "🏛",
+        "honeymoon": "💞",
+        "weekend": "🧳",
+        "budget": "💰",
+    }
+
     KIND_TRIP = "trip"
     KIND_PILGRIMAGE = "pilgrimage"
     KIND_CHOICES = [
@@ -98,6 +116,10 @@ class Theme(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def icon(self):
+        """The emoji shown on this theme's chip."""
+        return self.ICONS.get(self.slug, "🧭")
 
 class Destination(models.Model):
     name = models.CharField(max_length=100, unique=True)

@@ -223,3 +223,4 @@ Downloaded by `python manage.py localize_images`.
 | `places/wagah-border-ceremony.jpg` | Wagah Border Ceremony | Guilhem Vellut | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Wagah_border_ceremony2.jpg |
 | `places/yadadri-lakshmi-narasimha-temple.jpg` | Yadadri Lakshmi Narasimha Temple | Saket789 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Yadadri_Temple_on_the_hilltop.jpg |
 | `places/yadagirigutta-hill.jpg` | Yadagirigutta Hill | Saket789 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Yadadri_Temple_on_the_hilltop.jpg |
+| `hero/kumarakom-backwaters.jpg` | Home page hero | Vis M | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Kumarakom_backwaters_panorama.jpg |

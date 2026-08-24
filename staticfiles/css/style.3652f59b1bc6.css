@@ -10,10 +10,10 @@
   --line: #e2e8f0;
   --bg: #f6f8fb;
   --card: #ffffff;
-  --brand: #0d6efd;
-  --brand-dark: #0b5ed7;
-  --brand-soft: #e7f0ff;
-  --accent: #f2994a;
+  --brand: #fd0d29;
+  --brand-dark: #b30a1d;
+  --brand-soft: #ffe8ea;
+  --accent: #e01029;
   --ok: #1a7f5a;
   --warn: #9a6700;
   --warn-bg: #fff8e1;
@@ -103,7 +103,7 @@ code { background: #eef2f7; padding: .1rem .35rem; border-radius: 5px; font-size
 .alert-error { background: var(--danger-bg); border-color: #f5c2c0; color: var(--danger); }
 
 /* ---------------------------- Hero -------------------------------------- */
-.hero { background: #0b3f8f; color: #fff; padding: 2.5rem 0 3rem; }
+.hero { background: #c00d21; color: #fff; padding: 2.5rem 0 3rem; }
 .hero-inner { display: grid; gap: 1.5rem; }
 .hero h1 { font-size: 2rem; }
 .hero p { color: rgba(255,255,255,.9); }
@@ -185,7 +185,7 @@ textarea { resize: vertical; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
   overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; transition: .18s; }
 .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-.card-image { height: 140px; background: #0b3f8f;
+.card-image { height: 140px; background: #c00d21;
   background-size: cover; background-position: center; display: flex; align-items: center;
   justify-content: center; color: #fff; font-size: 1.6rem; font-weight: 700; }
 .card-image.small-image { height: 110px; font-size: .95rem; }
@@ -204,7 +204,7 @@ textarea { resize: vertical; }
   padding: 1rem; text-align: center; box-shadow: var(--shadow); }
 .stat-value { display: block; font-size: 1.5rem; font-weight: 700; color: var(--brand); }
 .stat-label { display: block; font-size: .82rem; color: var(--ink-soft); }
-.stat-highlight { background: #0b3f8f; }
+.stat-highlight { background: #c00d21; }
 .stat-highlight .stat-value, .stat-highlight .stat-label { color: #fff; }
 
 .quick-grid { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -392,14 +392,14 @@ textarea { resize: vertical; }
 
 /* ============ Floating assistant - tabs, image and voice ================= */
 /* A calmer, more premium panel: deeper header, quieter chrome, one accent
-   colour doing the work instead of blue on every surface. */
+   colour doing the work on every surface. *
 
 .chat-fab {
   width: 60px; height: 60px;
-  background: #0d6efd;
-  box-shadow: 0 10px 26px rgba(13, 110, 253, .38), 0 2px 6px rgba(0, 0, 0, .12);
+  background: #fd0d29;
+  box-shadow: 0 10px 26px rgba(253, 13, 41, .38), 0 2px 6px rgba(0, 0, 0, .12);
 }
-.chat-fab:hover { background: #0b3f8f; transform: scale(1.06); }
+.chat-fab:hover { background: #b30a1d; transform: scale(1.06); }
 
 .chat-widget {
   right: 22px; bottom: 96px;
@@ -417,7 +417,7 @@ textarea { resize: vertical; }
 
 /* Header ---------------------------------------------------------------- */
 .widget-head {
-  background: #0b3f8f;
+  background: #c00d21;
   padding: .95rem 1.05rem; align-items: flex-start;
 }
 .widget-head h4 {
@@ -446,7 +446,7 @@ textarea { resize: vertical; }
 }
 .widget-tab:hover { color: var(--ink); background: rgba(255, 255, 255, .7); }
 .widget-tab.is-active {
-  color: #0b3f8f; background: #fff; font-weight: 650;
+  color: #0a6b36; background: #fff; font-weight: 650;
   box-shadow: 0 1px 3px rgba(18, 38, 58, .12);
 }
 
@@ -471,9 +471,9 @@ textarea { resize: vertical; }
   font-size: .86rem; line-height: 1.45;
 }
 .w-bubble-user {
-  background: #0b3f8f;
+  background: #c00d21;
   border-bottom-right-radius: 5px;
-  box-shadow: 0 2px 8px rgba(11, 63, 143, .22);
+  box-shadow: 0 2px 8px rgba(192, 13, 33, .22);
 }
 .w-bubble-assistant {
   background: #fff; border: 1px solid rgba(18, 38, 58, .09);
@@ -491,7 +491,7 @@ textarea { resize: vertical; }
 }
 .widget-form textarea:focus {
   outline: none; border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(13, 110, 253, .16);
+  box-shadow: 0 0 0 3px rgba(253, 13, 41, .16);
 }
 .widget-form button { border-radius: 11px; font-weight: 600; }
 
@@ -508,7 +508,7 @@ textarea { resize: vertical; }
 }
 .w-text:focus {
   outline: none; border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(13, 110, 253, .16);
+  box-shadow: 0 0 0 3px rgba(253, 13, 41, .16);
 }
 textarea.w-text { resize: none; }
 .w-row { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
@@ -642,10 +642,10 @@ textarea.w-text { min-height: 4.6rem; }
 .suggest-head h2 { margin: 0; }
 .suggest-count {
   min-width: 26px; height: 26px; padding: 0 .45rem; border-radius: 999px;
-  background: #0b3f8f; color: #fff;
+  background: #c00d21; color: #fff;
   font-size: .78rem; font-weight: 650; display: inline-flex;
   align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px rgba(11, 63, 143, .3);
+  box-shadow: 0 2px 8px rgba(192, 13, 33, .3);
 }
 
 .suggest-list { list-style: none; margin: .8rem 0 0; padding: 0; display: grid; gap: .55rem; }
@@ -671,7 +671,7 @@ textarea.w-text { min-height: 4.6rem; }
 }
 .suggest-link:hover {
   transform: translateY(-2px);
-  border-color: rgba(13, 110, 253, .4);
+  border-color: rgba(253, 13, 41, .4);
   box-shadow: 0 10px 24px rgba(12, 30, 55, .13);
 }
 /* A light sweeps across the card on hover. */
@@ -684,19 +684,19 @@ textarea.w-text { min-height: 4.6rem; }
 
 .suggest-thumb {
   flex: 0 0 54px; width: 54px; height: 54px; border-radius: 10px;
-  background: #e7f0ff center/cover no-repeat;
+  background: #ffe8ea center/cover no-repeat;
   display: flex; align-items: center; justify-content: center;
   transition: transform .3s ease;
 }
 .suggest-link:hover .suggest-thumb { transform: scale(1.06); }
-.suggest-initial { font-size: 1.2rem; font-weight: 700; color: #0b3f8f; opacity: .65; }
+.suggest-initial { font-size: 1.2rem; font-weight: 700; color: #b30a1d; opacity: .65; }
 
 .suggest-body { display: flex; flex-direction: column; gap: .16rem; min-width: 0; }
 .suggest-name {
   font-weight: 620; font-size: .95rem; color: var(--ink); line-height: 1.25;
   display: flex; align-items: baseline; gap: .4rem;
 }
-.suggest-link:hover .suggest-name { color: #0b3f8f; }
+.suggest-link:hover .suggest-name { color: #b30a1d; }
 .suggest-meta { font-size: .74rem; color: var(--ink-soft); }
 .suggest-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .12rem; }
 .suggest-tag {
@@ -704,10 +704,10 @@ textarea.w-text { min-height: 4.6rem; }
   background: #eef2f7; color: var(--ink-soft);
 }
 .suggest-tag-free { background: #e6f6ef; color: var(--ok); }
-.suggest-tag-near { background: var(--brand-soft); color: #0b3f8f; }
+.suggest-tag-near { background: var(--brand-soft); color: #b30a1d; }
 
 /* Recommended rides on the name row, pushed to the right edge. Amber rather
-   than the brand blue, so it reads as a mark on the place and not as another
+   than the brand red, so it reads as a mark on the place and not as another
    link. */
 .suggest-badge {
   margin-left: auto; flex: none;
@@ -913,10 +913,10 @@ button:focus-visible,
      one, so a blocked or slow font never leaves the page unstyled. */
   --font-ui: "Plus Jakarta Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* Gold against the blue. One accent, used sparingly - on the pill, on
+  /* One red accent, used sparingly - on the pill, on
      hover underlines - is what separates premium from busy. */
-  --gold: #c8a24a;
-  --gold-soft: #f6efdd;
+  --brand-deep: #c00d21;
+  --brand-tint: #ffe8ea;
 
   --ink-deep: #0a1a2f;
 
@@ -951,9 +951,9 @@ h1 { letter-spacing: -.03em; }
   color: #fff;
   background:
     /* Two scrims: a vertical one so the headline always has contrast, and a
-       flat colour wash that ties the photograph back to the brand blue. */
-    linear-gradient(180deg, rgba(6, 20, 38, .78) 0%, rgba(6, 20, 38, .55) 45%, rgba(6, 20, 38, .82) 100%),
-    linear-gradient(rgba(11, 63, 143, .45), rgba(11, 63, 143, .45)),
+       flat colour wash that ties the photograph back to the brand red. *
+    linear-gradient(180deg, rgba(38, 6, 10, .78) 0%, rgba(38, 6, 10, .55) 45%, rgba(38, 6, 10, .82) 100%),
+    linear-gradient(rgba(168, 13, 30, .45), rgba(168, 13, 30, .45)),
     var(--brand-dark) url("../images/hero/kumarakom-backwaters.jpg")
       center / cover no-repeat;
 }
@@ -962,8 +962,8 @@ h1 { letter-spacing: -.03em; }
   .hero {
     padding: 5rem 0 7rem;
     background-image:
-      linear-gradient(180deg, rgba(6, 20, 38, .74) 0%, rgba(6, 20, 38, .48) 45%, rgba(6, 20, 38, .80) 100%),
-      linear-gradient(rgba(11, 63, 143, .4), rgba(11, 63, 143, .4)),
+      linear-gradient(180deg, rgba(38, 6, 10, .74) 0%, rgba(38, 6, 10, .48) 45%, rgba(38, 6, 10, .80) 100%),
+      linear-gradient(rgba(168, 13, 30, .4), rgba(168, 13, 30, .4)),
       url("../images/hero/kumarakom-backwaters.jpg");
   }
 }
@@ -994,7 +994,7 @@ h1 { letter-spacing: -.03em; }
   font-weight: 600;
   letter-spacing: .02em;
   padding: .34rem .9rem;
-  box-shadow: inset 0 0 0 1px rgba(13, 110, 253, .25);
+  box-shadow: inset 0 0 0 1px rgba(253, 13, 41, .25);
 }
 
 .hero-actions { gap: .7rem; margin: 0; }
@@ -1255,7 +1255,7 @@ h1 { letter-spacing: -.03em; }
   margin-bottom: .3rem;
 }
 
-/* A short blue rule under each section heading - the one decorative flourish,
+/* A short red rule under each section heading - the one decorative flourish,
    repeated, which is what makes it read as a system rather than an accident. */
 .section > h2::after {
   content: "";
@@ -1307,7 +1307,7 @@ h1 { letter-spacing: -.03em; }
 }
 
 .w-bubble-user {
-  background: #0b3f8f;
+  background: #c00d21;
   color: #fff;
   border-bottom-right-radius: 5px;
 }
@@ -1399,7 +1399,7 @@ h1 { letter-spacing: -.03em; }
 }
 .chip:hover span { border-color: var(--brand); color: var(--brand); }
 .chip.is-on span {
-  background: #0b3f8f;
+  background: #c00d21;
   border-color: transparent;
   color: #fff;
   box-shadow: var(--e2);
@@ -1451,7 +1451,7 @@ h1 { letter-spacing: -.03em; }
   font-weight: 600;
   color: var(--warn);
 }
-.tag-rating { background: var(--gold-soft); color: #7a5f18; font-weight: 700; }
+.tag-rating { background: var(--brand-tint); color: #7a0714; font-weight: 700; }
 
 .card-themes { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
 .theme-tag {
@@ -1460,7 +1460,7 @@ h1 { letter-spacing: -.03em; }
   padding: .12rem .5rem;
   border-radius: 999px;
   background: var(--brand-soft);
-  color: #0b3f8f;
+  color: #b30a1d;
 }
 
 /* --------------------------- Empty state -------------------------------- */
@@ -1486,12 +1486,12 @@ h1 { letter-spacing: -.03em; }
    headings. */
 .chips-sub {
   padding-left: .8rem;
-  border-left: 3px solid var(--gold);
+  border-left: 3px solid var(--brand-deep);
   margin-left: .1rem;
 }
 .chips-sub .chip span { font-size: .78rem; }
 .chips-sub .chip.is-on span {
-  background: #0b3f8f;
+  background: #c00d21;
 }
 
 /* ======================= Cost dashboard ================================= */
@@ -1547,9 +1547,9 @@ h1 { letter-spacing: -.03em; }
    the bars read as one chart. */
 .cost-fill-travel   { background: #7a0714; }
 .cost-fill-hotel    { background: #a80d1e; }
-.cost-fill-food     { background: #0b3f8f; }
-.cost-fill-local    { background: #5c7cfa; }
-.cost-fill-activity { background: #0d6efd; }
+.cost-fill-food     { background: #c00d21; }
+.cost-fill-local    { background: #e01029; }
+.cost-fill-activity { background: #fd0d29; }
 .cost-fill-buffer   { background: #ff8a99; }
 
 .cost-share { font-size: .7rem; color: var(--ink-soft); }
@@ -1722,7 +1722,7 @@ h1 { letter-spacing: -.03em; }
 
 /* The figure the budget filter actually compared against. Deep red, because it is
    the answer to the question the bar above asked. */
-.tag-total { background: var(--gold-soft); color: #7a5f18; font-weight: 700; }
+.tag-total { background: var(--brand-tint); color: #7a0714; font-weight: 700; }
 
 /* ------------------------ Per-day budget slider -------------------------- */
 .bg-field-slider { gap: .3rem; }
@@ -1732,7 +1732,7 @@ h1 { letter-spacing: -.03em; }
   padding: .05rem .4rem;
   border-radius: 999px;
   background: var(--brand-soft);
-  color: #0b3f8f;
+  color: #b30a1d;
   font-weight: 700;
   font-size: .68rem;
   letter-spacing: 0;

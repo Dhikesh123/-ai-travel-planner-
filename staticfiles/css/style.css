@@ -10,10 +10,10 @@
   --line: #e2e8f0;
   --bg: #f6f8fb;
   --card: #ffffff;
-  --brand: #fd0d29;
-  --brand-dark: #b30a1d;
-  --brand-soft: #ffe8ea;
-  --accent: #e01029;
+  --brand: #0d6efd;
+  --brand-dark: #0b5ed7;
+  --brand-soft: #e7f0ff;
+  --accent: #f2994a;
   --ok: #1a7f5a;
   --warn: #9a6700;
   --warn-bg: #fff8e1;
@@ -103,7 +103,7 @@ code { background: #eef2f7; padding: .1rem .35rem; border-radius: 5px; font-size
 .alert-error { background: var(--danger-bg); border-color: #f5c2c0; color: var(--danger); }
 
 /* ---------------------------- Hero -------------------------------------- */
-.hero { background: #c00d21; color: #fff; padding: 2.5rem 0 3rem; }
+.hero { background: #0b3f8f; color: #fff; padding: 2.5rem 0 3rem; }
 .hero-inner { display: grid; gap: 1.5rem; }
 .hero h1 { font-size: 2rem; }
 .hero p { color: rgba(255,255,255,.9); }
@@ -185,7 +185,7 @@ textarea { resize: vertical; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
   overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; transition: .18s; }
 .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-.card-image { height: 140px; background: #c00d21;
+.card-image { height: 140px; background: #0b3f8f;
   background-size: cover; background-position: center; display: flex; align-items: center;
   justify-content: center; color: #fff; font-size: 1.6rem; font-weight: 700; }
 .card-image.small-image { height: 110px; font-size: .95rem; }
@@ -204,7 +204,7 @@ textarea { resize: vertical; }
   padding: 1rem; text-align: center; box-shadow: var(--shadow); }
 .stat-value { display: block; font-size: 1.5rem; font-weight: 700; color: var(--brand); }
 .stat-label { display: block; font-size: .82rem; color: var(--ink-soft); }
-.stat-highlight { background: #c00d21; }
+.stat-highlight { background: #0b3f8f; }
 .stat-highlight .stat-value, .stat-highlight .stat-label { color: #fff; }
 
 .quick-grid { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -392,14 +392,14 @@ textarea { resize: vertical; }
 
 /* ============ Floating assistant - tabs, image and voice ================= */
 /* A calmer, more premium panel: deeper header, quieter chrome, one accent
-   colour doing the work on every surface. *
+   colour doing the work instead of blue on every surface. */
 
 .chat-fab {
   width: 60px; height: 60px;
-  background: #fd0d29;
-  box-shadow: 0 10px 26px rgba(253, 13, 41, .38), 0 2px 6px rgba(0, 0, 0, .12);
+  background: #0d6efd;
+  box-shadow: 0 10px 26px rgba(13, 110, 253, .38), 0 2px 6px rgba(0, 0, 0, .12);
 }
-.chat-fab:hover { background: #b30a1d; transform: scale(1.06); }
+.chat-fab:hover { background: #0b3f8f; transform: scale(1.06); }
 
 .chat-widget {
   right: 22px; bottom: 96px;
@@ -417,7 +417,7 @@ textarea { resize: vertical; }
 
 /* Header ---------------------------------------------------------------- */
 .widget-head {
-  background: #c00d21;
+  background: #0b3f8f;
   padding: .95rem 1.05rem; align-items: flex-start;
 }
 .widget-head h4 {
@@ -446,7 +446,7 @@ textarea { resize: vertical; }
 }
 .widget-tab:hover { color: var(--ink); background: rgba(255, 255, 255, .7); }
 .widget-tab.is-active {
-  color: #0a6b36; background: #fff; font-weight: 650;
+  color: #0b3f8f; background: #fff; font-weight: 650;
   box-shadow: 0 1px 3px rgba(18, 38, 58, .12);
 }
 
@@ -471,9 +471,9 @@ textarea { resize: vertical; }
   font-size: .86rem; line-height: 1.45;
 }
 .w-bubble-user {
-  background: #c00d21;
+  background: #0b3f8f;
   border-bottom-right-radius: 5px;
-  box-shadow: 0 2px 8px rgba(192, 13, 33, .22);
+  box-shadow: 0 2px 8px rgba(11, 63, 143, .22);
 }
 .w-bubble-assistant {
   background: #fff; border: 1px solid rgba(18, 38, 58, .09);
@@ -491,7 +491,7 @@ textarea { resize: vertical; }
 }
 .widget-form textarea:focus {
   outline: none; border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(253, 13, 41, .16);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, .16);
 }
 .widget-form button { border-radius: 11px; font-weight: 600; }
 
@@ -508,7 +508,7 @@ textarea { resize: vertical; }
 }
 .w-text:focus {
   outline: none; border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(253, 13, 41, .16);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, .16);
 }
 textarea.w-text { resize: none; }
 .w-row { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
@@ -642,10 +642,10 @@ textarea.w-text { min-height: 4.6rem; }
 .suggest-head h2 { margin: 0; }
 .suggest-count {
   min-width: 26px; height: 26px; padding: 0 .45rem; border-radius: 999px;
-  background: #c00d21; color: #fff;
+  background: #0b3f8f; color: #fff;
   font-size: .78rem; font-weight: 650; display: inline-flex;
   align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px rgba(192, 13, 33, .3);
+  box-shadow: 0 2px 8px rgba(11, 63, 143, .3);
 }
 
 .suggest-list { list-style: none; margin: .8rem 0 0; padding: 0; display: grid; gap: .55rem; }
@@ -671,7 +671,7 @@ textarea.w-text { min-height: 4.6rem; }
 }
 .suggest-link:hover {
   transform: translateY(-2px);
-  border-color: rgba(253, 13, 41, .4);
+  border-color: rgba(13, 110, 253, .4);
   box-shadow: 0 10px 24px rgba(12, 30, 55, .13);
 }
 /* A light sweeps across the card on hover. */
@@ -684,19 +684,19 @@ textarea.w-text { min-height: 4.6rem; }
 
 .suggest-thumb {
   flex: 0 0 54px; width: 54px; height: 54px; border-radius: 10px;
-  background: #ffe8ea center/cover no-repeat;
+  background: #e7f0ff center/cover no-repeat;
   display: flex; align-items: center; justify-content: center;
   transition: transform .3s ease;
 }
 .suggest-link:hover .suggest-thumb { transform: scale(1.06); }
-.suggest-initial { font-size: 1.2rem; font-weight: 700; color: #b30a1d; opacity: .65; }
+.suggest-initial { font-size: 1.2rem; font-weight: 700; color: #0b3f8f; opacity: .65; }
 
 .suggest-body { display: flex; flex-direction: column; gap: .16rem; min-width: 0; }
 .suggest-name {
   font-weight: 620; font-size: .95rem; color: var(--ink); line-height: 1.25;
   display: flex; align-items: baseline; gap: .4rem;
 }
-.suggest-link:hover .suggest-name { color: #b30a1d; }
+.suggest-link:hover .suggest-name { color: #0b3f8f; }
 .suggest-meta { font-size: .74rem; color: var(--ink-soft); }
 .suggest-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .12rem; }
 .suggest-tag {
@@ -704,10 +704,10 @@ textarea.w-text { min-height: 4.6rem; }
   background: #eef2f7; color: var(--ink-soft);
 }
 .suggest-tag-free { background: #e6f6ef; color: var(--ok); }
-.suggest-tag-near { background: var(--brand-soft); color: #b30a1d; }
+.suggest-tag-near { background: var(--brand-soft); color: #0b3f8f; }
 
 /* Recommended rides on the name row, pushed to the right edge. Amber rather
-   than the brand red, so it reads as a mark on the place and not as another
+   than the brand blue, so it reads as a mark on the place and not as another
    link. */
 .suggest-badge {
   margin-left: auto; flex: none;
@@ -913,10 +913,10 @@ button:focus-visible,
      one, so a blocked or slow font never leaves the page unstyled. */
   --font-ui: "Plus Jakarta Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* One red accent, used sparingly - on the pill, on
+  /* Gold against the blue. One accent, used sparingly - on the pill, on
      hover underlines - is what separates premium from busy. */
-  --brand-deep: #c00d21;
-  --brand-tint: #ffe8ea;
+  --gold: #c8a24a;
+  --gold-soft: #f6efdd;
 
   --ink-deep: #0a1a2f;
 
@@ -951,10 +951,10 @@ h1 { letter-spacing: -.03em; }
   color: #fff;
   background:
     /* Two scrims: a vertical one so the headline always has contrast, and a
-       flat colour wash that ties the photograph back to the brand red. *
-    linear-gradient(180deg, rgba(38, 6, 10, .78) 0%, rgba(38, 6, 10, .55) 45%, rgba(38, 6, 10, .82) 100%),
-    linear-gradient(rgba(168, 13, 30, .45), rgba(168, 13, 30, .45)),
-    var(--brand-dark) url("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Kumarakom_backwaters_panorama.jpg/1280px-Kumarakom_backwaters_panorama.jpg")
+       flat colour wash that ties the photograph back to the brand blue. */
+    linear-gradient(180deg, rgba(6, 20, 38, .78) 0%, rgba(6, 20, 38, .55) 45%, rgba(6, 20, 38, .82) 100%),
+    linear-gradient(rgba(11, 63, 143, .45), rgba(11, 63, 143, .45)),
+    var(--brand-dark) url("../images/hero/kumarakom-backwaters.jpg")
       center / cover no-repeat;
 }
 
@@ -962,9 +962,9 @@ h1 { letter-spacing: -.03em; }
   .hero {
     padding: 5rem 0 7rem;
     background-image:
-      linear-gradient(180deg, rgba(38, 6, 10, .74) 0%, rgba(38, 6, 10, .48) 45%, rgba(38, 6, 10, .80) 100%),
-      linear-gradient(rgba(168, 13, 30, .4), rgba(168, 13, 30, .4)),
-      url("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Kumarakom_backwaters_panorama.jpg/1920px-Kumarakom_backwaters_panorama.jpg");
+      linear-gradient(180deg, rgba(6, 20, 38, .74) 0%, rgba(6, 20, 38, .48) 45%, rgba(6, 20, 38, .80) 100%),
+      linear-gradient(rgba(11, 63, 143, .4), rgba(11, 63, 143, .4)),
+      url("../images/hero/kumarakom-backwaters.jpg");
   }
 }
 
@@ -994,7 +994,7 @@ h1 { letter-spacing: -.03em; }
   font-weight: 600;
   letter-spacing: .02em;
   padding: .34rem .9rem;
-  box-shadow: inset 0 0 0 1px rgba(253, 13, 41, .25);
+  box-shadow: inset 0 0 0 1px rgba(13, 110, 253, .25);
 }
 
 .hero-actions { gap: .7rem; margin: 0; }
@@ -1012,25 +1012,104 @@ h1 { letter-spacing: -.03em; }
 }
 .btn-glass:hover { background: rgba(255, 255, 255, .24); color: #fff; }
 
-/* --------------------------- Trip search -------------------------------- */
-/* Rides up over the seam between the hero and the page, the way a booking
-   site's search panel does. */
-.searchbar-wrap { margin-top: -3.25rem; position: relative; z-index: 4; }
+/* ------------------------- Booking panel -------------------------------- */
+/* Laid out the way an Indian travel portal lays out its home page: service
+   tabs across the top edge, the choices under them, the journey fields
+   divided by hairlines, and the action button hanging off the bottom edge.
 
-.searchbar {
+   It rides up over the seam between the hero and the page below. */
+.booking-wrap { margin-top: -3.25rem; position: relative; z-index: 4; }
+
+.booking {
+  position: relative;
   background: var(--card);
   border: 1px solid rgba(18, 38, 58, .07);
   border-radius: var(--r-xl);
   box-shadow: var(--e4);
-  padding: 1rem;
-  display: grid;
-  gap: .85rem;
 }
 
-.searchbar-fields { display: grid; gap: .7rem; }
+/* ---- the service tabs along the top edge ---- */
+.booking-tabs {
+  display: flex;
+  gap: .1rem;
+  padding: .35rem .4rem 0;
+  border-bottom: 1px solid var(--line);
+  /* Seven tabs do not fit a phone. They scroll sideways rather than wrap,
+     which keeps the panel one tidy row at every width. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.booking-tabs::-webkit-scrollbar { display: none; }
 
-.sb-field { display: flex; flex-direction: column; gap: .25rem; }
-.sb-field label {
+.booking-tab {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .15rem;
+  padding: .55rem .7rem .5rem;
+  border-bottom: 3px solid transparent;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  font-size: .72rem;
+  font-weight: 650;
+  color: var(--ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .15s ease, background .15s ease, border-color .15s ease;
+}
+.booking-tab .bt-icon { font-size: 1.3rem; line-height: 1; }
+.booking-tab:hover { color: var(--brand); background: #fbfcfe; }
+.booking-tab.is-active { color: var(--brand); border-bottom-color: var(--brand); }
+.booking-tab:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+
+/* ---- how you travel: a row of chips where a booking site puts
+        "one way / round trip" ---- */
+.booking-form { padding: .9rem 1rem 1.1rem; }
+
+.booking-modes { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .9rem; }
+.mode-chip { display: inline-flex; cursor: pointer; }
+/* The radio itself is hidden but still focusable and still announced, so the
+   row works from the keyboard and to a screen reader. */
+.mode-chip input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.mode-chip span {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: .28rem .85rem;
+  font-size: .82rem;
+  font-weight: 650;
+  color: var(--ink-soft);
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.mode-chip:hover span { border-color: var(--brand); color: var(--brand); }
+.mode-chip input:checked + span {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  color: var(--brand-dark);
+}
+.mode-chip input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ---- the journey fields ---- */
+.booking-fields { display: grid; gap: .5rem; }
+
+/* Each field is one soft box: a small quiet label with a big confident value
+   under it, which is what makes a booking panel feel like a booking panel
+   rather than a stack of form inputs. */
+.bk-field {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  padding: .55rem .7rem;
+  border-radius: var(--r-sm);
+  transition: background .15s ease;
+}
+.bk-field:hover, .bk-field:focus-within { background: #f7f9fc; }
+.bk-field label {
   font-size: .68rem;
   font-weight: 700;
   letter-spacing: .07em;
@@ -1038,55 +1117,135 @@ h1 { letter-spacing: -.03em; }
   color: var(--ink-soft);
   margin: 0;
 }
-/* The fields read as one continuous panel rather than five boxed inputs -
-   the divider between them does the separating instead of a border each. */
-.sb-field input, .sb-field select {
-  margin-top: 0;
+.bk-field input, .bk-field select {
+  margin: 0;
   border: none;
-  border-radius: var(--r-sm);
-  background: #f7f9fc;
-  padding: .6rem .7rem;
-  font-weight: 600;
-  color: var(--ink);
-}
-.sb-field input:focus, .sb-field select:focus {
-  background: #fff;
-  box-shadow: 0 0 0 2px var(--brand);
-}
-.sb-field input::placeholder { font-weight: 500; color: #93a3b8; }
-
-.sb-submit {
-  border-radius: var(--r-sm);
+  background: transparent;
+  padding: .1rem 0;
+  font-family: inherit;
+  font-size: 1.05rem;
   font-weight: 700;
-  letter-spacing: .01em;
-  padding: .8rem 1.4rem;
-  box-shadow: var(--e2);
+  color: var(--ink);
+  width: 100%;
 }
+.bk-field input:focus, .bk-field select:focus { outline: none; }
+.bk-field input::placeholder { font-weight: 600; color: #9fb0c4; }
+
+/* ---- the action ---- */
+.booking-submit {
+  width: 100%;
+  margin-top: .8rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-family: inherit;
+  font-size: .95rem;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  padding: .8rem 2.4rem;
+  cursor: pointer;
+  box-shadow: var(--e2);
+  transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.booking-submit:hover { background: var(--brand-dark); box-shadow: var(--e3); }
+.booking-submit:active { transform: translateY(1px); }
+.booking-submit:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
 
 .sb-note {
-  margin: .8rem .2rem 0;
+  margin: 1.1rem .2rem 0;
   font-size: .8rem;
   color: var(--ink-soft);
   text-align: center;
 }
 
 @media (min-width: 760px) {
-  .searchbar {
-    grid-template-columns: 1fr auto;
-    align-items: end;
-    padding: 1.1rem 1.2rem;
-  }
-  .searchbar-fields {
-    grid-template-columns: 1.2fr 1.4fr 1fr .7fr .7fr;
-    gap: 0;
-  }
-  /* One hairline between fields, not around each. */
-  .sb-field + .sb-field {
+  .booking-tabs { padding: .4rem .8rem 0; gap: .2rem; }
+  .booking-tab { padding: .6rem 1rem .55rem; font-size: .76rem; }
+  .booking-form { padding: 1.1rem 1.2rem 2.4rem; }
+
+  .booking-fields { grid-template-columns: 1.2fr 1.5fr 1fr .75fr .75fr; gap: 0; }
+  /* One hairline between fields, not a border around each. */
+  .bk-field + .bk-field {
     border-left: 1px solid var(--line);
-    padding-left: .9rem;
-    margin-left: .9rem;
+    border-radius: var(--r-sm);
   }
-  .sb-submit { align-self: end; }
+
+  /* The button hangs off the bottom edge of the panel, which is the detail
+     that makes the whole thing read as a booking widget. The extra bottom
+     padding on the form above is what keeps it clear of the fields. */
+  .booking-submit {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 50%);
+    width: auto;
+    min-width: 190px;
+    margin: 0;
+  }
+  .booking-submit:active { transform: translate(-50%, calc(50% + 1px)); }
+  .sb-note { margin-top: 2.4rem; }
+}
+
+/* ------------------------- Category chips ------------------------------- */
+/* The round shortcuts a travel portal puts under its search box. Each one is
+   a real filter on the destinations page. */
+.theme-strip-wrap { padding: 2.2rem 0 .5rem; }
+.theme-strip-heading {
+  font-size: 1rem;
+  font-weight: 750;
+  color: var(--ink-soft);
+  margin-bottom: .9rem;
+}
+
+.theme-strip {
+  display: flex;
+  gap: .75rem;
+  overflow-x: auto;
+  padding-bottom: .6rem;
+  scrollbar-width: none;
+}
+.theme-strip::-webkit-scrollbar { display: none; }
+
+.theme-chip {
+  flex: 0 0 auto;
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .4rem;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: .74rem;
+  font-weight: 650;
+  text-align: center;
+  line-height: 1.25;
+}
+.theme-chip-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--e1);
+  font-size: 1.5rem;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.theme-chip:hover .theme-chip-icon {
+  border-color: var(--brand);
+  box-shadow: var(--e2);
+  transform: translateY(-2px);
+}
+.theme-chip:hover { color: var(--brand); }
+.theme-chip:focus-visible .theme-chip-icon { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .booking-tab, .mode-chip span, .bk-field,
+  .theme-chip-icon, .booking-submit { transition: none; }
+  .theme-chip:hover .theme-chip-icon { transform: none; }
 }
 
 /* ------------------------- Section rhythm ------------------------------- */
@@ -1096,7 +1255,7 @@ h1 { letter-spacing: -.03em; }
   margin-bottom: .3rem;
 }
 
-/* A short red rule under each section heading - the one decorative flourish,
+/* A short blue rule under each section heading - the one decorative flourish,
    repeated, which is what makes it read as a system rather than an accident. */
 .section > h2::after {
   content: "";
@@ -1148,7 +1307,7 @@ h1 { letter-spacing: -.03em; }
 }
 
 .w-bubble-user {
-  background: #c00d21;
+  background: #0b3f8f;
   color: #fff;
   border-bottom-right-radius: 5px;
 }
@@ -1240,7 +1399,7 @@ h1 { letter-spacing: -.03em; }
 }
 .chip:hover span { border-color: var(--brand); color: var(--brand); }
 .chip.is-on span {
-  background: #c00d21;
+  background: #0b3f8f;
   border-color: transparent;
   color: #fff;
   box-shadow: var(--e2);
@@ -1292,7 +1451,7 @@ h1 { letter-spacing: -.03em; }
   font-weight: 600;
   color: var(--warn);
 }
-.tag-rating { background: var(--brand-tint); color: #7a0714; font-weight: 700; }
+.tag-rating { background: var(--gold-soft); color: #7a5f18; font-weight: 700; }
 
 .card-themes { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
 .theme-tag {
@@ -1301,7 +1460,7 @@ h1 { letter-spacing: -.03em; }
   padding: .12rem .5rem;
   border-radius: 999px;
   background: var(--brand-soft);
-  color: #b30a1d;
+  color: #0b3f8f;
 }
 
 /* --------------------------- Empty state -------------------------------- */
@@ -1327,12 +1486,12 @@ h1 { letter-spacing: -.03em; }
    headings. */
 .chips-sub {
   padding-left: .8rem;
-  border-left: 3px solid var(--brand-deep);
+  border-left: 3px solid var(--gold);
   margin-left: .1rem;
 }
 .chips-sub .chip span { font-size: .78rem; }
 .chips-sub .chip.is-on span {
-  background: #c00d21;
+  background: #0b3f8f;
 }
 
 /* ======================= Cost dashboard ================================= */
@@ -1388,9 +1547,9 @@ h1 { letter-spacing: -.03em; }
    the bars read as one chart. */
 .cost-fill-travel   { background: #7a0714; }
 .cost-fill-hotel    { background: #a80d1e; }
-.cost-fill-food     { background: #c00d21; }
-.cost-fill-local    { background: #e01029; }
-.cost-fill-activity { background: #fd0d29; }
+.cost-fill-food     { background: #0b3f8f; }
+.cost-fill-local    { background: #5c7cfa; }
+.cost-fill-activity { background: #0d6efd; }
 .cost-fill-buffer   { background: #ff8a99; }
 
 .cost-share { font-size: .7rem; color: var(--ink-soft); }
@@ -1563,7 +1722,7 @@ h1 { letter-spacing: -.03em; }
 
 /* The figure the budget filter actually compared against. Deep red, because it is
    the answer to the question the bar above asked. */
-.tag-total { background: var(--brand-tint); color: #7a0714; font-weight: 700; }
+.tag-total { background: var(--gold-soft); color: #7a5f18; font-weight: 700; }
 
 /* ------------------------ Per-day budget slider -------------------------- */
 .bg-field-slider { gap: .3rem; }
@@ -1573,7 +1732,7 @@ h1 { letter-spacing: -.03em; }
   padding: .05rem .4rem;
   border-radius: 999px;
   background: var(--brand-soft);
-  color: #b30a1d;
+  color: #0b3f8f;
   font-weight: 700;
   font-size: .68rem;
   letter-spacing: 0;

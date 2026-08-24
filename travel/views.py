@@ -198,6 +198,10 @@ def home(request):
             "all_destinations": Destination.objects.only("pk", "name", "state"),
             "places": TouristPlace.objects.select_related("destination")[:8],
             "transports": Transportation.objects.filter(is_active=True),
+            # The round category chips under the search panel. Trip themes
+            # only: the pilgrimage circuits have their own row on the
+            # destinations page and would double the length of this one.
+            "themes": Theme.objects.filter(kind=Theme.KIND_TRIP).order_by("display_order"),
             "ai_ready": ai_service.is_configured(),
         },
     )
@@ -501,6 +505,9 @@ def planner(request):
             initial["source"] = request.GET["source"].strip()
         if (request.GET.get("destination") or "").isdigit():
             initial["destination"] = request.GET["destination"]
+        # The home page's transport chips arrive here as a pk.
+        if (request.GET.get("transportation") or "").isdigit():
+            initial["transportation"] = request.GET["transportation"]
         form = TripForm(initial=initial)
 
     return render(

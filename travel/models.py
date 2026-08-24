@@ -103,15 +103,22 @@ class Destination(models.Model):
     country = models.CharField(max_length=80, default="India")
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to="uploads/destinations/", blank=True, null=True)
-    # URLField defaults to 200 characters, which is not enough: the Wikimedia
-    # Commons thumbnail URLs the seed data uses reach 217, and the file name
-    # appears twice in a thumbnail path so they grow quickly. SQLite ignores
-    # max_length, so a short field only fails once it reaches Postgres, with
-    # "value too long for type character varying(200)".
-    image_url = models.URLField(
+    # A plain CharField rather than a URLField, because the photographs now
+    # live inside the project: the usual value is a path like
+    # "/static/images/destinations/goa.jpg", which a URLField would reject in
+    # the admin. A full web address still works if you paste one in.
+    #
+    # 500 characters, not the default 200: a Wikimedia Commons thumbnail URL
+    # reaches 217 because the file name appears twice in the path. SQLite
+    # ignores max_length, so a short field only fails once it reaches
+    # Postgres, with "value too long for type character varying(200)".
+    image_url = models.CharField(
         max_length=500,
         blank=True,
-        help_text="Optional web image, used when no file is uploaded.",
+        help_text=(
+            "Optional picture, used when no file is uploaded. Either a path "
+            "like /static/images/destinations/goa.jpg or a full web address."
+        ),
     )
     estimated_cost_per_day = models.DecimalField(
         max_digits=10,
@@ -181,7 +188,7 @@ class TouristPlace(models.Model):
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to="uploads/places/", blank=True, null=True)
-    image_url = models.URLField(max_length=500, blank=True)  # see Destination
+    image_url = models.CharField(max_length=500, blank=True)  # see Destination
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="historical")
     opening_info = models.CharField(
         max_length=200, blank=True, help_text="e.g. 'Open 9 AM - 6 PM, closed Monday'"

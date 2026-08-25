@@ -15,7 +15,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.db import DatabaseError
 from django.db.models import Count, Sum
-from django.http import StreamingHttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, parser_classes, permission_classes
@@ -26,6 +26,7 @@ from rest_framework.response import Response
 from . import languages
 from .forms import ImageUploadForm, RegisterForm
 from .models import (
+    CityLocation,
     ChatMessage,
     Destination,
     TouristPlace,
@@ -251,6 +252,98 @@ def api_destination_detail(request, pk):
     except Destination.DoesNotExist:
         return error("That destination does not exist.", status.HTTP_404_NOT_FOUND)
     return Response({"ok": True, "destination": DestinationDetailSerializer(destination).data})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def api_speak(request):
+    """
+    POST /api/speak/   {"text": "...", "language": "te"}  ->  audio/mpeg
+
+    The browser reads text aloud by itself when it can. It cannot when the
+    operating system has no voice for the language - which for Telugu is most
+    machines - and this is the fallback for exactly that case.
+
+    Returns the mp3 straight down the wire rather than as JSON, so the page
+    can hand it to an <audio> element without decoding anything.
+    """
+    text = (request.data.get("text") or "").strip()
+    if not text:
+        return error("There is nothing to read aloud.")
+
+    language = languages.clean_code(request.data.get("language"))
+    try:
+        audio = speech_service.synthesize(text, language)
+    except ai_service.AIError as exc:
+        return error(str(exc), status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    response = HttpResponse(audio, content_type="audio/mpeg")
+    response["Content-Length"] = str(len(audio))
+    # The same sentence is often replayed; letting the browser keep it saves
+    # asking the speech service twice.
+    response["Cache-Control"] = "private, max-age=3600"
+    return response
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def api_city_search(request):
+    """
+    GET /api/city-search/?q=bhim  - starting cities matching what is typed.
+
+    Answered entirely from our own tables: the destinations in the catalogue,
+    and the CityLocation list (seeded by "manage.py seed_cities", and grown
+    every time somebody plans a trip from a town we had not seen before).
+
+    Deliberately NOT a live geocoder call. OpenStreetMap's usage policy rules
+    out autocomplete against their servers, and a request per keystroke would
+    be exactly that. Somewhere missing from the list can still be typed in
+    full - it gets looked up once when the trip is planned.
+
+    Towns whose name starts with what was typed come first, because that is
+    what somebody halfway through typing is looking for.
+    """
+    query = (request.GET.get("q") or "").strip()
+    if len(query) < 2:
+        return Response({"ok": True, "results": []})
+
+    limit = 8
+    seen, results = set(), []
+
+    def add(name, label, kind):
+        key = name.lower()
+        if key in seen:
+            return
+        seen.add(key)
+        results.append({"name": name, "label": label, "kind": kind})
+
+    # 1. destinations we sell, matching from the start of the name
+    for destination in Destination.objects.filter(name__istartswith=query)[:limit]:
+        add(
+            destination.name,
+            "%s, %s" % (destination.name, destination.state) if destination.state
+            else destination.name,
+            "destination",
+        )
+
+    # 2. known towns, matching from the start
+    for city in CityLocation.objects.filter(
+        name__istartswith=query, latitude__isnull=False
+    )[: limit * 2]:
+        add(city.display_name.split(",")[0] or city.name.title(),
+            city.display_name or city.name.title(), "city")
+
+    # 3. and only then anything with the text somewhere in the middle -
+    #    "gudem" should still find Tadepalligudem, just not ahead of a town
+    #    that actually begins with it
+    if len(results) < limit:
+        for city in CityLocation.objects.filter(
+            name__icontains=query, latitude__isnull=False
+        )[: limit * 2]:
+            add(city.display_name.split(",")[0] or city.name.title(),
+                city.display_name or city.name.title(), "city")
+
+    return Response({"ok": True, "results": results[:limit]})
 
 
 @api_view(["GET"])

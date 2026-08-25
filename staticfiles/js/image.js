@@ -125,9 +125,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------------------------------------------------------------------
   // Read the answer aloud
   // ---------------------------------------------------------------------
-  speakBtn.addEventListener("click", function () {
-    if (!Speech.speak(resultBox.innerText, "en")) {
-      showError(errorBox, "This browser cannot read text aloud.");
+  speakBtn.addEventListener("click", async function () {
+    if (!(await Speech.speak(resultBox.innerText, "en"))) {
+      showError(errorBox, "The text could not be read aloud just now.");
     }
   });
 });

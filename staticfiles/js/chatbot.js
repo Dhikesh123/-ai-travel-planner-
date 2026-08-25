@@ -50,12 +50,14 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Read any message aloud (works for messages loaded from the database too)
-  chatWindow.addEventListener("click", function (event) {
+  chatWindow.addEventListener("click", async function (event) {
     const button = event.target.closest(".speak-btn");
     if (!button) return;
     const text = button.closest(".bubble").querySelector(".bubble-text").innerText;
-    const spoke = Speech.speak(text, button.dataset.lang || "en");
-    if (!spoke) showError(errorBox, "This browser cannot read text aloud.");
+    // Awaited: when the device has no voice for the language, speak() goes to
+    // the server for the audio, so the answer is only "no" once that fails too.
+    const spoke = await Speech.speak(text, button.dataset.lang || "en");
+    if (!spoke) showError(errorBox, "The text could not be read aloud just now.");
   });
 
   // ---------------------------------------------------------------------

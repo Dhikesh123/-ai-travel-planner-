@@ -248,6 +248,8 @@
   window.CSRF_TOKEN = "{{ csrf_token }}";
 </script>
 <script src="{% static 'js/app.js' %}?v={{ ASSET_V }}"></script>
+{# Suggestions for every "From" box on the site. #}
+<script src="{% static 'js/city_search.js' %}?v={{ ASSET_V }}"></script>
 {% if user.is_authenticated %}
   {# speech.js must load first - the widget's Voice tab uses its Speech helper. #}
   <script src="{% static 'js/speech.js' %}?v={{ ASSET_V }}"></script>

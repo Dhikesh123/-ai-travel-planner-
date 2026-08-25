@@ -86,6 +86,10 @@ urlpatterns = [
         api_views.api_destination_detail,
         name="api_destination_detail",
     ),
+    # Read aloud, for languages the browser has no voice for.
+    path("api/speak/", api_views.api_speak, name="api_speak"),
+    # The "From" box asks this as the customer types.
+    path("api/city-search/", api_views.api_city_search, name="api_city_search"),
     # The planner asks this every time the From or To address changes.
     path("api/journey-places/", api_views.api_journey_places, name="api_journey_places"),
     path("api/transportation/", api_views.api_transportation, name="api_transportation"),

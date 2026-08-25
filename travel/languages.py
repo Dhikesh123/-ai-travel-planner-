@@ -17,11 +17,17 @@ Now everything reads this list:
 
 To add a language, add one row below. Nothing else needs to change.
 
-The set is English plus the eleven most widely spoken Indian languages,
-which is what a travel site for India needs. Groq's chat model writes all of
-them and Whisper transcribes them; how well a browser SPEAKS them aloud
-depends on the voices installed on the customer's own device, which is why
-speech.js checks before promising.
+The set is English and Telugu.
+
+It has been wider - eleven Indian languages at one point - and everything
+here is still built to carry as many as the list holds: add a row and the
+dropdowns, the microphone, the alphabet detection and the AI prompts all
+follow. It is short because that is what this site wants offered, not
+because anything here could not manage more.
+
+Groq's chat model writes both and Whisper transcribes both; how well a
+browser SPEAKS them aloud depends on the voices installed on the customer's
+own device, which is why speech.js checks before promising.
 """
 
 
@@ -65,24 +71,11 @@ class Language:
         }
 
 
-# English first because it is the default, then Telugu because this project
-# started as a Telugu-and-English site, then the rest by number of speakers.
+# English first because it is the default, then Telugu, which is the language
+# this project was built around.
 LANGUAGES = [
     Language("en", "English", "English", "en-IN"),
     Language("te", "Telugu", "తెలుగు", "te-IN", ("ఀ", "౿")),
-    Language("hi", "Hindi", "हिन्दी", "hi-IN", ("ऀ", "ॿ")),
-    Language("ta", "Tamil", "தமிழ்", "ta-IN", ("஀", "௿")),
-    Language("kn", "Kannada", "ಕನ್ನಡ", "kn-IN", ("ಀ", "೿")),
-    Language("ml", "Malayalam", "മലയാളം", "ml-IN", ("ഀ", "ൿ")),
-    # Marathi is written in the same Devanagari alphabet as Hindi, so no
-    # amount of looking at the letters can tell the two apart. It has no
-    # script range here on purpose: see detect() below.
-    Language("mr", "Marathi", "मराठी", "mr-IN"),
-    Language("bn", "Bengali", "বাংলা", "bn-IN", ("ঀ", "৿")),
-    Language("gu", "Gujarati", "ગુજરાતી", "gu-IN", ("઀", "૿")),
-    Language("pa", "Punjabi", "ਪੰਜਾਬੀ", "pa-IN", ("਀", "੿")),
-    Language("ur", "Urdu", "اردو", "ur-IN", ("؀", "ۿ")),
-    Language("or", "Odia", "ଓଡ଼ିଆ", "or-IN", ("଀", "୿")),
 ]
 
 BY_CODE = {language.code: language for language in LANGUAGES}
@@ -130,9 +123,10 @@ def detect(text):
     Getting it wrong makes a sentence sound odd, not break, so a simple
     count of letters per alphabet is enough.
 
-    Text in Devanagari is reported as Hindi. It could equally be Marathi -
-    they share every letter - and no rule over the characters alone can
-    separate them. Hindi wins because it has far more speakers.
+    Anything that is not Telugu script reads as English, which is the right
+    answer for a site that offers the two: a Latin-alphabet sentence is
+    English, or it is an Indian language typed in Latin letters, and either
+    way an English voice is the one that will read it back sensibly.
     """
     if not text:
         return DEFAULT_CODE

@@ -10,6 +10,10 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
+import json
+
+from unittest.mock import MagicMock, patch
+
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -634,30 +638,27 @@ class LanguageDetectionTests(TestCase):
     def test_empty_text_defaults_to_english(self):
         self.assertEqual(detect_language(""), "en")
 
-    def test_every_indian_language_is_recognised_by_its_alphabet(self):
-        """One real sentence per language, each in its own script."""
-        samples = {
-            "hi": "मुझे गोवा जाना है",
-            "ta": "மதுரை எவ்வளவு தூரம்",
-            "kn": "ಮೈಸೂರು ಎಷ್ಟು ದೂರ",
-            "ml": "മൂന്നാർ എത്ര ദൂരം",
-            "bn": "পুরী কত দূরে",
-            "gu": "દ્વારકા કેટલું દૂર છે",
-            "pa": "ਅੰਮ੍ਰਿਤਸਰ ਕਿੰਨੀ ਦੂਰ ਹੈ",
-            "ur": "اجمیر کتنی دور ہے",
-            "or": "ପୁରୀ କେତେ ଦୂର",
-        }
-        for code, sentence in samples.items():
-            with self.subTest(language=code):
-                self.assertEqual(detect_language(sentence), code)
+    def test_another_indian_script_reads_as_english(self):
+        """
+        The site offers English and Telugu. Anything written in a third
+        alphabet is not one of them, and English is the honest answer - it
+        is the voice that will read the sentence back least badly.
 
-    def test_marathi_is_reported_as_hindi(self):
+        This is worth a test rather than a shrug: detection drives which
+        voice speaks a reply aloud, and it should never claim a language the
+        site does not have.
         """
-        Hindi and Marathi share the Devanagari alphabet, so no rule over the
-        characters can separate them. This test records that deliberate
-        choice rather than leaving it to be discovered as a bug.
-        """
-        self.assertEqual(detect_language("मला गोव्याला जायचे आहे"), "hi")
+        for sentence in (
+            "मुझे गोवा जाना है",           # Hindi
+            "மதுரை எவ்வளவு தூரம்",   # Tamil
+            "ಮೈಸೂರು ಎಷ್ಟು ದೂರ",         # Kannada
+        ):
+            with self.subTest(sentence=sentence[:12]):
+                self.assertEqual(detect_language(sentence), "en")
+
+    def test_telugu_in_latin_letters_reads_as_english(self):
+        """"ela unnaru" is Telugu, but an English voice reads it sensibly."""
+        self.assertEqual(detect_language("Hyderabad ela vellali"), "en")
 
     def test_a_place_name_in_english_does_not_change_the_answer(self):
         """Mixed text is judged by which alphabet has the most letters."""
@@ -683,8 +684,16 @@ class LanguageListTests(TestCase):
 
     def test_clean_code_accepts_what_a_browser_sends(self):
         self.assertEqual(languages.clean_code("te-IN"), "te")
-        self.assertEqual(languages.clean_code("HI"), "hi")
+        self.assertEqual(languages.clean_code("TE"), "te")
         self.assertEqual(languages.clean_code("en_US"), "en")
+
+    def test_a_language_the_site_dropped_is_not_accepted(self):
+        """
+        The site offered eleven Indian languages for a while. A stale code in
+        a bookmark or an old session must not slip back through.
+        """
+        self.assertEqual(languages.clean_code("hi"), "en")
+        self.assertFalse(languages.is_supported("ta"))
 
     def test_clean_code_refuses_anything_unknown(self):
         """A stray code must never reach the AI service or the database."""
@@ -694,7 +703,8 @@ class LanguageListTests(TestCase):
 
     def test_profile_choices_come_from_the_list(self):
         self.assertEqual(len(Profile.LANGUAGE_CHOICES), len(languages.LANGUAGES))
-        self.assertIn(("hi", "Hindi (हिन्दी)"), Profile.LANGUAGE_CHOICES)
+        self.assertIn(("en", "English"), Profile.LANGUAGE_CHOICES)
+        self.assertIn(("te", "Telugu (తెలుగు)"), Profile.LANGUAGE_CHOICES)
 
     def test_the_browser_copy_carries_the_script_ranges(self):
         """speech.js builds its detection from these, so they must be there."""
@@ -918,3 +928,311 @@ class PlannerPageTests(TestCase):
         html = self.client.get("/planner/").content.decode()
         self.assertNotIn("Ram Mandir", html)
         self.assertNotIn("Baga Beach", html)
+
+
+class MeasuredDistanceTests(TestCase):
+    """
+    When neither rate table knows a city pair, the distance is measured from
+    the map instead of falling back to a flat guess.
+
+    Bhimavaram to Ayodhya is nobody's sample route. Before this it came back
+    as 250 km, and every rupee on the trip page was built on that.
+    """
+
+    def setUp(self):
+        CityLocation.objects.create(
+            name="bhimavaram", latitude=16.48181, longitude=81.53294
+        )
+        Destination.objects.create(
+            name="Ayodhya", state="Uttar Pradesh", latitude=26.79907, longitude=82.20523
+        )
+
+    def test_an_unlisted_pair_is_measured_from_the_map(self):
+        km, known = travel_service.estimate_distance("Bhimavaram", "Ayodhya")
+        self.assertTrue(known)
+        # ~1,149 km as the crow flies, plus the allowance for roads winding
+        self.assertAlmostEqual(km, 1436, delta=60)
+
+    def test_the_rate_table_still_wins(self):
+        """A distance somebody entered by hand beats one worked out here."""
+        RouteDistance.objects.create(
+            from_city="Bhimavaram", to_city="Ayodhya", distance_km=1600
+        )
+        km, known = travel_service.estimate_distance("Bhimavaram", "Ayodhya")
+        self.assertEqual(km, 1600)
+        self.assertTrue(known)
+
+    def test_a_pair_that_cannot_be_placed_still_falls_back(self):
+        CityLocation.objects.create(name="nowhere at all", latitude=None, longitude=None)
+        km, known = travel_service.estimate_distance("Nowhere At All", "Ayodhya")
+        self.assertEqual(km, travel_service.DEFAULT_DISTANCE_KM)
+        self.assertFalse(known)
+
+
+class ChoiceComparisonTests(BaseData):
+    """The trip page prices every other option, and says which it would pick."""
+
+    def setUp(self):
+        super().setUp()
+        self.bus = Transportation.objects.create(
+            code="bus", name="Bus", cost_per_km=Decimal("1.80"),
+            average_speed_kmph=45, seats_per_unit=1, charged_per_person=True,
+        )
+        self.flight = Transportation.objects.create(
+            code="flight", name="Flight", cost_per_km=Decimal("7.00"),
+            average_speed_kmph=300, seats_per_unit=1, charged_per_person=True,
+        )
+
+    def _transport(self, distance_km=1450, travelers=2, days=5):
+        return travel_service.compare_transport(
+            distance_km=distance_km, travelers=travelers, days=days, chosen=self.car
+        )
+
+    def test_every_option_is_priced(self):
+        names = {row["name"] for row in self._transport()}
+        self.assertEqual(names, {"Car", "Train", "Bus", "Flight"})
+
+    def test_the_list_runs_cheapest_first(self):
+        totals = [row["total"] for row in self._transport()]
+        self.assertEqual(totals, sorted(totals))
+
+    def test_the_cheapest_and_the_fastest_are_labelled(self):
+        rows = self._transport()
+        cheapest = min(rows, key=lambda row: row["total"])
+        fastest = min(rows, key=lambda row: row["hours"])
+        self.assertIn("Cheapest", cheapest["labels"])
+        self.assertIn("Fastest", fastest["labels"])
+
+    def test_exactly_one_option_is_recommended(self):
+        self.assertEqual(sum(1 for row in self._transport() if row["is_recommended"]), 1)
+
+    def test_a_long_haul_does_not_recommend_paying_for_speed(self):
+        """
+        Flying saves seventeen hours over the train and costs thousands more
+        per hour saved. The train stays the recommendation.
+        """
+        recommended = next(row for row in self._transport() if row["is_recommended"])
+        self.assertEqual(recommended["name"], "Train")
+
+    def test_the_chosen_option_is_marked_and_differences_are_from_it(self):
+        rows = self._transport()
+        chosen = next(row for row in rows if row["is_chosen"])
+        self.assertEqual(chosen["name"], "Car")
+        self.assertIn("Your choice", chosen["labels"])
+        self.assertEqual(chosen["difference"], Decimal("0.00"))
+        for row in rows:
+            self.assertEqual(row["difference"], row["total"] - chosen["total"])
+
+    # -- rooms ----------------------------------------------------------
+    def _rooms(self, benchmark, distance_km=1450, travelers=2, days=5):
+        return travel_service.compare_rooms(
+            distance_km=distance_km, travelers=travelers, days=days,
+            transportation=self.car, chosen_category="standard",
+            benchmark_per_day=benchmark,
+        )
+
+    def test_all_four_room_classes_are_priced(self):
+        rows = self._rooms(Decimal("3000"))
+        self.assertEqual([row["label"] for row in rows],
+                         ["Budget", "Standard", "Deluxe", "Luxury"])
+
+    def test_a_generous_benchmark_buys_a_better_room(self):
+        """The recommendation is the best class that still fits inside it."""
+        rows = self._rooms(Decimal("100000"))
+        self.assertEqual(next(r for r in rows if r["is_recommended"])["label"], "Luxury")
+
+    def test_a_tight_benchmark_falls_back_to_the_cheapest(self):
+        rows = self._rooms(Decimal("1"))
+        self.assertEqual(next(r for r in rows if r["is_recommended"])["label"], "Budget")
+
+    def test_the_room_figure_leaves_the_journey_out(self):
+        """
+        The per-day figure is about being there, so a longer journey must not
+        change it - otherwise it is judged against a benchmark that was never
+        about travel.
+        """
+        near = self._rooms(Decimal("3000"), distance_km=100)
+        far = self._rooms(Decimal("3000"), distance_km=2000)
+        self.assertEqual(
+            [row["per_person_per_day"] for row in near],
+            [row["per_person_per_day"] for row in far],
+        )
+
+
+class CitySearchTests(TestCase):
+    """What the "From" box offers as somebody types."""
+
+    def setUp(self):
+        self.client = Client()
+        # a destination the site sells
+        Destination.objects.create(
+            name="Vijayawada", state="Andhra Pradesh",
+            latitude=16.51153, longitude=80.61605,
+        )
+        # towns that are only starting points
+        CityLocation.objects.create(
+            name="bhimavaram", display_name="Bhimavaram, Andhra Pradesh",
+            latitude=16.48181, longitude=81.53294,
+        )
+        CityLocation.objects.create(
+            name="tadepalligudem", display_name="Tadepalligudem, Andhra Pradesh",
+            latitude=16.81, longitude=81.52,
+        )
+        # one we failed to place, which must never be suggested
+        CityLocation.objects.create(name="nowhere", display_name="", latitude=None)
+
+    def search(self, query):
+        return self.client.get("/api/city-search/", {"q": query}).json()["results"]
+
+    def test_it_finds_a_town_from_the_first_few_letters(self):
+        labels = [row["label"] for row in self.search("bhim")]
+        self.assertIn("Bhimavaram, Andhra Pradesh", labels)
+
+    def test_a_destination_is_marked_as_one(self):
+        rows = self.search("vij")
+        self.assertEqual(rows[0]["name"], "Vijayawada")
+        self.assertEqual(rows[0]["kind"], "destination")
+
+    def test_destinations_come_before_other_towns(self):
+        CityLocation.objects.create(
+            name="vijayapura", display_name="Vijayapura, Karnataka",
+            latitude=16.83, longitude=75.71,
+        )
+        self.assertEqual(self.search("vij")[0]["name"], "Vijayawada")
+
+    def test_it_also_matches_inside_a_name(self):
+        """"gudem" should still find Tadepalligudem."""
+        labels = [row["label"] for row in self.search("gudem")]
+        self.assertIn("Tadepalligudem, Andhra Pradesh", labels)
+
+    def test_a_town_we_could_not_place_is_never_offered(self):
+        self.assertEqual(self.search("nowhere"), [])
+
+    def test_one_letter_is_not_a_search(self):
+        """Too little to go on, and it would match half of India."""
+        self.assertEqual(self.search("b"), [])
+
+    def test_nothing_matching_is_an_empty_list_not_an_error(self):
+        response = self.client.get("/api/city-search/", {"q": "zzzzzz"})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+        self.assertEqual(response.json()["results"], [])
+
+    def test_the_same_place_is_never_listed_twice(self):
+        """A destination that is also in the city table appears once."""
+        CityLocation.objects.create(
+            name="vijayawada", display_name="Vijayawada, Andhra Pradesh",
+            latitude=16.51153, longitude=80.61605,
+        )
+        names = [row["name"].lower() for row in self.search("vijayawada")]
+        self.assertEqual(len(names), len(set(names)))
+
+
+class TidyPlaceNameTests(TestCase):
+    """OpenStreetMap returns the whole administrative chain; a dropdown cannot."""
+
+    def test_the_town_and_its_state_survive(self):
+        self.assertEqual(
+            geo_service._tidy_name("Bhimavaram, West Godavari, Andhra Pradesh, India"),
+            "Bhimavaram, Andhra Pradesh",
+        )
+
+    def test_a_postcode_is_dropped(self):
+        self.assertEqual(
+            geo_service._tidy_name("Ayodhya, Faizabad, Ayodhya, Uttar Pradesh, 224123, India"),
+            "Ayodhya, Uttar Pradesh",
+        )
+
+    def test_a_short_name_is_left_alone(self):
+        self.assertEqual(geo_service._tidy_name("Goa, India"), "Goa")
+        self.assertEqual(geo_service._tidy_name("Delhi"), "Delhi")
+
+    def test_nothing_in_nothing_out(self):
+        self.assertEqual(geo_service._tidy_name(""), "")
+        self.assertEqual(geo_service._tidy_name(None), "")
+
+class ReadAloudTests(TestCase):
+    """
+    The server speaks when the browser cannot.
+
+    Windows ships no Telugu voice, so on most machines in India the browser
+    can only apologise. These tests cover the fallback that replaced the
+    apology - with the speech service stubbed out, because a test suite
+    should not need the internet.
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="meena", password="TestPass!234")
+        self.client.force_login(self.user)
+
+    def speak(self, **body):
+        return self.client.post(
+            "/api/speak/", data=json.dumps(body), content_type="application/json"
+        )
+
+    def test_it_returns_audio(self):
+        with patch("travel.services.speech_service.synthesize", return_value=b"ID3-pretend-mp3"):
+            response = self.speak(text="తిరుపతి", language="te")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "audio/mpeg")
+        self.assertEqual(response.content, b"ID3-pretend-mp3")
+
+    def test_the_language_reaches_the_speech_service(self):
+        with patch("travel.services.speech_service.synthesize", return_value=b"x") as spoken:
+            self.speak(text="hello", language="te")
+        self.assertEqual(spoken.call_args.args[1], "te")
+
+    def test_an_unsupported_language_becomes_english(self):
+        """A stale code must not reach the speech service as-is."""
+        with patch("travel.services.speech_service.synthesize", return_value=b"x") as spoken:
+            self.speak(text="hello", language="hi")
+        self.assertEqual(spoken.call_args.args[1], "en")
+
+    def test_empty_text_is_refused(self):
+        response = self.speak(text="   ", language="te")
+        self.assertEqual(response.status_code, 400)
+
+    def test_a_speech_failure_is_explained_not_crashed(self):
+        from travel.services.ai_service import AIError
+
+        with patch("travel.services.speech_service.synthesize",
+                   side_effect=AIError("The speech service could not be reached.")):
+            response = self.speak(text="hello", language="te")
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("could not be reached", response.json()["error"])
+
+    def test_it_needs_a_login(self):
+        response = Client().post(
+            "/api/speak/", data=json.dumps({"text": "hello"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
+
+
+class VoiceChoiceTests(TestCase):
+    """Every language the site offers must have a voice to say it in."""
+
+    def test_each_language_has_a_voice(self):
+        from travel.services import speech_service
+
+        for language in languages.LANGUAGES:
+            with self.subTest(language=language.code):
+                self.assertIn(language.code, speech_service.VOICES)
+
+    def test_very_long_text_is_cut_short(self):
+        """Nobody gets to use this as a free audiobook service."""
+        from travel.services import speech_service
+
+        captured = {}
+
+        class FakeCommunicate:
+            def __init__(self, text, voice):
+                captured["length"] = len(text)
+
+            async def stream(self):
+                yield {"type": "audio", "data": b"x"}
+
+        with patch.dict("sys.modules", {"edge_tts": MagicMock(Communicate=FakeCommunicate)}):
+            speech_service.synthesize("a" * 9000, "en")
+        self.assertEqual(captured["length"], speech_service.MAX_SPOKEN_CHARACTERS)

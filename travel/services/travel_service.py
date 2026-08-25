@@ -11,6 +11,8 @@ sample rates stored in the database. They are not live market prices.
 from decimal import ROUND_HALF_UP, Decimal
 from math import ceil
 
+from . import geo_service
+
 # ---------------------------------------------------------------------------
 # Sample rate cards. Admin can override transport rates in the database;
 # these two tables stay in code because they are simple lookup values.
@@ -37,7 +39,14 @@ LOCAL_TRANSPORT_PER_DAY = Decimal("500")
 # Extra buffer for shopping, tips, emergencies: 8% of everything else
 OTHER_EXPENSES_PERCENT = Decimal("0.08")
 
-# Fallback distance used when the city pair is unknown
+# How much longer a road is than the straight line it follows. Used when a
+# distance has to be measured from coordinates rather than read from a table.
+# A plain float, because the distance it multiplies is one: haversine works
+# in floats and the result is rounded to whole kilometres anyway.
+ROAD_WINDS_FACTOR = 1.25
+
+# Fallback distance used when the city pair is unknown and neither end can be
+# placed on the map
 DEFAULT_DISTANCE_KM = 250
 
 # A few well-known sample distances. The RouteDistance table is checked first,
@@ -106,7 +115,20 @@ def estimate_distance(source, destination_name):
     if (dst, src) in FALLBACK_DISTANCES:
         return FALLBACK_DISTANCES[(dst, src)], True
 
-    # 3. Give up and use a neutral default
+    # 3. Neither table knows this pair - but both ends may still be on the
+    #    map. Bhimavaram to Ayodhya is nobody's sample route, and answering
+    #    "250 km" for a journey of about fourteen hundred put every figure on
+    #    the page out by a factor of five.
+    kilometres = geo_service.distance_km(
+        geo_service.locate(src), geo_service.locate(dst)
+    )
+    if kilometres:
+        # A road is longer than the line it follows - hills, rivers, and the
+        # simple fact that towns are not laid out for the convenience of
+        # straight lines. A quarter again is the usual allowance in the plains.
+        return int(kilometres * ROAD_WINDS_FACTOR), True
+
+    # 4. Give up and use a neutral default
     return DEFAULT_DISTANCE_KM, False
 
 
@@ -202,6 +224,197 @@ def calculate_costs(
             "food_rate_per_person_day": _money(food_rate),
         },
     }
+
+
+# ---------------------------------------------------------------------------
+# Comparing the choices
+# ---------------------------------------------------------------------------
+# Two rules decide what gets called recommended, and both are written down
+# rather than felt:
+#
+#   Transport - start at the cheapest, and only move up to a faster option
+#   when the hours it saves are cheap enough to be worth buying. Flying
+#   Bhimavaram to Ayodhya saves seventeen hours over the train and costs
+#   36,000 rupees more, which is over 2,000 an hour; the train stays the
+#   recommendation. On a short hop where a faster option costs a few hundred
+#   more, it wins instead.
+#
+#   Room - the most comfortable class the destination's own published
+#   per-person-per-day estimate will carry. That figure covers being there -
+#   a bed, meals, getting about town - so it is compared against the same,
+#   with the long-distance travel taken out. Leaving it in would judge a
+#   1,450 km trip by a number that was never about the journey.
+#
+# An hour of the whole group's time, in rupees. Above this, a faster option
+# is a luxury rather than a saving.
+HOUR_WORTH_BUYING = Decimal("500")
+
+
+def compare_transport(
+    *,
+    distance_km,
+    travelers,
+    days,
+    chosen,
+    hotel_category="standard",
+    food_budget="standard",
+    activity_budget=Decimal("0"),
+    places=None,
+):
+    """
+    The same trip priced under every transport option.
+
+    Returns a list of dicts, cheapest first, each carrying the total, the
+    door-to-door travel time, the difference against what was chosen, and
+    whatever labels apply to it.
+    """
+    from ..models import Transportation
+
+    rows = []
+    for option in Transportation.objects.filter(is_active=True):
+        costs = calculate_costs(
+            distance_km=distance_km,
+            travelers=travelers,
+            days=days,
+            transportation=option,
+            hotel_category=hotel_category,
+            food_budget=food_budget,
+            activity_budget=activity_budget,
+            places=places,
+        )
+        rows.append(
+            {
+                "option": option,
+                "name": option.name,
+                "is_chosen": chosen is not None and option.pk == chosen.pk,
+                "total": costs["total_cost"],
+                "per_person": costs["details"]["per_person"],
+                "hours": estimate_travel_hours(distance_km, option),
+                "labels": [],
+            }
+        )
+
+    if not rows:
+        return rows
+
+    rows.sort(key=lambda row: row["total"])
+    cheapest = rows[0]
+    quickest = min(rows, key=lambda row: row["hours"])
+
+    # Start at the cheapest and buy speed only where it is cheap. Working up
+    # the list one option at a time means the comparison is always against
+    # what is currently recommended, not against the bottom of the list.
+    recommended = cheapest
+    for row in rows[1:]:
+        hours_saved = Decimal(str(recommended["hours"])) - Decimal(str(row["hours"]))
+        if hours_saved <= 0:
+            continue                      # dearer and no quicker: never
+        extra = Decimal(row["total"]) - Decimal(recommended["total"])
+        if extra / hours_saved <= HOUR_WORTH_BUYING:
+            recommended = row
+
+    cheapest["labels"].append("Cheapest")
+    quickest["labels"].append("Fastest")
+    if recommended is not cheapest and recommended is not quickest:
+        recommended["labels"].append("Best balance")
+    recommended["is_recommended"] = True
+
+    chosen_row = next((row for row in rows if row["is_chosen"]), None)
+    for row in rows:
+        row.setdefault("is_recommended", False)
+        row["difference"] = (
+            _money(row["total"] - chosen_row["total"]) if chosen_row else None
+        )
+        if row["is_chosen"]:
+            row["labels"].append("Your choice")
+    return rows
+
+
+def compare_rooms(
+    *,
+    distance_km,
+    travelers,
+    days,
+    transportation,
+    chosen_category,
+    benchmark_per_day=None,
+    food_budget="standard",
+    activity_budget=Decimal("0"),
+    places=None,
+):
+    """
+    The same trip priced under every room class.
+
+    benchmark_per_day is the destination's own published per-person-per-day
+    estimate. When it is given, the recommended class is the dearest one that
+    still comes in under it - the most comfortable room the destination's own
+    figure says the trip can carry.
+    """
+    rows = []
+    for category, label in (
+        ("budget", "Budget"),
+        ("standard", "Standard"),
+        ("deluxe", "Deluxe"),
+        ("luxury", "Luxury"),
+    ):
+        costs = calculate_costs(
+            distance_km=distance_km,
+            travelers=travelers,
+            days=days,
+            transportation=transportation,
+            hotel_category=category,
+            food_budget=food_budget,
+            activity_budget=activity_budget,
+            places=places,
+        )
+        details = costs["details"]
+        heads = max(int(travelers or 1), 1)
+        length = max(int(days or 1), 1)
+        # What being there costs: a bed, meals, getting around town, tickets,
+        # and their share of the buffer - but not the journey, and not the
+        # journey's share of the buffer either. Subtracting travel from the
+        # total would leave that second part behind, and a longer road would
+        # quietly raise a figure that is supposed to be about the destination.
+        on_the_ground = (
+            costs["hotel_cost"]
+            + costs["food_cost"]
+            + costs["local_transport_cost"]
+            + costs["activity_cost"]
+        ) * (1 + OTHER_EXPENSES_PERCENT)
+        rows.append(
+            {
+                "category": category,
+                "label": label,
+                "is_chosen": category == chosen_category,
+                "rate": details["hotel_rate_per_room_night"],
+                "rooms": details["rooms"],
+                "nights": details["nights"],
+                "total": costs["total_cost"],
+                "per_person_per_day": _money(on_the_ground / heads / length),
+                "labels": [],
+            }
+        )
+
+    rows[0]["labels"].append("Cheapest")
+
+    recommended = None
+    if benchmark_per_day:
+        benchmark = Decimal(benchmark_per_day)
+        within = [row for row in rows if row["per_person_per_day"] <= benchmark]
+        recommended = within[-1] if within else rows[0]
+    for row in rows:
+        row["is_recommended"] = recommended is not None and row is recommended
+        if row["is_recommended"]:
+            row["labels"].append("Recommended")
+        if row["is_chosen"]:
+            row["labels"].append("Your choice")
+
+    chosen_row = next((row for row in rows if row["is_chosen"]), None)
+    for row in rows:
+        row["difference"] = (
+            _money(row["total"] - chosen_row["total"]) if chosen_row else None
+        )
+    return rows
 
 
 # ---------------------------------------------------------------------------

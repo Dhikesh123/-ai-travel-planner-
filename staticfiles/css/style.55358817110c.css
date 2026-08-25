@@ -989,7 +989,7 @@ h1 { letter-spacing: -.03em; }
        flat colour wash that ties the photograph back to the brand blue. */
     linear-gradient(180deg, rgba(6, 20, 38, .78) 0%, rgba(6, 20, 38, .55) 45%, rgba(6, 20, 38, .82) 100%),
     linear-gradient(rgba(11, 63, 143, .45), rgba(11, 63, 143, .45)),
-    var(--brand-dark) url("../images/hero/kumarakom-backwaters.jpg")
+    var(--brand-dark) url("../images/hero/kumarakom-backwaters.78b9f4c96bca.jpg")
       center / cover no-repeat;
 }
 
@@ -999,7 +999,7 @@ h1 { letter-spacing: -.03em; }
     background-image:
       linear-gradient(180deg, rgba(6, 20, 38, .74) 0%, rgba(6, 20, 38, .48) 45%, rgba(6, 20, 38, .80) 100%),
       linear-gradient(rgba(11, 63, 143, .4), rgba(11, 63, 143, .4)),
-      url("../images/hero/kumarakom-backwaters.jpg");
+      url("../images/hero/kumarakom-backwaters.78b9f4c96bca.jpg");
   }
 }
 
@@ -1317,7 +1317,7 @@ h1 { letter-spacing: -.03em; }
 /* A deep flat header with a faint hairline under it, which is the
    same accent the section headings use. */
 .widget-head {
-  background: #0b3f8f;
+  background: #a80d1e;
   border-bottom: 1px solid rgba(255, 255, 255, .22);
   padding: .9rem 1rem;
 }
@@ -1580,15 +1580,12 @@ h1 { letter-spacing: -.03em; }
 
 /* Six flat steps down one red ramp rather than six unrelated colours, so
    the bars read as one chart. */
-/* One ramp, deepest first. The order follows the budget itself - getting
-   there, sleeping, eating, moving about, doing things, and the buffer last -
-   so the bars are told apart by weight rather than by six unrelated hues. */
-.cost-fill-travel   { background: #0a2f6b; }
-.cost-fill-hotel    { background: #0b3f8f; }
-.cost-fill-food     { background: #1667d6; }
-.cost-fill-local    { background: #0d6efd; }
-.cost-fill-activity { background: #5c7cfa; }
-.cost-fill-buffer   { background: #a8c3ff; }
+.cost-fill-travel   { background: #7a0714; }
+.cost-fill-hotel    { background: #a80d1e; }
+.cost-fill-food     { background: #0b3f8f; }
+.cost-fill-local    { background: #5c7cfa; }
+.cost-fill-activity { background: #0d6efd; }
+.cost-fill-buffer   { background: #ff8a99; }
 
 .cost-share { font-size: .7rem; color: var(--ink-soft); }
 
@@ -1892,55 +1889,3 @@ h1 { letter-spacing: -.03em; }
 @media (max-width: 480px) {
   .compare-figures { align-items: flex-start; text-align: left; margin-left: 0; }
 }
-
-/* ------------------------ "From" box suggestions ------------------------ */
-/* A combobox rather than a <datalist>, so each row can carry the state under
-   the town name and say which places the site actually plans trips to. */
-.city-search { position: relative; }
-
-.city-suggestions {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 40;
-  margin: 0;
-  padding: .25rem;
-  list-style: none;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm, 10px);
-  box-shadow: var(--shadow-lg);
-  max-height: 17rem;
-  overflow-y: auto;
-}
-.city-suggestions[hidden] { display: none; }
-
-.city-suggestion {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: .1rem .5rem;
-  padding: .45rem .6rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 400;
-}
-.city-suggestion.is-active { background: var(--brand-soft); }
-
-.city-suggestion-name { font-weight: 650; font-size: .92rem; }
-.city-suggestion-where { font-size: .78rem; color: var(--ink-soft); }
-
-.city-suggestion-tag {
-  margin-left: auto;
-  font-size: .66rem;
-  font-weight: 700;
-  letter-spacing: .03em;
-  text-transform: uppercase;
-  color: var(--brand);
-  white-space: nowrap;
-}
-
-/* Inside the home page's booking panel the fields sit on a tinted hover, so
-   the list needs to clear it rather than blend into it. */
-.bk-field .city-suggestions { left: -.7rem; right: -.7rem; }

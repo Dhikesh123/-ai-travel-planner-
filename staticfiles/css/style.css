@@ -1317,7 +1317,7 @@ h1 { letter-spacing: -.03em; }
 /* A deep flat header with a faint hairline under it, which is the
    same accent the section headings use. */
 .widget-head {
-  background: #a80d1e;
+  background: #0b3f8f;
   border-bottom: 1px solid rgba(255, 255, 255, .22);
   padding: .9rem 1rem;
 }
@@ -1580,12 +1580,15 @@ h1 { letter-spacing: -.03em; }
 
 /* Six flat steps down one red ramp rather than six unrelated colours, so
    the bars read as one chart. */
-.cost-fill-travel   { background: #7a0714; }
-.cost-fill-hotel    { background: #a80d1e; }
-.cost-fill-food     { background: #0b3f8f; }
-.cost-fill-local    { background: #5c7cfa; }
-.cost-fill-activity { background: #0d6efd; }
-.cost-fill-buffer   { background: #ff8a99; }
+/* One ramp, deepest first. The order follows the budget itself - getting
+   there, sleeping, eating, moving about, doing things, and the buffer last -
+   so the bars are told apart by weight rather than by six unrelated hues. */
+.cost-fill-travel   { background: #0a2f6b; }
+.cost-fill-hotel    { background: #0b3f8f; }
+.cost-fill-food     { background: #1667d6; }
+.cost-fill-local    { background: #0d6efd; }
+.cost-fill-activity { background: #5c7cfa; }
+.cost-fill-buffer   { background: #a8c3ff; }
 
 .cost-share { font-size: .7rem; color: var(--ink-soft); }
 
@@ -1812,3 +1815,132 @@ h1 { letter-spacing: -.03em; }
 @media (min-width: 640px) {
   .budget-bar { grid-template-columns: 1.3fr .7fr .7fr 1.4fr auto; }
 }
+
+/* ------------------------- Choice comparison ---------------------------- */
+/* The same trip priced under every transport option and room class, on the
+   trip page beside the total it produced. */
+.compare-panel { margin-top: 1.2rem; }
+
+.compare-heading {
+  font-size: .95rem;
+  font-weight: 750;
+  color: var(--brand);
+  margin: 1.1rem 0 .15rem;
+}
+.compare-heading:first-of-type { margin-top: .4rem; }
+
+.compare-list {
+  list-style: none;
+  margin: .7rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: .4rem;
+}
+
+.compare-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .3rem .8rem;
+  padding: .55rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* What the traveller picked: a quiet outline, so it is findable without
+   competing with the recommendation. */
+.compare-row.is-chosen { border-color: var(--ink-soft); }
+
+/* The recommendation carries the brand colour, and only one row ever can. */
+.compare-row.is-recommended {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.compare-name {
+  font-weight: 700;
+  font-size: .92rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+}
+
+.compare-tag {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  padding: .1rem .45rem;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: var(--ink-soft);
+}
+.compare-tag-best { background: var(--brand); color: #fff; }
+
+.compare-figures {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  margin-left: auto;
+}
+.compare-total { font-weight: 750; font-size: .95rem; }
+
+@media (max-width: 480px) {
+  .compare-figures { align-items: flex-start; text-align: left; margin-left: 0; }
+}
+
+/* ------------------------ "From" box suggestions ------------------------ */
+/* A combobox rather than a <datalist>, so each row can carry the state under
+   the town name and say which places the site actually plans trips to. */
+.city-search { position: relative; }
+
+.city-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: .25rem;
+  list-style: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm, 10px);
+  box-shadow: var(--shadow-lg);
+  max-height: 17rem;
+  overflow-y: auto;
+}
+.city-suggestions[hidden] { display: none; }
+
+.city-suggestion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .1rem .5rem;
+  padding: .45rem .6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 400;
+}
+.city-suggestion.is-active { background: var(--brand-soft); }
+
+.city-suggestion-name { font-weight: 650; font-size: .92rem; }
+.city-suggestion-where { font-size: .78rem; color: var(--ink-soft); }
+
+.city-suggestion-tag {
+  margin-left: auto;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--brand);
+  white-space: nowrap;
+}
+
+/* Inside the home page's booking panel the fields sit on a tinted hover, so
+   the list needs to clear it rather than blend into it. */
+.bk-field .city-suggestions { left: -.7rem; right: -.7rem; }

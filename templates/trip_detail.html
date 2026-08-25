@@ -213,6 +213,86 @@
       </p>
     </aside>
 
+    {% comment %}
+      What the same trip costs under every other choice, priced by the same
+      calculator that produced the total above. Both "recommended" badges
+      follow a written rule rather than a hunch:
+
+        Getting there - the cheapest option, moving up to a faster one only
+        when the hours it saves cost less than Rs 500 each.
+        Where you stay - the most comfortable class that still fits inside
+        the destination's own published per-person-per-day estimate, judged
+        on what being there costs rather than on the journey.
+
+      These are the site's own sample rates, not hotel or airline listings.
+    {% endcomment %}
+    <aside class="panel compare-panel">
+      <h2>Could you do better?</h2>
+
+      {% if transport_options %}
+        <h3 class="compare-heading">Getting there</h3>
+        <p class="muted small">
+          The whole trip priced with each option, over {{ trip.distance_km }} km each way.
+        </p>
+        <ul class="compare-list">
+          {% for row in transport_options %}
+            <li class="compare-row{% if row.is_chosen %} is-chosen{% endif %}{% if row.is_recommended %} is-recommended{% endif %}">
+              <span class="compare-name">
+                {{ row.name }}
+                {% for label in row.labels %}<span class="compare-tag">{{ label }}</span>{% endfor %}
+                {% if row.is_recommended %}<span class="compare-tag compare-tag-best">Recommended</span>{% endif %}
+              </span>
+              <span class="compare-figures">
+                <span class="compare-total">Rs {{ row.total|floatformat:0 }}</span>
+                <span class="muted small">{{ row.hours|floatformat:1 }} h door to door
+                  {% if row.difference and not row.is_chosen %}
+                    &middot; {% if row.difference < 0 %}saves Rs {{ row.difference|floatformat:0|cut:"-" }}{% else %}Rs {{ row.difference|floatformat:0 }} more{% endif %}
+                  {% endif %}
+                </span>
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if room_options %}
+        <h3 class="compare-heading">Where you stay</h3>
+        <p class="muted small">
+          {{ trip.destination.name }} is costed at about Rs {{ cost_benchmark|floatformat:0 }}
+          per person per day on the ground. The recommended room is the best one that fits inside it.
+        </p>
+        <ul class="compare-list">
+          {% for row in room_options %}
+            <li class="compare-row{% if row.is_chosen %} is-chosen{% endif %}{% if row.is_recommended %} is-recommended{% endif %}">
+              <span class="compare-name">
+                {{ row.label }}
+                {% for label in row.labels %}<span class="compare-tag">{{ label }}</span>{% endfor %}
+              </span>
+              <span class="compare-figures">
+                <span class="compare-total">Rs {{ row.total|floatformat:0 }}</span>
+                <span class="muted small">
+                  Rs {{ row.rate|floatformat:0 }} a room a night &middot;
+                  Rs {{ row.per_person_per_day|floatformat:0 }} pp/day on the ground
+                  {% if row.difference and not row.is_chosen %}
+                    &middot; {% if row.difference < 0 %}saves Rs {{ row.difference|floatformat:0|cut:"-" }}{% else %}Rs {{ row.difference|floatformat:0 }} more{% endif %}
+                  {% endif %}
+                </span>
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <a class="btn btn-outline btn-sm" href="{% url 'trip_edit' trip.pk %}">
+        Change transport or room
+      </a>
+
+      <p class="disclaimer">
+        Sample rates from this site's own tables. Not live fares, not hotel
+        listings, and not an offer from any operator.
+      </p>
+    </aside>
+
     <aside class="panel suggest-panel">
       <div class="suggest-head">
         <h2>You could also visit</h2>
@@ -221,7 +301,12 @@
 
       {% if suggested_places %}
         <p class="muted small">
-          Places near {{ trip.destination.name }} that are not in your plan yet.
+          {% if trip.source %}
+            Not in your plan yet: what is around {{ trip.destination.name }} first,
+            then what your road from {{ trip.source }} passes.
+          {% else %}
+            Places near {{ trip.destination.name }} that are not in your plan yet.
+          {% endif %}
         </p>
 
         <ul class="suggest-list">

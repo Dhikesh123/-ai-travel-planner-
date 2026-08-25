@@ -34,13 +34,13 @@ from .models import (
     Trip,
     UploadedImage,
 )
-from .services import ai_service, geo_service
+from .services import ai_service, geo_service, travel_service
 from .utils import recalculate_trip
 
 # How many "you could also visit" places the trip page offers alongside the
 # itinerary. Fourteen fills the sidebar on a tall screen without turning it
 # into a second list to read.
-SUGGESTION_LIMIT = 14
+SUGGESTION_LIMIT = 24
 
 # Categories a family with young children can take on without planning the day
 # around it. "adventure" is the deliberate omission - rafting and trekking are
@@ -156,6 +156,51 @@ def _positive_int(raw, fallback):
     except (TypeError, ValueError):
         return fallback
     return value if value > 0 else fallback
+
+
+def _destinations_by_relevance(trip):
+    """
+    Every other destination, in the order this particular traveller would
+    consider it.
+
+    The trip already knows both ends of the journey, so the same grouping the
+    planner uses answers this too - read back to front, because someone who
+    has arrived cares first about what is around them, then about what they
+    passed, and last about what was near home.
+
+    Whatever is left over is sorted by how far it is from the destination.
+    That matters more than it sounds: the old code finished the list with
+    "anywhere else, alphabetically", which is how a trip to Ayodhya ended up
+    suggesting Agnitheertham in Tamil Nadu, 2,000 km away, because it starts
+    with an A.
+    """
+    ordered, seen = [], {trip.destination_id}
+
+    for _heading, _note, rows in reversed(
+        geo_service.journey_groups(trip.source or "", trip.destination)
+    ):
+        # Each group runs start-first, because that is the order they would be
+        # reached. Reading it backwards puts the end of the road first, so
+        # Varanasi - three hours from Ayodhya - is offered before
+        # Visakhapatnam, which was a thousand kilometres ago.
+        for destination in reversed(rows):
+            if destination.pk not in seen:
+                ordered.append(destination)
+                seen.add(destination.pk)
+
+    rest = list(Destination.objects.exclude(pk__in=seen))
+    end = (trip.destination.latitude, trip.destination.longitude)
+    if end[0] is not None:
+        def how_far(destination):
+            km = geo_service.distance_km(
+                (destination.latitude, destination.longitude), end
+            )
+            # a destination with no coordinates sorts last rather than crashing
+            return km if km is not None else float("inf")
+
+        rest.sort(key=how_far)
+    ordered.extend(rest)
+    return ordered
 
 
 def _spread_by_category(queryset, limit):
@@ -583,21 +628,20 @@ def trip_detail(request, pk):
         SUGGESTION_LIMIT,
     )
 
-    # Top up from further afield until the sidebar is full: first the same
-    # state, which is the realistic "while you are there" add-on, then anywhere
-    # else. Without the second pass a destination that is the only one in its
-    # state - Goa, in the sample data - offers almost nothing.
-    for extra in (
-        TouristPlace.objects.filter(destination__state=trip.destination.state).exclude(
-            destination=trip.destination
-        ),
-        TouristPlace.objects.exclude(destination__state=trip.destination.state),
-    ):
+    # Top up from other destinations until the sidebar is full, taking them in
+    # the order this journey makes them worth considering - around where you
+    # are going, then what the road passed, then near where you set off, and
+    # only after all of that the rest of the country by distance.
+    #
+    # One city at a time rather than one big query, so the list stays grouped
+    # by place instead of interleaving six cities by entry fee.
+    for other in _destinations_by_relevance(trip):
         if len(suggested_places) >= SUGGESTION_LIMIT:
             break
         already = chosen_ids + [p.pk for p in suggested_places]
         for place in _spread_by_category(
-            extra.exclude(pk__in=already)
+            TouristPlace.objects.filter(destination=other)
+            .exclude(pk__in=already)
             .select_related("destination")
             .order_by("entry_fee", "name"),
             SUGGESTION_LIMIT - len(suggested_places),
@@ -613,12 +657,38 @@ def trip_detail(request, pk):
         place.is_recommended = position < RECOMMENDED_COUNT
         place.is_family = place.category in FAMILY_CATEGORIES
 
+    # What the same trip would cost under every other transport option and
+    # room class. Priced by the same calculator that produced the saved
+    # figures, so the comparison and the total can never drift apart.
+    chosen_places = [tp.place for tp in trip_places]
+    shared = {
+        "distance_km": trip.distance_km,
+        "travelers": trip.travelers,
+        "days": trip.days,
+        "food_budget": trip.food_budget,
+        "activity_budget": trip.activity_budget,
+        "places": chosen_places,
+    }
+    transport_options = travel_service.compare_transport(
+        chosen=trip.transportation, hotel_category=trip.hotel_category, **shared
+    )
+    room_options = travel_service.compare_rooms(
+        transportation=trip.transportation,
+        chosen_category=trip.hotel_category,
+        # The destination's own published per-day estimate is the yardstick.
+        benchmark_per_day=trip.destination.estimated_cost_per_day,
+        **shared,
+    )
+
     return render(
         request,
         "trip_detail.html",
         {
             "trip": trip,
             "trip_places": trip_places,
+            "transport_options": transport_options,
+            "room_options": room_options,
+            "cost_benchmark": trip.destination.estimated_cost_per_day,
             "itinerary_days": sorted(itinerary.items()),
             "day_plan": _build_day_plan(sorted(itinerary.items()), trip),
             "day_starts_at": DAY_STARTS_AT,

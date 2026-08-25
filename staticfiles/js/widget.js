@@ -448,7 +448,7 @@ document.addEventListener("DOMContentLoaded", function () {
     translationBox.textContent = data.translation;
   });
 
-  speakBtn.addEventListener("click", function () {
+  speakBtn.addEventListener("click", async function () {
     // Read the translation when there is one, otherwise what was typed.
     const text = (lastTranslation || sourceText.value).trim();
     const lang = lastTranslation ? targetLang.value : sourceLang.value;
@@ -456,17 +456,11 @@ document.addEventListener("DOMContentLoaded", function () {
       showError(voiceError, "There is nothing to read aloud yet.");
       return;
     }
-    if (!Speech.hasVoiceFor(lang)) {
-      showError(
-        voiceError,
-        "Your device has no " + Speech.nameFor(lang) +
-          " voice installed, so this cannot be spoken. The text is still shown above."
-      );
-      return;
-    }
+    // No check for an installed voice any more: Speech.speak falls back to
+    // the server, so Telugu is spoken on a device that has no Telugu voice.
     showError(voiceError, "");
-    if (!Speech.speak(text, lang)) {
-      showError(voiceError, "This browser cannot read text aloud.");
+    if (!(await Speech.speak(text, lang))) {
+      showError(voiceError, "The text could not be read aloud just now.");
     }
   });
 

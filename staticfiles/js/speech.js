@@ -586,24 +586,67 @@ const Speech = (function () {
     return voiceCache;
   }
 
-  function speak(text, lang = "en") {
-    if (!canSpeak() || !text) return false;
+  // The <audio> element playing whatever the server last spoke for us.
+  let serverAudio = null;
 
-    window.speechSynthesis.cancel(); // stop anything already speaking
+  /**
+   * Read text aloud.
+   *
+   * The browser does it when it can - free, instant, nothing leaves the
+   * machine. When the operating system has no voice for the language it
+   * cannot, and Windows ships none for Telugu, so the text goes to the
+   * server instead and comes back as an mp3.
+   *
+   * Returns a promise for true when something is being spoken, false when
+   * nothing could be. Callers can ignore the promise; the fallback plays by
+   * itself either way.
+   */
+  async function speak(text, lang = "en") {
+    if (!text) return false;
+    stopSpeaking();
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    const wanted = fullCode(lang);
-    utterance.lang = wanted;
-    utterance.rate = 0.95;
+    if (canSpeak() && hasVoiceFor(lang)) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      const wanted = fullCode(lang);
+      utterance.lang = wanted;
+      utterance.rate = 0.95;
 
-    const voices = refreshVoices();
-    const match =
-      voices.find((v) => v.lang === wanted) ||
-      voices.find((v) => v.lang && v.lang.replace("_", "-").startsWith(wanted.slice(0, 2)));
-    if (match) utterance.voice = match;
+      const voices = refreshVoices();
+      const match =
+        voices.find((v) => v.lang === wanted) ||
+        voices.find((v) => v.lang && v.lang.replace("_", "-").startsWith(wanted.slice(0, 2)));
+      if (match) utterance.voice = match;
 
-    window.speechSynthesis.speak(utterance);
-    return true;
+      window.speechSynthesis.speak(utterance);
+      return true;
+    }
+
+    return speakFromServer(text, lang);
+  }
+
+  /** Ask the server for the audio, and play it. */
+  async function speakFromServer(text, lang) {
+    try {
+      const response = await fetch("/api/speak/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": window.CSRF_TOKEN || "",
+        },
+        body: JSON.stringify({ text: text, language: shortCode(lang) }),
+      });
+      if (!response.ok) return false;
+
+      const blob = await response.blob();
+      // Revoked when the next one starts, so a long session does not hold on
+      // to every clip it has played.
+      if (serverAudio) URL.revokeObjectURL(serverAudio.src);
+      serverAudio = new Audio(URL.createObjectURL(blob));
+      await serverAudio.play();
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   /**
@@ -626,6 +669,11 @@ const Speech = (function () {
 
   function stopSpeaking() {
     if (canSpeak()) window.speechSynthesis.cancel();
+    // and whatever the server sent, which speechSynthesis knows nothing about
+    if (serverAudio) {
+      serverAudio.pause();
+      serverAudio.currentTime = 0;
+    }
   }
 
   // Some browsers load the voice list late; ask for it once on start-up.

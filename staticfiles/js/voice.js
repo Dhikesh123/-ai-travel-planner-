@@ -188,22 +188,17 @@ document.addEventListener("DOMContentLoaded", function () {
     speakOrWarn(aiBox.innerText, "en");
   });
 
-  function speakOrWarn(text, lang) {
+  async function speakOrWarn(text, lang) {
     if (!text || !text.trim()) {
       showError(errorBox, "There is nothing to read aloud yet.");
       return;
     }
-    if (!Speech.hasVoiceFor(lang)) {
-      showError(
-        errorBox,
-        "Your device does not have a " + Speech.nameFor(lang) +
-          " voice installed, so the text cannot be spoken. The text is still shown above."
-      );
-      return;
-    }
+    // No check for an installed voice any more: when the device has none,
+    // Speech.speak asks the server for the audio instead. Telugu works on a
+    // machine that has never had a Telugu voice.
     showError(errorBox, "");
-    if (!Speech.speak(text, lang)) {
-      showError(errorBox, "This browser cannot read text aloud.");
+    if (!(await Speech.speak(text, lang))) {
+      showError(errorBox, "The text could not be read aloud just now.");
     }
   }
 

@@ -57,3 +57,62 @@ def transcribe_audio(audio_bytes, language="en", filename="recording.webm"):
     its own. Pass any supported language code, or None to let Whisper guess.
     """
     return transcribe(audio_bytes, filename=filename, language=language)
+
+# ---------------------------------------------------------------------------
+# Speaking, when the browser cannot
+# ---------------------------------------------------------------------------
+# Reading text aloud normally happens in the browser, free and instantly.
+# But a browser can only speak a language the operating system has a voice
+# for, and Windows ships none for Telugu - so on most machines in India the
+# "read aloud" button on a Telugu answer could do nothing but apologise.
+#
+# Microsoft's Edge read-aloud service has Telugu voices and needs no API key,
+# so the server fetches the audio and hands it back as an mp3. It is only
+# used when the browser has already said it cannot do the job itself.
+VOICES = {
+    "te": "te-IN-MohanNeural",
+    "en": "en-IN-PrabhatNeural",
+}
+DEFAULT_VOICE = "en-IN-PrabhatNeural"
+
+# Long enough for an AI answer, short enough that nobody can use this as a
+# free audiobook service.
+MAX_SPOKEN_CHARACTERS = 3000
+
+
+def synthesize(text, language="en"):
+    """
+    Turn text into mp3 bytes in the given language.
+
+    Raises AIError with something sayable if the speech service cannot be
+    reached, so the page can explain rather than fail silently.
+    """
+    import asyncio
+
+    import edge_tts
+
+    text = (text or "").strip()[:MAX_SPOKEN_CHARACTERS]
+    if not text:
+        raise AIError("There is nothing to read aloud.")
+
+    voice = VOICES.get(languages.clean_code(language), DEFAULT_VOICE)
+
+    async def collect():
+        audio = bytearray()
+        async for chunk in edge_tts.Communicate(text, voice).stream():
+            if chunk["type"] == "audio":
+                audio += chunk["data"]
+        return bytes(audio)
+
+    try:
+        # A fresh loop each call: Django's request thread has none of its own,
+        # and asyncio.run tidies it up afterwards.
+        audio = asyncio.run(collect())
+    except Exception as exc:                       # network, service, anything
+        raise AIError(
+            "The speech service could not be reached. The text is still on screen."
+        ) from exc
+
+    if not audio:
+        raise AIError("The speech service returned nothing to play.")
+    return audio

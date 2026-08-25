@@ -103,7 +103,10 @@ class TripForm(forms.ModelForm):
             "travel_date": forms.DateInput(attrs={"type": "date"}),
             "return_date": forms.DateInput(attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
-            "source": forms.TextInput(attrs={"placeholder": "e.g. Pune"}),
+            # data-city-search turns the box into a combobox - see city_search.js
+            "source": forms.TextInput(
+                attrs={"placeholder": "e.g. Pune", "data-city-search": ""}
+            ),
         }
 
     def clean_source(self):

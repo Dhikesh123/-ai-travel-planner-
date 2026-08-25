@@ -4,6 +4,9 @@ django-cors-headers>=4.4
 groq>=1.0
 python-dotenv>=1.0
 pillow>=10.0
+# Read-aloud for languages the browser has no voice for - Windows
+# ships none for Telugu. No API key needed.
+edge-tts>=7.0
 
 # Production / deployment
 whitenoise>=6.7

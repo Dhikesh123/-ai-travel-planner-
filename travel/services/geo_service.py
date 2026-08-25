@@ -93,7 +93,27 @@ def _ask_openstreetmap(name):
     if not results:
         return None
     top = results[0]
-    return float(top["lat"]), float(top["lon"]), top.get("display_name", "")[:250]
+    return float(top["lat"]), float(top["lon"]), _tidy_name(top.get("display_name", ""))
+
+
+def _tidy_name(display_name):
+    """
+    Shorten OpenStreetMap's answer to something a dropdown can show.
+
+    They return the whole administrative chain - "Bhimavaram, West Godavari,
+    Andhra Pradesh, India" - and all a traveller needs is the town and the
+    state, which are the first part and the one before the country.
+    """
+    parts = [part.strip() for part in (display_name or "").split(",") if part.strip()]
+    if not parts:
+        return ""
+    if parts[-1].lower() in ("india", "bharat") and len(parts) > 1:
+        parts = parts[:-1]
+    # a postcode is not a place name
+    parts = [part for part in parts if not part.replace(" ", "").isdigit()]
+    if len(parts) <= 2:
+        return ", ".join(parts)[:250]
+    return "%s, %s" % (parts[0], parts[-1])
 
 
 def locate(name):

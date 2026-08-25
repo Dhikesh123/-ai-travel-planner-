@@ -29,7 +29,7 @@ from .models import (
     Trip,
     TripCost,
 )
-from . import languages
+from . import languages, views
 from .services import travel_service
 from .services.speech_service import detect_language
 from .services import geo_service
@@ -833,6 +833,101 @@ class JourneyGeographyTests(TestCase):
     def test_an_empty_name_is_not_looked_up(self):
         self.assertIsNone(geo_service.locate(""))
         self.assertIsNone(geo_service.locate(None))
+
+
+class TripSuggestionScopeTests(TestCase):
+    """
+    The "You could also visit" sidebar on a trip page.
+
+    It used to fill itself to a fixed count, and once the route ran out of
+    cities it carried on down the rest of the catalogue by distance. On a
+    Bhimavaram-to-Ayodhya trip that meant Goa - a different corner of the
+    country, in the wrong direction - appearing under a heading that promises
+    places worth adding to *this* trip. The list is now cut to the journey
+    itself and allowed to come back short.
+
+    Coordinates are written into the database and the starting town is seeded
+    into the location cache, so nothing here reaches OpenStreetMap.
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="asha", password="TestPass!234")
+        self.client.login(username="asha", password="TestPass!234")
+
+        CityLocation.objects.create(
+            name="bhimavaram", latitude=16.48181, longitude=81.53294
+        )
+        self.car = Transportation.objects.create(
+            code="car", name="Car", cost_per_km=Decimal("12.00"),
+            average_speed_kmph=55, seats_per_unit=4, charged_per_person=False,
+        )
+
+        def place(name, state, lat, lon):
+            destination = Destination.objects.create(
+                name=name, state=state, latitude=lat, longitude=lon,
+                estimated_cost_per_day=Decimal("2000"),
+            )
+            spot = TouristPlace.objects.create(
+                destination=destination, name=name + " temple",
+                category="temple", entry_fee=Decimal("0"),
+            )
+            return destination, spot
+
+        self.ayodhya, self.ayodhya_spot = place("Ayodhya", "Uttar Pradesh", 26.79907, 82.20523)
+        self.varanasi, self.varanasi_spot = place("Varanasi", "Uttar Pradesh", 25.33565, 83.00763)
+        self.vijayawada, self.vijayawada_spot = place("Vijayawada", "Andhra Pradesh", 16.51153, 80.61605)
+        self.goa, self.goa_spot = place("Goa", "Goa", 15.35000, 74.00000)
+
+        self.trip = Trip.objects.create(
+            user=self.user, source="Bhimavaram", destination=self.ayodhya,
+            travel_date=timezone.localdate() + timedelta(days=5),
+            travelers=2, days=3, transportation=self.car, distance_km=1400,
+        )
+
+    def _suggested(self):
+        response = self.client.get(reverse("trip_detail", args=[self.trip.pk]))
+        self.assertEqual(response.status_code, 200)
+        return response.context["suggested_places"]
+
+    def test_somewhere_off_the_route_is_not_suggested(self):
+        """Goa is west, Ayodhya is north: it belongs to no part of this trip."""
+        self.assertNotIn(self.goa_spot, self._suggested())
+
+    def test_a_city_on_the_road_is_suggested(self):
+        self.assertIn(self.varanasi_spot, self._suggested())
+
+    def test_a_city_beside_the_start_is_suggested(self):
+        self.assertIn(self.vijayawada_spot, self._suggested())
+
+    def test_the_list_stops_short_rather_than_reaching_off_route(self):
+        """
+        Four places exist and only three are on this journey, so the sidebar
+        comes back with three - not padded back up to SUGGESTION_LIMIT.
+        """
+        suggested = self._suggested()
+        self.assertLess(len(suggested), views.SUGGESTION_LIMIT)
+        self.assertEqual(
+            {place.destination_id for place in suggested},
+            {self.ayodhya.pk, self.varanasi.pk, self.vijayawada.pk},
+        )
+
+    def test_each_suggestion_says_why_it_is_on_the_list(self):
+        labels = {
+            place.destination.name: getattr(place, "relation", "")
+            for place in self._suggested()
+        }
+        self.assertEqual(labels["Varanasi"], "On the way")
+        self.assertEqual(labels["Vijayawada"], "Near your start")
+
+    def test_a_trip_with_no_start_still_offers_the_destination(self):
+        """
+        Without a starting point there is no route to cut against, and the
+        page falls back to where the traveller is going rather than emptying.
+        """
+        self.trip.source = ""
+        self.trip.save(update_fields=["source"])
+        self.assertIn(self.ayodhya_spot, self._suggested())
 
 
 class JourneyPlacesApiTests(TestCase):

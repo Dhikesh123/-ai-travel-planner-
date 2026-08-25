@@ -51,6 +51,14 @@ NEAR_KM = 150
 DETOUR_FACTOR = 1.25
 DETOUR_SLACK_KM = 60         # keeps short journeys from having no room at all
 
+# The two fixed group headings. Named rather than written inline because
+# callers match on them to tell one group from another - views.py labels a
+# suggestion "On the way" or "Near your start" off these - and a heading
+# quietly reworded in one place and not the other would silently mislabel
+# every card.
+NEAR_START_HEADING = "Near your starting point"
+ON_ROUTE_HEADING = "On the way"
+
 
 def distance_km(first, second):
     """
@@ -257,13 +265,13 @@ def journey_groups(source_name, destination):
     groups = []
     if near_start:
         groups.append((
-            "Near your starting point",
+            NEAR_START_HEADING,
             "Within %d km of %s." % (NEAR_KM, source_name.strip().title()),
             ordered(near_start),
         ))
     if on_route:
         groups.append((
-            "On the way",
+            ON_ROUTE_HEADING,
             "Roughly along the road, in the order you would reach them.",
             ordered(on_route),
         ))

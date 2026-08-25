@@ -160,23 +160,26 @@ def _positive_int(raw, fallback):
 
 def _destinations_by_relevance(trip):
     """
-    Every other destination, in the order this particular traveller would
-    consider it.
+    The other destinations this journey actually touches, each paired with the
+    short label saying why, in the order this particular traveller would
+    consider them.
 
     The trip already knows both ends of the journey, so the same grouping the
     planner uses answers this too - read back to front, because someone who
     has arrived cares first about what is around them, then about what they
     passed, and last about what was near home.
 
-    Whatever is left over is sorted by how far it is from the destination.
-    That matters more than it sounds: the old code finished the list with
-    "anywhere else, alphabetically", which is how a trip to Ayodhya ended up
-    suggesting Agnitheertham in Tamil Nadu, 2,000 km away, because it starts
-    with an A.
+    Nothing outside those three groups comes back. A destination that is
+    neither near the road nor near either end of it is not a "you could also
+    visit" for this trip at all - it is a different holiday - and offering it
+    anyway is what put Agnitheertham in Tamil Nadu, 2,000 km off the route,
+    in the sidebar of a trip to Ayodhya. The list is now allowed to come back
+    short, or empty, rather than padded out to a fixed count with places the
+    traveller cannot reach from where they are going.
     """
     ordered, seen = [], {trip.destination_id}
 
-    for _heading, _note, rows in reversed(
+    for heading, _note, rows in reversed(
         geo_service.journey_groups(trip.source or "", trip.destination)
     ):
         # Each group runs start-first, because that is the order they would be
@@ -185,22 +188,26 @@ def _destinations_by_relevance(trip):
         # Visakhapatnam, which was a thousand kilometres ago.
         for destination in reversed(rows):
             if destination.pk not in seen:
-                ordered.append(destination)
+                ordered.append((destination, _relation_label(heading, trip)))
                 seen.add(destination.pk)
 
-    rest = list(Destination.objects.exclude(pk__in=seen))
-    end = (trip.destination.latitude, trip.destination.longitude)
-    if end[0] is not None:
-        def how_far(destination):
-            km = geo_service.distance_km(
-                (destination.latitude, destination.longitude), end
-            )
-            # a destination with no coordinates sorts last rather than crashing
-            return km if km is not None else float("inf")
-
-        rest.sort(key=how_far)
-    ordered.extend(rest)
     return ordered
+
+
+def _relation_label(heading, trip):
+    """
+    The group heading shortened to something that fits on a card.
+
+    Matched against the constants geo_service publishes rather than against
+    the strings themselves, so rewording a heading there cannot silently
+    relabel every suggestion here. Anything else is the destination's own
+    group, whose heading carries the city name and is too long for a tag.
+    """
+    if heading == geo_service.NEAR_START_HEADING:
+        return "Near your start"
+    if heading == geo_service.ON_ROUTE_HEADING:
+        return "On the way"
+    return "Near %s" % trip.destination.name
 
 
 def _spread_by_category(queryset, limit):
@@ -628,14 +635,15 @@ def trip_detail(request, pk):
         SUGGESTION_LIMIT,
     )
 
-    # Top up from other destinations until the sidebar is full, taking them in
-    # the order this journey makes them worth considering - around where you
-    # are going, then what the road passed, then near where you set off, and
-    # only after all of that the rest of the country by distance.
+    # Top up from the other destinations this journey touches, taking them in
+    # the order it makes them worth considering - around where you are going,
+    # then what the road passed, then near where you set off. Only those
+    # three: a city off the route is not a "while you are there", and the
+    # sidebar is allowed to stop short rather than reach for one.
     #
     # One city at a time rather than one big query, so the list stays grouped
     # by place instead of interleaving six cities by entry fee.
-    for other in _destinations_by_relevance(trip):
+    for other, relation in _destinations_by_relevance(trip):
         if len(suggested_places) >= SUGGESTION_LIMIT:
             break
         already = chosen_ids + [p.pk for p in suggested_places]
@@ -646,8 +654,10 @@ def trip_detail(request, pk):
             .order_by("entry_fee", "name"),
             SUGGESTION_LIMIT - len(suggested_places),
         ):
-            # Read in the template to label these with their own city.
+            # Read in the template to label these with their own city and with
+            # what puts them on this trip's list at all.
             place.is_nearby = True
+            place.relation = relation
             suggested_places.append(place)
 
     # Badges the template reads. "Recommended" goes to the head of the spread,

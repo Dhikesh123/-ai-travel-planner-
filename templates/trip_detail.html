@@ -302,8 +302,10 @@
       {% if suggested_places %}
         <p class="muted small">
           {% if trip.source %}
-            Not in your plan yet: what is around {{ trip.destination.name }} first,
-            then what your road from {{ trip.source }} passes.
+            Not in your plan yet, and only from this journey: what is around
+            {{ trip.destination.name }} first, then what your road from
+            {{ trip.source }} passes, then what is near {{ trip.source }} itself.
+            Anywhere off that route is left out.
           {% else %}
             Places near {{ trip.destination.name }} that are not in your plan yet.
           {% endif %}
@@ -339,6 +341,11 @@
                     {% endif %}
                     {% if place.is_nearby %}
                       <span class="suggest-tag suggest-tag-near">{{ place.destination.name }}</span>
+                      {# Why this city is on a list for this trip: near the start,
+                         passed on the way, or close to where you are going. #}
+                      {% if place.relation %}
+                        <span class="suggest-tag suggest-tag-relation">{{ place.relation }}</span>
+                      {% endif %}
                     {% endif %}
                   </span>
                 </span>
@@ -354,7 +361,13 @@
         </a>
       {% else %}
         <p class="muted small">
-          Every place we have for {{ trip.destination.name }} is already in your plan.
+          {% if trip.source %}
+            Nothing left to add along this route &mdash; every place we have for
+            {{ trip.destination.name }} and for the cities between it and
+            {{ trip.source }} is already in your plan.
+          {% else %}
+            Every place we have for {{ trip.destination.name }} is already in your plan.
+          {% endif %}
         </p>
       {% endif %}
     </aside>

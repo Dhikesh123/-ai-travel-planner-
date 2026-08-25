@@ -740,6 +740,12 @@ textarea.w-text { min-height: 4.6rem; }
 }
 .suggest-tag-free { background: #e6f6ef; color: var(--ok); }
 .suggest-tag-near { background: var(--brand-soft); color: #0b3f8f; }
+/* Outlined rather than filled, so the city name stays the loud tag and the
+   reason it is here reads as a note beside it. */
+.suggest-tag-relation {
+  background: transparent; color: var(--ink-soft);
+  box-shadow: inset 0 0 0 1px #d7dee8;
+}
 
 /* Recommended rides on the name row, pushed to the right edge. Amber rather
    than the brand blue, so it reads as a mark on the place and not as another
